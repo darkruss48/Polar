@@ -143,7 +143,7 @@ QJsonObject postAuthSignIn(const std::string &authorization, const std::string &
     json["bundle_id"] = "com.bandainamcogames.dbzdokkanww";
     json["device_token"] = "failed";
     json["reason"] = "NETWORK_ERROR: null";
-    json["captcha_session_key"] = NULL;
+    json["captcha_session_key"] = QJsonValue::Null;
     QJsonObject user_account;
     user_account["ad_id"] = "";
     user_account["unique_id"] = QString::fromStdString(unique_id);

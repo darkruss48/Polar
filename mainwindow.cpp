@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "GamePlatform.h"
+#include "gameplatform.h"
 #include "functb.h"
 #include "render.h"
 #include "updater.h"
@@ -38,69 +38,6 @@
 
 
 void sendRequest(Ui::MainWindow *ui) {
-    // Initialisation de cURL
-    /*CURL* curl = curl_easy_init();
-
-    if (curl) {
-        // URL cible
-        std::string url = "https://ishin-global.aktsk.com/ping";
-
-        // Création d'un objet JSON avec Qt
-        std::string ver_code = "5.23.0-eb08f8a58bbdef433e02ac565ae490b0966becf3519dea57a755d440421f5532";
-        QJsonObject jsonBody;
-        jsonBody["X-Platform"] = "android";
-        jsonBody["X-ClientVersion"] = ver_code.c_str();
-        jsonBody["X-Language"] = "en";
-        jsonBody["X-UserID"] = "////";
-        QByteArray requestBody = QJsonDocument(jsonBody).toJson();
-
-        // Stocker la réponse
-        std::string response;
-
-        // Configuration de la requête
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestBody.constData());
-
-        // Ajout des en-têtes HTTP
-        struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        headers = curl_slist_append(headers, "Authorization: Bearer token_d_acces");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        // Définir la fonction de callback pour capturer la réponse
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-        // Exécution de la requête
-        CURLcode res = curl_easy_perform(curl);
-
-        if (res == CURLE_OK) {
-            ui->boitetext->append("Réponse brute reçue : " + QString::fromStdString(response));
-
-            // Conversion de la réponse en JSON avec Qt
-            QJsonDocument jsonResponse = QJsonDocument::fromJson(QByteArray::fromStdString(response));
-            if (!jsonResponse.isNull()) {
-                //std::cout << "Réponse JSON formatée : "
-                //          << jsonResponse.toJson(QJsonDocument::Indented).constData() << std::endl;
-                ui->boitetext->append("Réponse JSON formatée : " + QString(jsonResponse.toJson(QJsonDocument::Indented)));
-            } else {
-                //std::cerr << "Erreur : la réponse n'est pas un JSON valide." << std::endl;
-                ui->boitetext->append("Erreur : la réponse n'est pas un JSON valide.");
-            }
-        } else {
-            // std::cerr << "Erreur lors de l'exécution de la requête cURL : " << curl_easy_strerror(res) << std::endl;
-            ui->boitetext->append("Erreur lors de l'exécution de la requête cURL : " + QString(curl_easy_strerror(res)));
-        }
-
-        // Nettoyage
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-    } else {
-        // std::cerr << "Erreur d'initialisation de cURL" << std::endl;
-        ui->boitetext->append("Erreur d'initialisation de cURL");
-    }
-    */
     // Création d'un gestionnaire réseau
     QNetworkAccessManager *manager = new QNetworkAccessManager();
 

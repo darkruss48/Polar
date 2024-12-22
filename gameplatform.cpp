@@ -1,4 +1,4 @@
-#include "GamePlatform.h"
+#include "gameplatform.h"
 
 // Définition du constructeur
 GamePlatform::GamePlatform(
