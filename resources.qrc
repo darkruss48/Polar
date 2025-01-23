@@ -7,4 +7,11 @@
         <file>Polar_en_US.qm</file>
         <file>Polar_fr_FR.qm</file>
     </qresource>
+    <qresource prefix="/">
+
+        <!-- Other resources -->
+
+        <file>mainwindow.ui</file>
+
+    </qresource>
 </RCC>

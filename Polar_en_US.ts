@@ -2,6 +2,44 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>Leaderboard</name>
+    <message>
+        <location filename="leaderboard.cpp" line="62"/>
+        <source>Refreshe</source>
+        <translation>Refresh</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="64"/>
+        <source>Data placeholder here</source>
+        <translation>Data placeholder here</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="177"/>
+        <source>Nom : </source>
+        <translation>Name : </translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="177"/>
+        <source>Rank : </source>
+        <translation>Rank : </translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="178"/>
+        <source>Wins : </source>
+        <translation>Wins : </translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="178"/>
+        <source>Points totaux : </source>
+        <translation>Total points : </translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="179"/>
+        <source>Heures AFK : </source>
+        <translation>AFK Hours : </translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <location filename="mainwindow.ui" line="42"/>
@@ -31,7 +69,7 @@
     </message>
     <message>
         <location filename="mainwindow.ui" line="147"/>
-        <location filename="mainwindow.cpp" line="332"/>
+        <location filename="mainwindow.cpp" line="399"/>
         <source>Identifiant actuel : </source>
         <translation>Current ID : </translation>
     </message>
@@ -85,32 +123,53 @@
         <translation type="vanished">Languages</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="225"/>
+        <location filename="mainwindow.cpp" line="218"/>
+        <location filename="mainwindow.cpp" line="481"/>
+        <source>Bienvenue sur le leaderboard !</source>
+        <translation>Welcome to the leaderboard !</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="234"/>
+        <source>Navigation</source>
+        <translation>Navigation</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="239"/>
+        <source>Graphiques</source>
+        <translation>Graphs</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="240"/>
+        <source>Classement</source>
+        <translation>Leaderboard</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="292"/>
         <source>Mise à jour disponible</source>
         <translation>An update is available</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="226"/>
+        <location filename="mainwindow.cpp" line="293"/>
         <source>Une nouvelle version (%1) est disponible.</source>
         <translation>A new version (%1) is available.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="229"/>
+        <location filename="mainwindow.cpp" line="296"/>
         <source>Télécharger</source>
         <translation>Download</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="327"/>
+        <location filename="mainwindow.cpp" line="394"/>
         <source>Nouvel identifiant</source>
         <translation>New id</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="328"/>
+        <location filename="mainwindow.cpp" line="395"/>
         <source>Identifiant:</source>
         <translation>ID:</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="340"/>
+        <location filename="mainwindow.cpp" line="407"/>
         <source>Langue</source>
         <translation>Languages</translation>
     </message>
@@ -149,47 +208,50 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="mainwindow.cpp" line="156"/>
+        <location filename="mainwindow.cpp" line="103"/>
         <source>Erreur lors de la conversion en JSON</source>
         <translation>Error when converting to JSON</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="161"/>
+        <location filename="mainwindow.cpp" line="108"/>
         <source>Erreur réseau : </source>
         <translation>Network error : </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="168"/>
+        <location filename="mainwindow.cpp" line="115"/>
         <source>Code de statut HTTP: </source>
         <translation>HTTP Status : </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="171"/>
+        <location filename="mainwindow.cpp" line="118"/>
         <source>Le serveur a répondu avec un code d&apos;erreur HTTP.</source>
         <translation>The server responded with an HTTP error.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="174"/>
+        <location filename="mainwindow.cpp" line="121"/>
         <source>Impossible de récupérer le code de statut HTTP.</source>
         <translation>Unable to retrieve the HTTP status code.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="392"/>
+        <location filename="mainwindow.cpp" line="459"/>
         <source>Impossible de charger la traduction pour</source>
         <translation>Unable to load locale</translation>
     </message>
     <message>
-        <location filename="render.cpp" line="110"/>
+        <location filename="render.cpp" line="147"/>
+        <location filename="render.cpp" line="207"/>
         <source>&quot; en fonction des heures</source>
         <translation>&quot; based on hours</translation>
     </message>
     <message>
-        <location filename="render.cpp" line="112"/>
+        <location filename="render.cpp" line="149"/>
+        <location filename="render.cpp" line="209"/>
         <source>Heures</source>
         <translation>Hours</translation>
     </message>
     <message>
-        <location filename="render.cpp" line="113"/>
+        <location filename="render.cpp" line="150"/>
+        <location filename="render.cpp" line="210"/>
         <source>Points</source>
         <translation></translation>
     </message>

@@ -10,6 +10,7 @@ public:
     static std::string ver_code;
     static std::string identifier; // identifiant qui permet d'avoir
     static QJsonObject pologet();
+    static QJsonObject pologettop();
     static std::string secret;
     static std::string access_token;
     static void connect(Ui::MainWindow *ui);

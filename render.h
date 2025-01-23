@@ -19,6 +19,7 @@ class Render
 public:
     Render();
     static void createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &hoursStr, const QString &pointsStr);
+    static void render_leaderboard(MainWindow *this_, QGraphicsView *graphPlaceholder, const QString &hoursStr, const QString &pointsStr, const QString element, const QString &name);
 };
 
 #endif // RENDER_H

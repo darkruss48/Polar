@@ -254,7 +254,7 @@ QString functb::mac(const QString& url, int port, const QString& method, const Q
     return final;
 }
 
-std::string functb::ver_code = "5.24.0-0640df5849d786f81804c8a902671531cba2e861820972d40d51589fbdebd67a";
+std::string functb::ver_code = "5.25.0-daa3501ede0d27bd73ecea640bf67a1f11816e94549d40dc29ddf6efe07476ff";
 std::string functb::secret = "";
 std::string functb::access_token = "";
 std::string functb::identifier = "poyo :3";
@@ -295,8 +295,8 @@ void functb::connect(Ui::MainWindow *ui)
     // Requete
 
     GameAccount account;
-    account.unique_id = "fc593199-96e3-4115-8557-e38b572f4f1e:99590ec3";
-    account.identifier = "V6GURfQ3yx4z9c5DUr1dBbjVmdFawLOmCzmAYtRpbUf5iqoQJGyuCH0YzVlHYQgpVJz7dTM3qwxH9YxuiAflQw==:0i8dG3f0o5BQBYCsCtKdxA==";
+    account.unique_id = "1ea06bda-1fcd-47c0-a3d6-2aaffcfe692e:cb312a3d";
+    account.identifier = "vr6a+hI9gUXnWUPaRBc/QHqng4qoxGqT1i8xvth1V94ykKWIy9nU13I1Ywps8qBOH9tmoHmDsT5AQvoAoW0akg==:RcznD3hEGk+hSHUyTwuO1g==";
 
     account = login(account);
 
@@ -436,14 +436,14 @@ QJsonObject functb::pologet()
 {
 
     QNetworkAccessManager manager;
-    QUrl a = "http://45.32.146.52:5000/get-user?identifier=" + QString::fromStdString(functb::identifier);
+    QUrl a = "http://86.247.232.153:41766/get-user?identifier=" + QString::fromStdString(functb::identifier);
     /*
     Hey
     If you wondering why we are sending a GET request to a weird IP, you are right to wonder.
     This is a server that polo (goat) setup to get information about the users.
     The server is auto-updated directly from akatsuki's servers.
     You can execute this command in your terminal (cmd on Windows) :
-    curl -X GET "http://127.0.0.1:5000/get-user?identifier=PUT_YOUR_DOKKAN_ID_OR_NAME"
+    curl -X GET "http://86.247.232.153:41766/get-user?identifier=PUT_YOUR_DOKKAN_ID_OR_NAME"
     and you will get your user information.
     Hope this helps.
     */
@@ -477,11 +477,21 @@ QJsonObject functb::pologet()
     }
     return response_doc.object();
 }
-/*QJsonObject functb::pologet()
+QJsonObject functb::pologettop()
 {
 
     QNetworkAccessManager manager;
-    QUrl a = "http://45.32.146.52:5000/get-user?identifier=" + QString::fromStdString(functb::identifier);
+    QUrl a = QString("http://86.247.232.153:41766/get-top100");
+    /*
+    Hey
+    If you wondering why we are sending a GET request to a weird IP, you are right to wonder.
+    This is a server that polo (goat) setup to get information about the users.
+    The server is auto-updated directly from akatsuki's servers.
+    You can execute this command in your terminal (cmd on Windows) :
+    curl -X GET "http://86.247.232.153:41766/get-user?identifier=PUT_YOUR_DOKKAN_ID_OR_NAME"
+    and you will get your user information.
+    Hope this helps.
+    */
     QNetworkRequest request(a);
     QNetworkReply *reply = manager.get(request);
     QEventLoop loop;
@@ -494,7 +504,21 @@ QJsonObject functb::pologet()
         //
         return QJsonObject();
     }
-    // return response_doc.object();
+    if (response_doc.object().isEmpty())
+    {
+        // Convertir
+        QList<QJsonDocument> jsonDocumentList = parseJsonToList(QString::fromUtf8(response_data));
+        // Convert QList<QJsonDocument> to QList<QVariant>
+        QList<QVariant> variantList;
+        for (const QJsonDocument &doc : jsonDocumentList) {
+            variantList.append(doc.toVariant());
+        }
+        // Créer un nouveau json
+        QJsonObject new_json;
+        // Mettre la liste dans un element "users"
+        new_json["top"] = QJsonArray::fromVariantList(variantList);
+        // afficher le nombre d'users
+        return new_json;
+    }
+    return response_doc.object();
 }
-
-*/

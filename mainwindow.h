@@ -7,6 +7,17 @@
 #include "updater.h"
 // Def var "globales"
 
+#include <QStackedWidget>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+
+#include "ui_mainwindow.h"
+
+#include <QtUiTools/QUiLoader>
+#include <QFile>
+#include <iostream>
+
 
 
 
@@ -56,6 +67,11 @@ private:
     void loadLanguage(const QString& rLanguage);
     void createLanguageMenu(void);
     void onUpdateAvailable(const QString &latestVersion, const QString &changelog, const QString &downloadUrl);
+    // void setupLeaderboardPage();
+
+    // Créer un menu
+    QStackedWidget *stackedWidget;
+    QLabel *labelDynamic;
 
 
     Ui::MainWindow *ui;

@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -22,6 +22,7 @@ RESOURCES += resources.qrc
 SOURCES += \
     functb.cpp \
     gameplatform.cpp \
+    leaderboard.cpp \
     main.cpp \
     mainwindow.cpp \
     render.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
 HEADERS += \
     functb.h \
     gameplatform.h \
+    leaderboard.h \
     mainwindow.h \
     render.h \
     updater.h

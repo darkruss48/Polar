@@ -4,6 +4,7 @@
 #include "functb.h"
 #include "render.h"
 #include "updater.h"
+#include "leaderboard.h"
 //
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -29,12 +30,21 @@
 #include <QVBoxLayout>
 #include <QListWidget>
 
+#include <QMainWindow>
+#include <QMenuBar>
+#include <QStackedWidget>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QtUiTools/QUiLoader>
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }*/
+
+
 
 
 void sendRequest(Ui::MainWindow *ui) {
@@ -120,12 +130,127 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow),
     menu1_action1(nullptr),
     menu1_action2(nullptr),
-    menu1(nullptr)
+    menu1(nullptr),
+    labelDynamic(nullptr)
 {
+    // Ne plus faire ui->setupUi(this) ici,
+    // on va charger l'UI nous-mêmes via QUiLoader
     ui->setupUi(this);
 
     // Mettre en anglais de base
-    loadLanguage("en_US");
+    // loadLanguage("en_US");
+
+    // Créer le menu afin de changer la page (Leaderboard, ...)
+    // Créer le QStackedWidget
+
+    std::cout << "v : " << Updater::polar_version << std::endl;
+    stackedWidget = new QStackedWidget(this);
+    QWidget *pagePrincipale = this->centralWidget();
+    // Détacher le widget de la MainWindow
+    pagePrincipale->setParent(nullptr);
+    setCentralWidget(stackedWidget);
+    stackedWidget->addWidget(pagePrincipale);
+    // this->resize(1260, 717);
+
+    // Créer les pages
+    // QWidget *pagePrincipale = new QWidget(this);
+    // std::cout << "a : " << Updater::polar_version << std::endl;
+    // {
+    //     QFile uiFile(":/mainwindow.ui");
+    //     if (uiFile.open(QFile::ReadOnly)) {
+    //         QUiLoader loader;
+    //         QWidget *uiGraphiques = loader.load(&uiFile, pagePrincipale);
+    //         uiFile.close();
+
+    //         // Forcer l'expansion du widget
+    //         uiGraphiques->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    //         QVBoxLayout *layout = new QVBoxLayout(pagePrincipale);
+    //         layout->setContentsMargins(0, 0, 0, 0);
+    //         layout->addWidget(uiGraphiques);
+    //         pagePrincipale->setLayout(layout);
+
+    //         // Afficher dans le std::cout ce que contient pagePrincipale
+    //         std::cout << "pagePrincipale contains: " << pagePrincipale->children().size() << " children." << std::endl;
+    //         for (auto child : pagePrincipale->children()) {
+    //             std::cout << "Child: " << child->metaObject()->className() << std::endl;
+    //         }
+
+    //         pagePrincipale->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //     }
+    //     else {
+    //         qDebug() << "Erreur chargement mainwindow.ui : " << uiFile.errorString();
+    //     }
+    // }
+    QWidget *pageSecondaire = new QWidget(this);
+    QVBoxLayout *layoutSec = new QVBoxLayout(pageSecondaire);
+    // nouveaux éléments
+
+    auto contentLayout = new QHBoxLayout();
+
+    auto playerList = new QListWidget(this);
+    playerList->setFixedWidth(300);
+    auto refreshButton = new QPushButton(this);
+    Leaderboard::graphPlaceholder = new QGraphicsView(this);
+    Leaderboard::dataPlaceholder = new QLabel(this);
+    //écrire dans dataplaceholder  "refresh"
+    refreshButton->setText("REFRESH");
+    Leaderboard::dataPlaceholder->setText("");
+
+
+    QVBoxLayout *rightLayout = new QVBoxLayout();
+    rightLayout->addWidget(Leaderboard::graphPlaceholder);
+    rightLayout->addWidget(Leaderboard::dataPlaceholder);
+    rightLayout->setStretch(0, 2); // GraphPlaceholder takes 1 part of the space
+    rightLayout->setStretch(1, 1); // DataPlaceholder takes 2 parts of the space
+
+    // Ajouter les callbacks
+    //connect(refreshButton, &QPushButton::clicked, this, Leaderboard::onRefreshClicked);
+    connect(refreshButton, &QPushButton::clicked, this, [this, playerList]() {
+        Leaderboard::onRefreshClicked(this, playerList);
+    });
+
+    contentLayout->addWidget(playerList);
+    contentLayout->addLayout(rightLayout);
+    layoutSec->addLayout(contentLayout);
+    layoutSec->addWidget(refreshButton);
+
+    labelDynamic = new QLabel(tr("Bienvenue sur le leaderboard !"), pageSecondaire);
+    layoutSec->addWidget(labelDynamic);
+    pageSecondaire->setLayout(layoutSec);
+    std::cout << "e : " << Updater::polar_version << std::endl;
+    // retrouver la page secondaire par son nom
+
+    // Configurer les pages
+    // setupPagePrincipale(pagePrincipale);
+    // setupPageSecondaire(pageSecondaire);
+
+    // Ajouter les pages au QStackedWidget
+    // stackedWidget->addWidget(pagePrincipale);
+    stackedWidget->addWidget(pageSecondaire);
+
+    // Créer le QMenuBar
+    QMenuBar *menuBar = this->menuBar();
+    QMenu *menuNavigation = menuBar->addMenu(tr("Navigation"));
+    // donner un nom pour le retrouver plus tard quand on veut le traduire
+    menuNavigation->setObjectName("menuNavigation");
+
+    // Ajouter des actions pour changer de page
+    QAction *actionPagePrincipale = new QAction(tr("Graphiques"), this);
+    QAction *actionPageSecondaire = new QAction(tr("Classement"), this);
+    actionPageSecondaire->setObjectName("pageSecondaire");
+
+    menuNavigation->addAction(actionPagePrincipale);
+    menuNavigation->addAction(actionPageSecondaire);
+
+    // Connecter les actions aux slots
+    connect(actionPagePrincipale, &QAction::triggered, this, [this]() {
+        stackedWidget->setCurrentIndex(0);
+    });
+
+    connect(actionPageSecondaire, &QAction::triggered, this, [this]() {
+        stackedWidget->setCurrentIndex(1);
+    });
 
     // Menu principal
 
@@ -139,9 +264,11 @@ MainWindow::MainWindow(QWidget *parent)
     menu1->addAction(menu1_action2);
     */
     // appeller le menu
+    stackedWidget->setCurrentIndex(0);
     createLanguageMenu();
     this->setWindowTitle("Polar " + QString::fromStdString(Updater::polar_version));
 
+    loadLanguage("en_US");
     // mise a jour
     updater = new Updater(this);
     connect(updater, &Updater::updateAvailable, this, &MainWindow::onUpdateAvailable);
@@ -351,7 +478,7 @@ void MainWindow::changeEvent(QEvent* event)
 {
     if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
-        // Mettez à jour les autres éléments de l'interface si nécessaire
+        labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
     } else {
         QMainWindow::changeEvent(event);
     }
