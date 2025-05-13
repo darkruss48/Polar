@@ -7,7 +7,7 @@ Check the releases.
 
 ## Build
 
-You might want to build your own version of Polar.
+If you want, you can build your own version of Polar.
 To do so, you need to download it using [QT](https://qt.io).
 I made this client using my own static QT build (v6.8.0), which allows me to compile it and to share it without you needing to install QT.
 If you build it yourself with the distributed version of QT (the dynamic one), it will work for you but you can't share your executable as it need to have QT installed on the computer to start.
