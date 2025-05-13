@@ -1,5 +1,5 @@
 # Polar
-A simple, powerfull WT Performance Analyser for Dragon Ball Z : Dokkan Battle.
+A simple, powerful WT Performance Analyser for Dragon Ball Z : Dokkan Battle.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Check the releases.
 You might want to build your own version of Polar.
 To do so, you need to download it using [QT](https://qt.io).
 I made this client using my own static QT build (v6.8.0), which allows me to compile it and to share it without you needing to install QT.
-If you build it yourself with the distribued version of QT (the dynamic one), it will work for you but you can't share your executable as it need to have QT installed on the computer to start.
+If you build it yourself with the distributed version of QT (the dynamic one), it will work for you but you can't share your executable as it need to have QT installed on the computer to start.
 Feel free to contact us (check [contact](#Contact)) if you need any help to compile it.
 
 ### Build for (Arch) linux
@@ -46,7 +46,10 @@ To start the client :
 ```bash
 ./Polar
 ```
-
+**Note**: If you use Nixos or Nix in general, simply do
+```bash
+nix build .#polar
+```
 **:warning: If you're using Arch, there are great chances that QT 5.x is already installed on your device. Polar use QT 6.x, so use `/usr/lib/qt6/bin/qmake ..` instead of `qmake ..` command.**
 
 Polar can be built with Qt 5.x, but don’t expect the program to function as it should. Consider using QT 6.x.
