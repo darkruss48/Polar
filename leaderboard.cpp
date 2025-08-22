@@ -99,13 +99,15 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
             QString ex_ = obj["points"].toString().remove("[").remove("]");
             QStringList values_ = ex_.split(",");
             QString last_points = values_.last().trimmed();
+            // virgules tous les 3 chiffres
+            last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
             // userList.append(obj["name"].toString() + " : " + last_ranks);
             userList.append("                                   " + last_ranks + " : " + obj["name"].toString()
                             + "\n                            " + last_points + " points"
                             + "\n--------------------------------------------------\n");
-            QJsonArray users = obj["top"].toArray();
+            // QJsonArray users = obj["top"].toArray();
         }
-        bool ok;
+        // bool ok;
         std::cout << "Taille de userList : " << userList.size() << std::endl;
         // QDialog dialog(this_);
         // QVBoxLayout layout(&dialog);
@@ -159,6 +161,7 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     const QString a = QString(user["name"].toString());
     Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, a);
     QString last_points = user["points"].toString().remove("[").remove("]").split(",").last().trimmed();
+    last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
     QString last_wins = user["wins"].toString().remove("[").remove("]").split(",").last().trimmed();
     QString last_hours = user["hour"].toString().remove("[").remove("]").split(",").last().trimmed();
     // Calculer le nombre d'heures où l'utilisateur n'a pas gagné de points

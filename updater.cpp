@@ -10,7 +10,7 @@
 
 Updater::Updater(QObject *parent) : QObject(parent) {}
 
-std::string Updater::polar_version = "v1.1.1";
+std::string Updater::polar_version = "v1.1.2";
 
 void Updater::checkForUpdate()
 {
