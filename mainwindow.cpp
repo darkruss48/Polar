@@ -415,9 +415,8 @@ void MainWindow::createLanguageMenu()
     QList<QPair<QString, QString>> languages;
     languages.append(qMakePair(QString("en_US"), QString("English")));
     languages.append(qMakePair(QString("fr_FR"), QString("Français")));
-
     for (const auto& lang : languages) {
-        QAction* action = new QAction(lang.second, this);
+        QAction* action = new QAction(this);
         action->setCheckable(true);
         action->setData(lang.first);
 
@@ -425,9 +424,34 @@ void MainWindow::createLanguageMenu()
             action->setChecked(true);
         }
 
+        // Charger l'icône du drapeau depuis les ressources intégrées
+        QString flagResourcePath = ":/images/" + lang.first + ".png";
+        QIcon flagIcon;
+        if (QFile::exists(flagResourcePath)) {
+            flagIcon.addFile(flagResourcePath);
+        } else {
+            qDebug() << "Flag icon not found for language:" << lang.first << ", resource path:" << flagResourcePath;
+        }
+
+        // Configurer l'action avec l'icône et le texte
+        // languageMenu->setStyleSheet("QIcon { outline: 0; }"); // marche pas mdrr
+        action->setIcon(flagIcon);
+        action->setText(lang.second);
+
         languageMenu->addAction(action);
         langGroup->addAction(action);
     }
+
+    // Ajouter un keybind : quand j'appuie sur "Tab", on switch entre le "classement" et le "graphique"
+    QAction* switchAction = new QAction(this);
+    switchAction->setShortcut(QKeySequence(Qt::Key_Tab));
+    addAction(switchAction);
+
+    connect(switchAction, &QAction::triggered, this, [this]() {
+        int currentIndex = stackedWidget->currentIndex();
+        int nextIndex = (currentIndex + 1) % stackedWidget->count();
+        stackedWidget->setCurrentIndex(nextIndex);
+    });
 }
 
 

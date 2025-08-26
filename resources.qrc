@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/images">
-        <file>en_EN.png</file>
+        <file>en_US.png</file>
         <file>fr_FR.png</file>
     </qresource>
     <qresource prefix="/i18n">

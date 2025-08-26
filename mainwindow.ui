@@ -18,10 +18,13 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QPushButton" name="pushButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>260</y>
+      <x>20</x>
+      <y>400</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -60,32 +63,6 @@
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="label_progressbar_2">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>320</y>
-      <width>49</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Dokkan</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_progressbar_3">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>320</y>
-      <width>71</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Serveur Web</string>
-    </property>
-   </widget>
    <widget class="QGraphicsView" name="graphiqueTest">
     <property name="geometry">
      <rect>
@@ -105,8 +82,8 @@
    <widget class="QPushButton" name="bouton_graphique">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>283</y>
+      <x>370</x>
+      <y>400</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -118,8 +95,8 @@
    <widget class="QPushButton" name="idButton">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>20</y>
+      <x>270</x>
+      <y>10</y>
       <width>171</width>
       <height>41</height>
      </rect>
@@ -134,8 +111,8 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>30</y>
+      <x>20</x>
+      <y>20</y>
       <width>211</width>
       <height>20</height>
      </rect>
@@ -150,8 +127,8 @@
    <widget class="QComboBox" name="ydataBox">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>150</y>
+      <x>220</x>
+      <y>400</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -200,8 +177,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>100</y>
+      <x>220</x>
+      <y>370</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -209,18 +186,59 @@
     <property name="text">
      <string>Donnée en ordonnée</string>
     </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
    </widget>
    <widget class="QTextEdit" name="boitetext">
     <property name="geometry">
      <rect>
-      <x>53</x>
-      <y>410</y>
-      <width>421</width>
-      <height>221</height>
+      <x>23</x>
+      <y>450</y>
+      <width>481</width>
+      <height>211</height>
      </rect>
     </property>
     <property name="readOnly">
      <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QFrame" name="goal">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>80</y>
+      <width>441</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <property name="lineWidth">
+     <number>2</number>
+    </property>
+    <property name="midLineWidth">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>49</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Objectif</string>
     </property>
    </widget>
   </widget>
