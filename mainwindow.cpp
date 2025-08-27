@@ -45,6 +45,40 @@
 }*/
 
 
+QString formatWithCommas(qint64 number) {
+    QString numberStr = QString::number(number);
+    int len = numberStr.length();
+
+    QString result;
+    int count = 0;
+
+    // Parcourir la chaîne de droite à gauche
+    for (int i = len - 1; i >= 0; --i) {
+        result.prepend(numberStr[i]);
+        count++;
+        // Ajouter une virgule après chaque 3 chiffres sauf si c'est le dernier groupe
+        if (count == 3 && i != 0) {
+            result.prepend(',');
+            count = 0;
+        }
+    }
+    return result;
+}
+
+
+void MainWindow::formatNumberWithCommas(const QString &text, QString &outFormattedNumber) {
+    QString numericString = text;
+    numericString.remove(QRegularExpression("[^0-9]"));
+
+    bool ok;
+    qint64 number = numericString.toLongLong(&ok);
+    if (ok) {
+        outFormattedNumber = formatWithCommas(number);
+    } else {
+        outFormattedNumber = "";
+    }
+}
+
 
 
 void sendRequest(Ui::MainWindow *ui) {
@@ -133,9 +167,31 @@ MainWindow::MainWindow(QWidget *parent)
     menu1(nullptr),
     labelDynamic(nullptr)
 {
+
     // Ne plus faire ui->setupUi(this) ici,
     // on va charger l'UI nous-mêmes via QUiLoader
     ui->setupUi(this);
+
+    // Que des chiffres dans les goals, et mettre des virgules tous les 3 chiffres
+    ui->lineEdit_goal->setValidator( new QIntValidator(0, 10000000000, this) );
+    ui->lineEdit_goal->setMaxLength(13);
+    ui->lineEdit_afk->setValidator( new QIntValidator(0, 10000000000, this) );
+    ui->lineEdit_afk->setMaxLength(2);
+
+    // Connecter le signal pour formatter le nombre avec des virgules
+    // connect(ui->lineEdit_goal, &QLineEdit::textChanged, this, &MainWindow::formatNumberWithCommas);
+    // connect(ui->lineEdit_afk, &QLineEdit::textChanged, this, &MainWindow::formatNumberWithCommas);
+
+    connect(ui->lineEdit_goal, &QLineEdit::textChanged, [=]() {
+        QString formattedNumber;
+        formatNumberWithCommas(ui->lineEdit_goal->text(), formattedNumber);
+        ui->lineEdit_goal->setText(formattedNumber);
+    });
+    connect(ui->lineEdit_afk, &QLineEdit::textChanged, [=]() {
+        QString formattedNumber;
+        formatNumberWithCommas(ui->lineEdit_afk->text(), formattedNumber);
+        ui->lineEdit_afk->setText(formattedNumber);
+    });
 
     // Mettre en anglais de base
     // loadLanguage("en_US");
@@ -384,6 +440,34 @@ void MainWindow::on_bouton_graphique_clicked()
 
 
     Render::createLineChartInGraphicsView(ui, hours, points);
+
+    // Variables
+    functb::points = points.toStdString();
+
+    // Wins
+    QString wins_ex = data["wins"].toString().remove("[").remove("]");
+    QStringList wins_values = wins_ex.split(",");
+    functb::wins = wins_values.last().trimmed().toStdString();
+
+    // Seed
+    QString seed_ex = data["points_wins"].toString().remove("[").remove("]");
+    QStringList seed_values = seed_ex.split(",");
+    functb::seed = seed_values.last().trimmed().toStdString();
+
+    // Points
+    QString points_ex = data["points"].toString().remove("[").remove("]");
+    QStringList points_values = points_ex.split(",");
+    functb::points = points_values.last().trimmed().toStdString();
+
+    // Hour
+    QString hour_ex = data["hour"].toString().remove("[").remove("]");
+    QStringList hour_values = hour_ex.split(",");
+    double hourValue = std::stod(hour_values.last().trimmed().toStdString());
+    hourValue = 71.51 - hourValue;
+    functb::hour_missing = std::to_string(hourValue);
+
+    // on reset le "goal"
+    MainWindow::on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
 }
 
 
@@ -506,4 +590,130 @@ void MainWindow::changeEvent(QEvent* event)
     } else {
         QMainWindow::changeEvent(event);
     }
+}
+
+void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
+{
+    // On veut tout simplement récupérer la valeur et calculer le goal
+    // Avoir la nouvelle valeur
+    std::cout<<"arg1 : " << arg1.toStdString() << std::endl;
+
+    // Vérifier si on_lineEdit_afk et on_lineEdit_goal ont des valeurs
+    if (!ui->lineEdit_afk->text().isEmpty() && !ui->lineEdit_goal->text().isEmpty()) {
+
+        QLabel *labelWinPace = ui->label_win_pace;
+        QLabel *labeltext = ui->label_7;
+
+        // Calculer le goal en fonction de la valeur AFK
+        std::string winsStr = functb::wins;
+        std::cout << "Step 1: Retrieved winsStr: " << winsStr << std::endl;
+
+        std::string pointsStr = functb::points;
+        std::cout << "Step 2: Retrieved pointsStr: " << pointsStr << std::endl;
+
+        std::string seedStr = functb::seed;
+        std::cout << "Step 3: Retrieved seedStr: " << seedStr << std::endl;
+
+        std::string hourStr = functb::hour_missing;
+        std::cout << "Step 4: Retrieved hourStr: " << hourStr << std::endl;
+
+        if (pointsStr == "-1") {
+            std::cout << "Step 5: pointsStr is -1, exiting function." << std::endl;
+            ui->label_win_pace->setText("");
+            QString color = "red";
+            QString comment = tr("Rentrez votre identifiant\net générer un graphique\nd'abord !");
+            QString style = QString("color: %1; font-size: 14px;").arg(color);
+            labeltext->setStyleSheet(style);
+            labeltext->setText(comment);
+            return;
+        }
+
+        int points = std::stoi(pointsStr);
+        std::cout << "Step 6: Converted pointsStr to integer: " << points << std::endl;
+
+        int seedValue = std::stoi(seedStr);
+        std::cout << "Step 7: Converted seedStr to integer: " << seedValue << std::endl;
+
+        int afkValue = ui->lineEdit_afk->text().remove(',').toInt();
+        std::cout << "Step 8: Retrieved afkValue from lineEdit_afk: " << afkValue << std::endl;
+
+        int goalValue = ui->lineEdit_goal->text().remove(',').toInt();
+        std::cout << "Step 9: Retrieved goalValue from lineEdit_goal: " << goalValue << std::endl;
+
+        float hours_left = std::stof(hourStr);
+        std::cout << "Step 10: Converted hourStr to float: " << hours_left << std::endl;
+
+        if(points > goalValue) {
+            std::cout << "Step 10.1: points is greater than goalValue, exiting function." << std::endl;
+            ui->label_win_pace->setText("");
+            QString color = "red";
+            QString comment = tr("Vous avez dépassé \nvotre objectif !");
+            QString style = QString("color: %1; font-size: 14px;").arg(color);
+            labeltext->setStyleSheet(style);
+            labeltext->setText(comment);
+            return;
+        }
+
+        if(seedValue == 0) {
+            std::cout << "Step 10.2: seedValue is 0, exiting function to avoid division by zero." << std::endl;
+            ui->label_win_pace->setText("");
+            QString color = "red";
+            QString comment = tr("Le seed est nul !");
+            QString style = QString("color: %1; font-size: 14px;").arg(color);
+            labeltext->setStyleSheet(style);
+            labeltext->setText(comment);
+            return;
+        }
+
+        if(afkValue >= hours_left) {
+            std::cout << "Step 10.3: afkValue is greater than or equal to hours_left, exiting function." << std::endl;
+            ui->label_win_pace->setText("");
+            QString color = "red";
+            QString comment = tr("Impossible");
+            QString style = QString("color: %1; font-size: 14px;").arg(color);
+            labeltext->setStyleSheet(style);
+            labeltext->setText(comment);
+            return;
+        }
+
+        float winsPerHour = (goalValue - points) / (seedValue * hours_left);
+        std::cout << "Step 11: Calculated winsPerHour: " << winsPerHour << std::endl;
+
+        QString color;
+        QString comment;
+
+        if (winsPerHour < 8) {
+            color = "blue";
+            comment = tr("Très Facile");
+        } else if (winsPerHour < 10) {
+            color = "green";
+            comment = tr("Facile");
+        } else if (winsPerHour < 12) {
+            color = "yellow";
+            comment = tr("Moyen");
+        } else if (winsPerHour < 13) {
+            color = "orange";
+            comment = tr("Difficile");
+        } else if (winsPerHour < 14) {
+            color = "red";
+            comment = tr("Très difficile");
+        } else {
+            color = "darkred";
+            comment = tr("bonne chance mdr");
+        }
+
+        QString style = QString("color: %1; font-size: 47px;").arg(color);
+        labelWinPace->setStyleSheet(style);
+        labelWinPace->setText(QString::number(winsPerHour, 'f', 2));
+
+        QString style_ = QString("color: %1; font-size: 14px;").arg(color);
+        labeltext->setStyleSheet(style_);
+        labeltext->setText(comment);
+    }
+}
+
+
+void MainWindow::on_lineEdit_goal_textEdited(const QString &arg1)
+{
+    MainWindow::on_lineEdit_afk_textEdited(arg1);
 }

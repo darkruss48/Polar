@@ -60,8 +60,10 @@ QList<QJsonDocument> parseJsonToList(const QString &jsonString) {
     return jsonDocumentList;
 }
 
-
-
+std::string functb::points = "-1";
+std::string functb::wins = "-1";
+std::string functb::seed = "-1";
+std::string functb::hour_missing = "1";
 
 
 

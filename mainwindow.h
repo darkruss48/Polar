@@ -54,6 +54,8 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void formatNumberWithCommas(const QString &text, QString &outFormattedNumber);
+
     // void on_pushButton_3_clicked();
 
     // void on_pushButton_2_clicked();
@@ -61,6 +63,10 @@ private slots:
     void on_bouton_graphique_clicked();
 
     void on_idButton_clicked();
+
+    void on_lineEdit_goal_textEdited(const QString &arg1);
+
+    void on_lineEdit_afk_textEdited(const QString &arg1);
 
 private:
     // loads a language by the given language shortcur (e.g. de, en)
