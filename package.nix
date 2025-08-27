@@ -1,13 +1,13 @@
 {pkgs}:
 pkgs.stdenv.mkDerivation {
   pname = "polar";
-  version = "1.1.0";
+  version = "1.2.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "darkruss48";
     repo = "Polar";
-    rev = "v1.1.0";
-    sha256 = "sha256-xdhRoN788zLhO7E9uBegYBplrOJ5WLeNQsVKcPjdhLs=";
+    rev = "v1.2.0";
+    sha256 = "sha256-mVTQn4LkdUIhEJ/e10sxOlWLaXVb5m/+OxGCmzBNsxo=";
   };
 
   nativeBuildInputs = with pkgs; [
