@@ -18,12 +18,13 @@
 #include <QFile>
 #include <iostream>
 
-
-
-
-// QString access_token = "";
-// QString secret = "";
-
+// Add includes for tips rotation
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
+#include <QSequentialAnimationGroup>
+#include <QPauseAnimation>
+#include <QStringList>
+#include <QRandomGenerator>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -43,7 +44,7 @@ protected:
     QMenu* menu1;
     QAction* menu1_action1;
     QAction* menu1_action2;
-    void changeEvent(QEvent*);
+    void changeEvent(QEvent*) override;
 
 protected slots:
     void slotLanguageChanged(QAction* action);
@@ -73,7 +74,10 @@ private:
     void loadLanguage(const QString& rLanguage);
     void createLanguageMenu(void);
     void onUpdateAvailable(const QString &latestVersion, const QString &changelog, const QString &downloadUrl);
-    // void setupLeaderboardPage();
+
+    // Tips rotation helpers
+    void setupTipsRotation();
+    void restartTipsCycle();
 
     // Créer un menu
     QStackedWidget *stackedWidget;
@@ -86,5 +90,11 @@ private:
     QString m_currLang; // contains the currently loaded language
     QString m_langPath; // Path of language files. This is always fixed to /languages.
     Updater *updater;
+
+    // Tips rotation members
+    QGraphicsOpacityEffect* tipsEffect = nullptr;
+    QSequentialAnimationGroup* tipsGroup = nullptr;
+    QStringList tipsPhrases;
+    int lastTipIndex = -1;
 };
 #endif // MAINWINDOW_H

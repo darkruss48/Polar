@@ -167,9 +167,6 @@ MainWindow::MainWindow(QWidget *parent)
     menu1(nullptr),
     labelDynamic(nullptr)
 {
-
-    // Ne plus faire ui->setupUi(this) ici,
-    // on va charger l'UI nous-mêmes via QUiLoader
     ui->setupUi(this);
 
     // Que des chiffres dans les goals, et mettre des virgules tous les 3 chiffres
@@ -329,6 +326,9 @@ MainWindow::MainWindow(QWidget *parent)
     updater = new Updater(this);
     connect(updater, &Updater::updateAvailable, this, &MainWindow::onUpdateAvailable);
     updater->checkForUpdate();
+
+    // Start tips rotation (safe if label_tips is missing)
+    setupTipsRotation();
 }
 
 MainWindow::~MainWindow()
@@ -587,8 +587,102 @@ void MainWindow::changeEvent(QEvent* event)
     if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
         labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
+        // Optional: keep current tips showing; no reset needed.
     } else {
         QMainWindow::changeEvent(event);
+    }
+}
+
+// Tips rotation implementation
+void MainWindow::setupTipsRotation()
+{
+    // If the UI label doesn't exist, do nothing.
+    if (!ui->label_tips) return;
+
+    // Configure label for better multiline display
+    ui->label_tips->setWordWrap(true);
+    ui->label_tips->setAlignment(Qt::AlignCenter);
+
+    // Fill phrases (merged categories)
+    tipsPhrases = {
+        tr("Ne lâche rien !"),
+        tr("Tu peux accomplir tes objectifs !"),
+        tr("Il est normal d'être fatigué, mais je crois en toi !"),
+        tr("Personne ne peut le faire à ta place,\nalors tu vas me le gravir ce classement !"),
+        tr("Tu peux le faire !"),
+        tr("Prouve-nous que tu es meilleur que ce qu'on peut penser !"),
+        tr("Tout le monde est passé par là, ne te décourage pas !"),
+        tr("C'est pas le moment de se décourager !"),
+        tr("Pense à ceux qui croient en toi ... Tu ne\npeux PAS les décevoir !"),
+        // Conseils
+        tr("Si tu es fatigué, tu peux prendre une pause\navant la nuit. Ça t'évitera de tomber de fatigue 😉"),
+        tr("Ne néglige pas la douche.\nL'hygiène avant tout ... non ?"),
+        tr("Il vaudrait mieux que tu aies préparé de quoi\nmanger avant de commencer le tournoi."),
+        tr("Se concentrer sur le tournoi est important, mais\navoir un autre centre d'attention en a déjà aidé plus d'un."),
+        tr("Fatigué pendant la nuit ? Marcher, boire de l'eau et se rafraîchir\naident à lutter temporairement contre la fatigue."),
+        tr("La nuit est souvent dure à passer, mais le matin peut te\nsurprendre. Fais attention."),
+        // Applications
+        tr("Tu peux regarder le classement en cliquant sur l'onglet\nNavigation, puis sur \"Classement\"."),
+        tr("Un objectif en tête ? Tu peux calculer le nombre de\nvictoires/heures à gauche de cette fenêtre."),
+        tr("Tu peux générer les graphiques de plusieurs statistiques : \nRang, Points, Points/heure, ..."),
+        tr("La touche \"Tab\" te permet de rapidement changer de page. Essaye donc !"),
+        // Questions
+        tr("Team Café, Team Boisson énergisante ou Team Eau ?")
+    };
+
+    // Opacity effect
+    tipsEffect = new QGraphicsOpacityEffect(ui->label_tips);
+    tipsEffect->setOpacity(0.0);
+    ui->label_tips->setGraphicsEffect(tipsEffect);
+
+    // Couleur vert clair
+    ui->label_tips->setStyleSheet("color: lightgreen;");
+
+    // Build animations
+    auto fadeIn = new QPropertyAnimation(tipsEffect, "opacity", this);
+    fadeIn->setDuration(1200);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+
+    auto visiblePause = new QPauseAnimation(12000, this);
+
+    auto fadeOut = new QPropertyAnimation(tipsEffect, "opacity", this);
+    fadeOut->setDuration(1200);
+    fadeOut->setStartValue(1.0);
+    fadeOut->setEndValue(0.0);
+
+    auto blankPause = new QPauseAnimation(200, this);
+
+    tipsGroup = new QSequentialAnimationGroup(this);
+    tipsGroup->addAnimation(fadeIn);
+    tipsGroup->addAnimation(visiblePause);
+    tipsGroup->addAnimation(fadeOut);
+    tipsGroup->addAnimation(blankPause);
+
+    connect(tipsGroup, &QSequentialAnimationGroup::finished, this, &MainWindow::restartTipsCycle);
+
+    // Start first cycle
+    restartTipsCycle();
+}
+
+void MainWindow::restartTipsCycle()
+{
+    if (!ui->label_tips) return;
+    if (tipsPhrases.isEmpty()) return;
+
+    // Pick a new random index, avoid repeating the previous one if possible
+    int idx;
+    do {
+        idx = QRandomGenerator::global()->bounded(tipsPhrases.size());
+    } while (tipsPhrases.size() > 1 && idx == lastTipIndex);
+    lastTipIndex = idx;
+
+    // Set text while opacity is 0 (between cycles)
+    ui->label_tips->setText(tipsPhrases.at(idx));
+
+    // Restart animation group
+    if (tipsGroup) {
+        tipsGroup->start();
     }
 }
 

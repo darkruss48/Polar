@@ -42,23 +42,23 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="274"/>
+        <location filename="mainwindow.cpp" line="271"/>
         <location filename="mainwindow.cpp" line="589"/>
         <source>Bienvenue sur le leaderboard !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="290"/>
+        <location filename="mainwindow.cpp" line="287"/>
         <source>Navigation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="295"/>
+        <location filename="mainwindow.cpp" line="292"/>
         <source>Graphiques</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="296"/>
+        <location filename="mainwindow.cpp" line="293"/>
         <source>Classement</source>
         <translation type="unfinished"></translation>
     </message>
@@ -88,55 +88,166 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="624"/>
+        <location filename="mainwindow.cpp" line="608"/>
+        <source>Ne lâche rien !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="609"/>
+        <source>Tu peux accomplir tes objectifs !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="610"/>
+        <source>Il est normal d&apos;être fatigué, mais je crois en toi !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="611"/>
+        <source>Personne ne peut le faire à ta place,
+alors tu vas me le gravir ce classement !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="612"/>
+        <source>Tu peux le faire !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="613"/>
+        <source>Prouve-nous que tu es meilleur que ce qu&apos;on peut penser !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="614"/>
+        <source>Tout le monde est passé par là, ne te décourage pas !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="615"/>
+        <source>C&apos;est pas le moment de se décourager !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="616"/>
+        <source>Pense à ceux qui croient en toi ... Tu ne
+peux PAS les décevoir !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="618"/>
+        <source>Si tu es fatigué, tu peux prendre une pause
+avant la nuit. Ça t&apos;évitera de tomber de fatigue 😉</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="619"/>
+        <source>Ne néglige pas la douche.
+L&apos;hygiène avant tout ... non ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="620"/>
+        <source>Il vaudrait mieux que tu aies préparé de quoi
+manger avant de commencer le tournoi.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="621"/>
+        <source>Se concentrer sur le tournoi est important, mais
+avoir un autre centre d&apos;attention en a déjà aidé plus d&apos;un.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="622"/>
+        <source>Fatigué pendant la nuit ? Marcher, boire de l&apos;eau et se rafraîchir
+aident à lutter temporairement contre la fatigue.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="623"/>
+        <source>La nuit est souvent dure à passer, mais le matin peut te
+surprendre. Fais attention.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="625"/>
+        <source>Tu peux regarder le classement en cliquant sur l&apos;onglet
+Navigation, puis sur &quot;Classement&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="626"/>
+        <source>Un objectif en tête ? Tu peux calculer le nombre de
+victoires/heures à gauche de cette fenêtre.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="627"/>
+        <source>Tu peux générer les graphiques de plusieurs statistiques : 
+Rang, Points, Points/heure, ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="628"/>
+        <source>La touche &quot;Tab&quot; te permet de rapidement changer de page. Essaye donc !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="630"/>
+        <source>Team Café, Team Boisson énergisante ou Team Eau ?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="718"/>
         <source>Rentrez votre identifiant
 et générer un graphique
 d&apos;abord !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="650"/>
+        <location filename="mainwindow.cpp" line="744"/>
         <source>Vous avez dépassé 
 votre objectif !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="661"/>
+        <location filename="mainwindow.cpp" line="755"/>
         <source>Le seed est nul !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="672"/>
+        <location filename="mainwindow.cpp" line="766"/>
         <source>Impossible</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="687"/>
+        <location filename="mainwindow.cpp" line="781"/>
         <source>Très Facile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="690"/>
+        <location filename="mainwindow.cpp" line="784"/>
         <source>Facile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="693"/>
+        <location filename="mainwindow.cpp" line="787"/>
         <source>Moyen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="696"/>
+        <location filename="mainwindow.cpp" line="790"/>
         <source>Difficile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="699"/>
+        <location filename="mainwindow.cpp" line="793"/>
         <source>Très difficile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="702"/>
+        <location filename="mainwindow.cpp" line="796"/>
         <source>bonne chance mdr</source>
         <translation type="unfinished"></translation>
     </message>
@@ -216,6 +327,21 @@ votre objectif !</source>
     <message>
         <location filename="mainwindow.ui" line="314"/>
         <source>Victoires par heure nécessaire</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="386"/>
+        <source>Temps restant : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="399"/>
+        <source>59ème Tenkaichi Budokai</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="412"/>
+        <source>Ne lache rien !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
