@@ -2,16 +2,16 @@
     <qresource prefix="/images">
         <file>en_US.png</file>
         <file>fr_FR.png</file>
+        <file>image.png</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>Polar_en_US.qm</file>
         <file>Polar_fr_FR.qm</file>
     </qresource>
     <qresource prefix="/">
-
         <!-- Other resources -->
-
         <file>mainwindow.ui</file>
-
+        <!-- NEW: classement page -->
+        <file>classement.ui</file>
     </qresource>
 </RCC>

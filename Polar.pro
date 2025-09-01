@@ -37,6 +37,7 @@ HEADERS += \
     updater.h
 
 FORMS += \
+    classement.ui \
     mainwindow.ui
 
 TRANSLATIONS += \

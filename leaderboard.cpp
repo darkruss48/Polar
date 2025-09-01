@@ -11,26 +11,26 @@
 
 Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
 {
-    mainLayout = new QVBoxLayout(this);
-    contentLayout = new QHBoxLayout();
+    // mainLayout = new QVBoxLayout(this);
+    // contentLayout = new QHBoxLayout();
 
-    playerList = new QListWidget(this);
-    refreshButton = new QPushButton(this);
-    // graphPlaceholder = new QLabel(this);
-    dataPlaceholder = new QLabel(this);
+    // playerList = new QListWidget(this);
+    // refreshButton = new QPushButton(this);
+    // // graphPlaceholder = new QLabel(this);
+    // dataPlaceholder = new QLabel(this);
 
-    // Partie gauche : liste de joueurs
-    connect(playerList, &QListWidget::itemDoubleClicked, this, &Leaderboard::onPlayerDoubleClicked);
+    // // Partie gauche : liste de joueurs
+    // connect(playerList, &QListWidget::itemDoubleClicked, this, &Leaderboard::onPlayerDoubleClicked);
 
-    // Partie droite : zone graphique + données
-    QVBoxLayout *rightLayout = new QVBoxLayout();
-    // rightLayout->addWidget(graphPlaceholder);
-    rightLayout->addWidget(dataPlaceholder);
+    // // Partie droite : zone graphique + données
+    // QVBoxLayout *rightLayout = new QVBoxLayout();
+    // // rightLayout->addWidget(graphPlaceholder);
+    // rightLayout->addWidget(dataPlaceholder);
 
-    contentLayout->addWidget(playerList);
-    contentLayout->addLayout(rightLayout);
-    mainLayout->addLayout(contentLayout);
-    mainLayout->addWidget(refreshButton);
+    // // contentLayout->addWidget(playerList);
+    // // contentLayout->addLayout(rightLayout);
+    // // mainLayout->addLayout(contentLayout);
+    // // mainLayout->addWidget(refreshButton);
 
     // connect(refreshButton, &QPushButton::clicked, this, &Leaderboard::onRefreshClicked);
     // connect(refreshButton, &QPushButton::clicked, this, [this]() {
@@ -177,9 +177,14 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     double hoursWithoutPoints = zeroPointsCount * 0.25; // 15 minutes = 0.25 heures
     std::cout << "Nombre d'heures sans points : " << hoursWithoutPoints << std::endl;
     // Créer un texte explicatif
+    Leaderboard::dataPlaceholder->setText("a");
+    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
     Leaderboard::dataPlaceholder->setText(tr("Nom : ") + name + "\n" + tr("Rank : ") + last_ranks + "\n"
                                           + "\n" + tr("Wins : ") + last_wins + "\n" + tr("Points totaux : ") + last_points
                                           + "\n" + tr("Heures AFK : ") + QString::number(hoursWithoutPoints));
+    
+    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
+    
 }
 
 

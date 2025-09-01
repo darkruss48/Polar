@@ -37,6 +37,9 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QtUiTools/QUiLoader>
+#include <QFile>
+
+#include <QTimer>
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -203,6 +206,33 @@ MainWindow::MainWindow(QWidget *parent)
     pagePrincipale->setParent(nullptr);
     setCentralWidget(stackedWidget);
     stackedWidget->addWidget(pagePrincipale);
+
+    // Charger la page Classement depuis classement.ui
+    QFile classementUi(":/classement.ui");
+    QWidget *pageClassement = nullptr;
+    if (classementUi.open(QFile::ReadOnly)) {
+        QUiLoader loader;
+        pageClassement = loader.load(&classementUi, this);
+        classementUi.close();
+    }
+    if (!pageClassement) {
+        pageClassement = new QWidget(this);
+    }
+    stackedWidget->addWidget(pageClassement);
+
+    // Récupérer les widgets de la page Classement
+    auto playerList_ = pageClassement->findChild<QListWidget*>("list_players");
+    auto refreshButton = pageClassement->findChild<QPushButton*>("button_refresh");
+    Leaderboard::graphPlaceholder = pageClassement->findChild<QGraphicsView*>("view_graph");
+    Leaderboard::dataPlaceholder = pageClassement->findChild<QLabel*>("label_data");
+    labelDynamic = pageClassement->findChild<QLabel*>("labelDynamic");
+
+    if (refreshButton && playerList_) {
+        connect(refreshButton, &QPushButton::clicked, this, [this, playerList_]() {
+            Leaderboard::onRefreshClicked(this, playerList_);
+        });
+    }
+
     // this->resize(1260, 717);
 
     // Créer les pages
@@ -235,43 +265,43 @@ MainWindow::MainWindow(QWidget *parent)
     //         qDebug() << "Erreur chargement mainwindow.ui : " << uiFile.errorString();
     //     }
     // }
-    QWidget *pageSecondaire = new QWidget(this);
-    QVBoxLayout *layoutSec = new QVBoxLayout(pageSecondaire);
+    // QWidget *pageSecondaire = new QWidget(this);
+    // QVBoxLayout *layoutSec = new QVBoxLayout(pageSecondaire);
     // nouveaux éléments
 
-    auto contentLayout = new QHBoxLayout();
+    // auto contentLayout = new QHBoxLayout();
 
-    auto playerList = new QListWidget(this);
-    playerList->setFixedWidth(300);
-    auto refreshButton = new QPushButton(this);
-    Leaderboard::graphPlaceholder = new QGraphicsView(this);
-    Leaderboard::dataPlaceholder = new QLabel(this);
+    // auto playerList = new QListWidget(this);
+    // playerList->setFixedWidth(300);
+    // auto refreshButton = new QPushButton(this);
+    // Leaderboard::graphPlaceholder = new QGraphicsView(this);
+    // Leaderboard::dataPlaceholder = new QLabel(this);
     //écrire dans dataplaceholder  "refresh"
-    refreshButton->setText("REFRESH");
-    Leaderboard::dataPlaceholder->setText("");
+    // refreshButton->setText("REFRESH");
+    // Leaderboard::dataPlaceholder->setText("");
 
 
-    QVBoxLayout *rightLayout = new QVBoxLayout();
-    rightLayout->addWidget(Leaderboard::graphPlaceholder);
-    rightLayout->addWidget(Leaderboard::dataPlaceholder);
-    rightLayout->setStretch(0, 2); // GraphPlaceholder takes 1 part of the space
-    rightLayout->setStretch(1, 1); // DataPlaceholder takes 2 parts of the space
+    // QVBoxLayout *rightLayout = new QVBoxLayout();
+    // rightLayout->addWidget(Leaderboard::graphPlaceholder);
+    // rightLayout->addWidget(Leaderboard::dataPlaceholder);
+    // rightLayout->setStretch(0, 2); // GraphPlaceholder takes 1 part of the space
+    // rightLayout->setStretch(1, 1); // DataPlaceholder takes 2 parts of the space
 
     // Ajouter les callbacks
     //connect(refreshButton, &QPushButton::clicked, this, Leaderboard::onRefreshClicked);
-    connect(refreshButton, &QPushButton::clicked, this, [this, playerList]() {
-        Leaderboard::onRefreshClicked(this, playerList);
-    });
+    // connect(refreshButton, &QPushButton::clicked, this, [this, playerList]() {
+    //     Leaderboard::onRefreshClicked(this, playerList);
+    // });
 
-    contentLayout->addWidget(playerList);
-    contentLayout->addLayout(rightLayout);
-    layoutSec->addLayout(contentLayout);
-    layoutSec->addWidget(refreshButton);
+    // contentLayout->addWidget(playerList);
+    // contentLayout->addLayout(rightLayout);
+    // layoutSec->addLayout(contentLayout);
+    // layoutSec->addWidget(refreshButton);
 
-    labelDynamic = new QLabel(tr("Bienvenue sur le leaderboard !"), pageSecondaire);
-    layoutSec->addWidget(labelDynamic);
-    pageSecondaire->setLayout(layoutSec);
-    std::cout << "e : " << Updater::polar_version << std::endl;
+    // labelDynamic = new QLabel(tr("Bienvenue sur le leaderboard !"), pageSecondaire);
+    // layoutSec->addWidget(labelDynamic);
+    // pageSecondaire->setLayout(layoutSec);
+    // std::cout << "e : " << Updater::polar_version << std::endl;
     // retrouver la page secondaire par son nom
 
     // Configurer les pages
@@ -280,7 +310,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Ajouter les pages au QStackedWidget
     // stackedWidget->addWidget(pagePrincipale);
-    stackedWidget->addWidget(pageSecondaire);
+    // stackedWidget->addWidget(pageSecondaire);
 
     // Créer le QMenuBar
     QMenuBar *menuBar = this->menuBar();
@@ -298,11 +328,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Connecter les actions aux slots
     connect(actionPagePrincipale, &QAction::triggered, this, [this]() {
-        stackedWidget->setCurrentIndex(0);
+        stackedWidget->setCurrentIndex(0); // mainwindow.ui
     });
 
     connect(actionPageSecondaire, &QAction::triggered, this, [this]() {
-        stackedWidget->setCurrentIndex(1);
+        stackedWidget->setCurrentIndex(1); // classement.ui
     });
 
     // Menu principal
@@ -327,7 +357,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(updater, &Updater::updateAvailable, this, &MainWindow::onUpdateAvailable);
     updater->checkForUpdate();
 
-    // Start tips rotation (safe if label_tips is missing)
+    // Initialiser l'easter-egg (détection sur label_time_left)
+    setupEasterEgg();
+
+    // Démarrer la rotation des tips
     setupTipsRotation();
 }
 
@@ -586,7 +619,9 @@ void MainWindow::changeEvent(QEvent* event)
 {
     if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
-        labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
+        if (labelDynamic) {
+            labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
+        }
         // Optional: keep current tips showing; no reset needed.
     } else {
         QMainWindow::changeEvent(event);
@@ -684,6 +719,116 @@ void MainWindow::restartTipsCycle()
     if (tipsGroup) {
         tipsGroup->start();
     }
+}
+
+// + Easter-egg setup: overlay label and filter on label_time_left
+void MainWindow::setupEasterEgg()
+{
+    if (!ui->label_time_left) return;
+
+    // Rendre le label sensible aux survols et clics
+    ui->label_time_left->setAttribute(Qt::WA_Hover, true);
+    ui->label_time_left->setMouseTracking(true);
+    ui->label_time_left->installEventFilter(this);
+
+    // Créer l’overlay image
+    if (!easterEggLabel) {
+        easterEggLabel = new QLabel(this);
+        easterEggLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        easterEggLabel->setStyleSheet("background: transparent;");
+        QPixmap pix(":/images/image.png");
+        easterEggLabel->setPixmap(pix);
+        easterEggLabel->adjustSize();
+        easterEggLabel->hide();
+
+        // Opacité (restée à 1 pour un slide pur)
+        easterEggOpacity = new QGraphicsOpacityEffect(easterEggLabel);
+        easterEggOpacity->setOpacity(1.0);
+        easterEggLabel->setGraphicsEffect(easterEggOpacity);
+
+        // Animation de slide en diagonale
+        easterEggSlideAnim = new QPropertyAnimation(easterEggLabel, "pos", this);
+        easterEggSlideAnim->setDuration(250); // 0.25s
+        // easterEggSlideAnim->setEasingCurve(QEasingCurve::OutCubic); // optionnel
+    }
+}
+
+bool MainWindow::eventFilter(QObject* watched, QEvent* event)
+{
+    if (ui->label_time_left && watched == ui->label_time_left) {
+        switch (event->type()) {
+        case QEvent::Enter:
+        case QEvent::HoverEnter:
+        case QEvent::MouseButtonPress:
+            if (!easterEggDone) {
+                easterEggDone = true;
+                easterEggActive = true;
+                showEasterEgg();
+            }
+            break;
+        case QEvent::Leave:
+        case QEvent::HoverLeave:
+        case QEvent::MouseButtonRelease:
+            if (easterEggActive) {
+                hideEasterEgg();
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    return false;
+}
+
+void MainWindow::showEasterEgg()
+{
+    if (!easterEggLabel || !easterEggSlideAnim) return;
+
+    // Calculer positions (bas-gauche, moitié visible)
+    const int margin = 8;
+    const int labelW = easterEggLabel->width();
+    const int labelH = easterEggLabel->height();
+    const int winH = this->height();
+
+    // Départ: totalement en dehors (bas-gauche)
+    QPoint startPos(-labelW, winH);
+    // Arrivée: moitié de l'image visible horizontalement, 8px du bas
+    QPoint endPos(-labelW / 2, winH - (labelH / 2) - margin);
+
+    easterEggSlideAnim->stop();
+    easterEggLabel->move(startPos);
+    easterEggLabel->raise();
+    easterEggLabel->show();
+
+    easterEggSlideAnim->setStartValue(startPos);
+    easterEggSlideAnim->setEndValue(endPos);
+    easterEggSlideAnim->setDuration(250);
+    // easterEggSlideAnim->setEasingCurve(QEasingCurve::OutCubic); // optionnel
+    easterEggSlideAnim->start();
+}
+
+void MainWindow::hideEasterEgg()
+{
+    if (!easterEggLabel || !easterEggSlideAnim) return;
+
+    const int labelW = easterEggLabel->width();
+    const int winH = this->height();
+
+    // Sortie: glisse vers l’extérieur (bas-gauche)
+    QPoint endPos(-labelW, winH);
+
+    easterEggSlideAnim->stop();
+    easterEggSlideAnim->setStartValue(easterEggLabel->pos());
+    easterEggSlideAnim->setEndValue(endPos);
+    easterEggSlideAnim->setDuration(250);
+    // easterEggSlideAnim->setEasingCurve(QEasingCurve::InCubic); // optionnel
+
+    QObject::connect(easterEggSlideAnim, &QPropertyAnimation::finished, this, [this]() {
+        if (easterEggLabel) easterEggLabel->hide();
+        easterEggActive = false;
+    }, Qt::SingleShotConnection);
+
+    easterEggSlideAnim->start();
 }
 
 void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)

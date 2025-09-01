@@ -11,20 +11,19 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
-
 #include "ui_mainwindow.h"
-
 #include <QtUiTools/QUiLoader>
 #include <QFile>
 #include <iostream>
 
-// Add includes for tips rotation
+// Tips rotation includes
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QSequentialAnimationGroup>
 #include <QPauseAnimation>
 #include <QStringList>
 #include <QRandomGenerator>
+#include <QEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -45,6 +44,7 @@ protected:
     QAction* menu1_action1;
     QAction* menu1_action2;
     void changeEvent(QEvent*) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 protected slots:
     void slotLanguageChanged(QAction* action);
@@ -79,6 +79,11 @@ private:
     void setupTipsRotation();
     void restartTipsCycle();
 
+    // Easter-egg helpers
+    void setupEasterEgg();
+    void showEasterEgg();
+    void hideEasterEgg();
+
     // Créer un menu
     QStackedWidget *stackedWidget;
     QLabel *labelDynamic;
@@ -96,5 +101,13 @@ private:
     QSequentialAnimationGroup* tipsGroup = nullptr;
     QStringList tipsPhrases;
     int lastTipIndex = -1;
+
+    // Easter-egg members
+    QLabel* easterEggLabel = nullptr;
+    QGraphicsOpacityEffect* easterEggOpacity = nullptr; // laissé mais non essentiel
+    QPropertyAnimation* easterEggAnim = nullptr;        // laissé mais non utilisé
+    QPropertyAnimation* easterEggSlideAnim = nullptr;   // NEW: animation de position
+    bool easterEggDone = false;
+    bool easterEggActive = false;
 };
 #endif // MAINWINDOW_H
