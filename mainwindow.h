@@ -69,6 +69,11 @@ private slots:
 
     void on_lineEdit_afk_textEdited(const QString &arg1);
 
+    // Options dialog
+    void showOptionsDialog(); // +
+
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     // loads a language by the given language shortcur (e.g. de, en)
     void loadLanguage(const QString& rLanguage);
@@ -109,5 +114,11 @@ private:
     QPropertyAnimation* easterEggSlideAnim = nullptr;   // NEW: animation de position
     bool easterEggDone = false;
     bool easterEggActive = false;
+
+    // NEW: apply background from settings
+    void updateBackgroundPalette();
+    // NEW: refresh displayed identifier according to settings
+    void updateIdLabelDisplay();
+    QString maskedIdentifier(const QString& id) const;
 };
 #endif // MAINWINDOW_H

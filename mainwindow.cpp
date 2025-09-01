@@ -38,8 +38,20 @@
 #include <QLabel>
 #include <QtUiTools/QUiLoader>
 #include <QFile>
-
-#include <QTimer>
+#include <QDialog>             // +
+#include <QDialogButtonBox>    // +
+#include <QRadioButton>        // +
+#include <QComboBox>           // +
+#include "appsettings.h"       // +
+#include <QMenu>               // +
+#include <QPixmap>           // NEW
+#include <QTransform>        // NEW
+#include <QPalette>          // NEW
+#include <QBrush>            // NEW
+#include <QPainter>          // NEW
+#include <QSlider>           // NEW
+#include <QCheckBox>         // NEW
+#include <QLineEdit>         // NEW
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -171,6 +183,12 @@ MainWindow::MainWindow(QWidget *parent)
     labelDynamic(nullptr)
 {
     ui->setupUi(this);
+
+    // + Charger l'ID sauvegardé et rafraîchir l'affichage
+    if (!AppSettings::savedIdentifier.isEmpty()) {
+        functb::identifier = AppSettings::savedIdentifier.toStdString();
+    }
+    updateIdLabelDisplay();
 
     // Que des chiffres dans les goals, et mettre des virgules tous les 3 chiffres
     ui->lineEdit_goal->setValidator( new QIntValidator(0, 10000000000, this) );
@@ -326,6 +344,19 @@ MainWindow::MainWindow(QWidget *parent)
     menuNavigation->addAction(actionPagePrincipale);
     menuNavigation->addAction(actionPageSecondaire);
 
+    // Ajouter des icônes
+    actionPagePrincipale->setIcon(QIcon(":/images/chart.png"));
+    actionPageSecondaire->setIcon(QIcon(":/images/medal.png"));
+
+    // + Menu Options
+    QMenu *menuOptions = menuBar->addMenu(tr("Options"));
+    QAction *actionOptions = new QAction(tr("Paramètres..."), this);
+    menuOptions->addAction(actionOptions);
+    connect(actionOptions, &QAction::triggered, this, &MainWindow::showOptionsDialog);
+
+    // Ajouter l'icone "settings_icon.png"
+    actionOptions->setIcon(QIcon(":/images/settings_icon.png"));
+
     // Connecter les actions aux slots
     connect(actionPagePrincipale, &QAction::triggered, this, [this]() {
         stackedWidget->setCurrentIndex(0); // mainwindow.ui
@@ -362,11 +393,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Démarrer la rotation des tips
     setupTipsRotation();
+
+    // REMPLACE l'ancien code de fond par:
+    updateBackgroundPalette();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+// Connecter le redimensionnement de la fenêtre pour ajuster l'image de fond
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+    updateBackgroundPalette();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -396,7 +437,7 @@ void MainWindow::onUpdateAvailable(const QString &latestVersion, const QString &
 void MainWindow::on_bouton_graphique_clicked()
 {
     // Simuler des données pour le graphique
-    // QString hours = "[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75, 5.0, 5.25, 5.5, 5.75, 6.0, 6.25, 6.5, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25, 8.5, 8.75, 9.0, 9.25, 9.5, 9.75, 10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75, 12.0, 12.25, 12.5, 12.75, 13.0, 13.25, 13.5, 13.75, 14.0, 14.25, 14.5, 14.75, 15.0, 15.25, 15.5, 15.75, 16.0, 16.25, 16.5, 16.75, 17.0, 17.25, 17.5, 17.75, 18.0, 18.25, 18.5, 18.75, 19.0, 19.25, 19.5, 19.75, 20.0, 20.25, 20.5, 20.75, 21.0, 21.25, 21.5, 21.75, 22.0, 22.25, 22.5, 22.75, 23.0, 23.25, 23.5, 23.75, 24.0, 24.25, 24.5, 24.75, 25.0, 25.25, 25.5, 25.75, 26.0, 26.25, 26.5, 26.75, 27.0, 27.25, 27.5, 27.75, 28.0, 28.25, 28.5, 28.75, 29.0, 29.25, 29.5, 29.75, 30.0, 30.25, 30.5, 30.75, 31.0, 31.25, 31.5, 31.75, 32.0, 32.25, 32.5, 32.75, 33.0, 33.25, 33.5, 33.75, 34.0, 34.25, 34.5, 34.75, 35.0, 35.25, 35.5, 35.75, 36.0, 36.25, 36.5, 36.75, 37.0, 37.25, 37.5, 37.75, 38.0, 38.25, 38.5, 38.75, 39.0, 39.5, 39.75, 40.0, 40.25, 40.5, 40.75, 41.0, 41.25, 41.5, 41.75, 42.0, 42.25, 42.5, 42.75, 43.0, 43.25, 43.5, 43.75, 44.0, 44.25, 44.5, 44.75, 45.0, 45.25, 45.5, 45.75, 46.0, 46.25, 46.5, 46.75, 47.0, 47.25, 47.5, 47.75, 48.0, 48.25, 48.5, 48.75, 49.0, 49.25, 49.5, 49.75, 50.0, 50.25, 50.5, 50.75, 51.0, 51.25, 51.5, 51.75, 52.0, 52.25, 52.5, 52.75, 53.0, 53.25, 53.5, 53.75, 54.0, 54.25, 54.75, 55.0, 55.25, 55.5, 55.75, 56.0, 56.25, 56.5, 56.75, 57.0, 57.25, 57.5, 57.75, 58.0, 58.25, 58.5, 58.75, 59.0, 59.25, 59.5, 59.75, 60.0, 60.25, 60.5, 60.75, 61.0, 61.25, 61.5, 61.75, 62.0, 62.25, 62.5, 62.75, 63.0, 63.25, 63.5, 63.75]";
+    // QString hours = "[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75, 5.0, 5.25, 5.5, 5.75, 6.0, 6.25, 6.5, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25, 8.5, 8.75, 9.0, 9.25, 9.5, 9.75, 10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75, 12.0, 12.25, 12.5, 12.75, 13.0, 13.25, 13.5, 13.75, 14.0, 14.25, 14.5, 14.75, 15.0, 15.25, 15.5, 15.75, 16.0, 16.25, 16.5, 16.75, 17.0, 17.25, 17.5, 17.75, 18.0, 18.25, 18.5, 18.75, 19.0, 19.25, 19.5, 19.75, 20.0, 20.25, 20.5, 20.75, 21.0, 21.25, 21.5, 21.75, 22.0, 22.25, 22.5, 22.75, 23.0, 23.25, 23.5, 23.75, 24.0, 24.25, 24.5, 24.75, 25.0, 25.25, 25.5, 25.75, 26.0, 26.25, 26.5, 26.75, 27.0, 27.25, 27.5, 27.75, 28.0, 28.25, 28.5, 28.75, 29.0, 29.25, 29.5, 29.75, 30.0, 30.25, 30.5, 30.75, 31.0, 31.25, 31.5, 31.75, 32.0, 32.25, 32.5, 32.75, 33.0, 33.25, 33.5, 33.75, 34.0, 34.25, 34.5, 34.75, 35.0, 35.25, 35.5, 35.75, 36.0, 36.25, 36.5, 36.75, 37.0, 37.25, 37.5, 37.75, 38.0, 38.25, 38.5, 38.75, 39.0, 39.25, 39.5, 39.75, 40.0, 40.25, 40.5, 40.75, 41.0, 41.25, 41.5, 41.75, 42.0, 42.25, 42.5, 42.75, 43.0, 43.25, 43.5, 43.75, 44.0, 44.25, 44.5, 44.75, 45.0, 45.25, 45.5, 45.75, 46.0, 46.25, 46.5, 46.75, 47.0, 47.25, 47.5, 47.75, 48.0, 48.25, 48.5, 48.75, 49.0, 49.25, 49.5, 49.75, 50.0, 50.25, 50.5, 50.75, 51.0, 51.25, 51.5, 51.75, 52.0, 52.25, 52.5, 52.75, 53.0, 53.25, 53.5, 53.75, 54.0, 54.25, 54.75, 55.0, 55.25, 55.5, 55.75, 56.0, 56.25, 56.5, 56.75, 57.0, 57.25, 57.5, 57.75, 58.0, 58.25, 58.5, 58.75, 59.0, 59.25, 59.5, 59.75, 60.0, 60.25, 60.5, 60.75, 61.0, 61.25, 61.5, 61.75, 62.0, 62.25, 62.5, 62.75, 63.0, 63.25, 63.5, 63.75]";
     // QString points = "[941080591.9161111, 954992299.3683333, 954796492.6183333, 968928798.7647221, 968725659.4555554, 960828762.8919444, 959794832.3283333, 960103803.0783333, 959108686.1419444, 959816838.5783333, 958587293.3283333, 956769817.4511111, 956525744.1419444, 956807881.5783333, 956607881.6419444, 954295580.0783333, 953043648.4555554, 952890358.5783333, 952651368.3283333, 951927051.7647221, 952229145.1419444, 951996060.5783333, 950832455.0147221, 950720249.0783333, 951320991.1419444, 951432952.5783333, 999542601.7130555, 1029240519.9333333, 1028836966.9333333, 1029277206.9333334, 1028871452.2888889, 1033396316.0525, 1042248248.3208333, 1041652944.5333333, 1041447120.9749999, 1041536954.8791666, 1041856904.3208333, 1044158942.3288889, 1068659988.1666666, 1068507978.1666666, 1068518587.0, 1068313611.1666666, 1068488670.1666666, 1074279603.6647222, 1094199310.4466667, 1093448944.6477778, 1092772835.8488889, 1092913066.6477778, 1092286172.4466667, 1092414331.6477778, 1091613328.6477778, 1091055021.8488889, 1091075003.6477778, 1090396226.05, 1090017511.05, 1089753221.05, 1089435869.6477778, 1089149797.8488889, 1088554280.05, 1088696762.05, 1088051255.8488889, 1087681893.05, 1087377153.8488889, 1086912837.8488889, 1086929223.6477778, 1086215261.05, 1085535512.8488889, 1085552888.05, 1084923028.8488889, 1084573663.05, 1084412709.05, 1084075187.05, 1083810920.6477778, 1083569612.05, 1083667276.05, 1083306044.05, 1083156911.8488889, 1082553161.05, 1081898550.05, 1081948704.05, 1081269297.8488889, 1080898378.251111, 1088646902.05, 1080160016.251111, 1079845008.8488889, 1079678985.05, 1079248541.05, 1078764408.8488889, 1077711226.8488889, 1077691214.05, 1077178608.05, 1077302976.05, 1076692617.8488889, 1076344115.05, 1076849364.05, 1075540656.05, 1075708382.8488889, 1075314150.05, 1075448712.251111, 1074886507.8488889, 1074226499.6477778, 1074225163.6477778, 1073646359.8488889, 1073838703.05, 1073155905.4466666, 1072523148.6477778, 1072528502.8488889, 1071732816.6477778, 1071091218.6477778, 1070861482.8488889, 1078572655.6477778, 1069893097.6477778, 1069479798.4466667, 1069197816.8488889, 1068534096.6477778, 1068137508.6477778, 1067982549.4466666, 1067370693.8488889, 1067339347.6477778, 1066777108.8488889, 1066848864.4466667, 1066117435.8488889, 1066233026.6477778, 1065554841.6477778, 1065159257.4466666, 1064869946.6477778, 1064226527.6477778, 1064371924.05, 1063727203.4466666, 1063005627.8488889, 1062987165.8488889, 1062214311.8488889, 1061664232.6477778, 1061667082.8488889, 1061125821.8488889, 1061129469.8488889, 1060294704.8488889, 1059808699.8488889, 1059962146.8488889, 1059722490.8488889, 1059491993.6477778, 1059192978.8488889, 1058915008.6477778, 1059177199.8488889, 1058558397.05, 1058715774.6477778, 1058202912.6477778, 1058221411.8488889, 1057711417.8488889, 1057703137.251111, 1057935174.6477778, 1057291440.8488889, 1056927797.6477778, 1056746511.8488889, 1056364596.05, 1056493701.6477778, 1055811983.6477778, 1055945840.8488889, 1054670445.8488889, 1054401797.05, 1053867624.8488889, 1053913478.8488889, 1053384024.8488889, 1052871247.6477778, 1052752160.05, 1051981828.8488889, 1051720944.8488889, 1051461135.8488889, 1050703302.8488889, 1064294627.6477778, 1051447135.8488889, 1067296427.6477778, 1071294627.6477778, 1065918447.7812119, 1085135435.5364616, 1095205229.4200351, 1099527280.932805, 1084398605.374169, 1069477042.8786293, 1050572265.6123109, 1065960045.7355093, 1070271428.2372028, 1079179193.6377938, 1058484184.0832614, 1078379869.9415963, 1092719848.0115724, 1080146537.4812322, 1066399511.081863, 1052894820.0457423, 1044650326.9108752, 1045684799.4867858, 1042838237.1053739, 1034129667.68958, 1038756483.5635549, 1023777359.9790686, 1015265455.8598633, 1009838327.6963152, 1008063839.1493576, 1019562862.1283556, 1007314803.7989633, 1007888346.2204752, 1011614088.8995569, 993261402.7992756, 997534208.8178141, 984387670.5137279, 967261356.5467328, 984628941.8946476, 1002967932.9361858, 1015340438.9667206, 1007405097.3116981, 991192810.7860737, 998497228.8416022, 996106926.0754386, 981047312.7929261, 980858045.6179382, 962590095.01009, 978350405.5991534, 968910497.4855431, 975209279.3809793, 967864435.1488886, 968641360.1081613, 970451180.4487257, 958217845.8227893, 976216420.6407113, 986959987.8416057, 1004310702.6425092, 1020171875.9917282, 1024166868.1934583, 1041449652.7556638, 1024307079.1218885, 1011850802.8739507, 993444317.5603093, 986503333.9461744, 982110524.9515643, 973128104.0541553, 985924252.4146553, 980275037.6430349, 971685260.3725352, 973344746.5597557, 959364565.7902483, 970961248.7992171, 954437455.2666767, 973025580.4175401, 983621625.403961, 971767634.5624377, 952546930.4589881, 964566603.0731025, 972547710.4921353, 981456526.3707174, 992106128.4573482, 975202411.9987965, 969681429.4826318]";
 
     // Récupérer les données
@@ -512,10 +553,13 @@ void MainWindow::on_idButton_clicked()
                                          tr("Identifiant:"), QLineEdit::Normal,
                                          "", &ok);
     if (ok && !text.isEmpty()) {
-        // mettre l'identifiant dans le champ de texte
-        ui->label->setText(tr("Identifiant actuel : ") + text);
-        // mettre a jour l'identifiant dans functb::identifier
+        // Persist identifier (real value)
+        AppSettings::savedIdentifier = text;
+        AppSettings::save();
+        // Update runtime value used by code
         functb::identifier = text.toStdString();
+        // Update label display honoring censor setting
+        updateIdLabelDisplay();
     }
 }
 
@@ -622,7 +666,8 @@ void MainWindow::changeEvent(QEvent* event)
         if (labelDynamic) {
             labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
         }
-        // Optional: keep current tips showing; no reset needed.
+        // Refresh ID label with new translation prefix
+        updateIdLabelDisplay();
     } else {
         QMainWindow::changeEvent(event);
     }
@@ -955,4 +1000,194 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
 void MainWindow::on_lineEdit_goal_textEdited(const QString &arg1)
 {
     MainWindow::on_lineEdit_afk_textEdited(arg1);
+}
+
+void MainWindow::showOptionsDialog()
+{
+    QFile uiFile(":/options.ui");
+    if (!uiFile.open(QFile::ReadOnly)) {
+        return;
+    }
+    QUiLoader loader;
+    QWidget *content = loader.load(&uiFile, nullptr);
+    uiFile.close();
+    if (!content) return;
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Options"));
+    QVBoxLayout layout(&dlg);
+    layout.setContentsMargins(0,0,0,0);
+    layout.addWidget(content);
+
+    // Find widgets
+    auto radioGlo = content->findChild<QRadioButton*>("radioGlo");
+    auto radioJap = content->findChild<QRadioButton*>("radioJap");
+    auto comboTheme = content->findChild<QComboBox*>("comboTheme");
+    auto buttonBox = content->findChild<QDialogButtonBox*>("buttonBox");
+    // NEW: privacy
+    auto checkCensorId = content->findChild<QCheckBox*>("checkCensorId");
+    // NEW: background selectors
+    auto checkCustom = content->findChild<QCheckBox*>("checkCustomBackground");
+    auto editPath = content->findChild<QLineEdit*>("editBackgroundPath");
+    auto btnBrowse = content->findChild<QPushButton*>("buttonBrowseBackground");
+    auto sliderOpacity = content->findChild<QSlider*>("sliderOpacity");
+    auto labelOpacityValue = content->findChild<QLabel*>("labelOpacityValue");
+
+    // Initialize from settings
+    if (radioGlo && radioJap) {
+        if (AppSettings::region == "Jap") radioJap->setChecked(true);
+        else radioGlo->setChecked(true);
+    }
+    if (comboTheme) {
+        int idx = comboTheme->findText(AppSettings::chartThemeName);
+        if (idx >= 0) comboTheme->setCurrentIndex(idx);
+    }
+    if (checkCensorId) checkCensorId->setChecked(AppSettings::censorIdDisplay);
+    if (checkCustom) checkCustom->setChecked(AppSettings::useCustomBackground);
+    if (editPath) {
+        editPath->setText(AppSettings::backgroundPath);
+        editPath->setEnabled(AppSettings::useCustomBackground);
+    }
+    if (btnBrowse) btnBrowse->setEnabled(AppSettings::useCustomBackground);
+    if (sliderOpacity) {
+        sliderOpacity->setRange(0, 100);
+        sliderOpacity->setValue(AppSettings::backgroundDimPercent);
+    }
+    if (labelOpacityValue && sliderOpacity) {
+        labelOpacityValue->setText(QString::number(sliderOpacity->value()) + "%");
+        QObject::connect(sliderOpacity, &QSlider::valueChanged, labelOpacityValue, [labelOpacityValue](int v){
+            labelOpacityValue->setText(QString::number(v) + "%");
+        });
+    }
+    if (checkCustom && editPath && btnBrowse) {
+        QObject::connect(checkCustom, &QCheckBox::toggled, editPath, &QWidget::setEnabled);
+        QObject::connect(checkCustom, &QCheckBox::toggled, btnBrowse, &QWidget::setEnabled);
+    }
+    if (btnBrowse && editPath) {
+        QObject::connect(btnBrowse, &QPushButton::clicked, &dlg, [this, editPath]() {
+            QString file = QFileDialog::getOpenFileName(this, tr("Choisir une image"), QString(), tr("Images (*.png *.jpg *.jpeg *.bmp)"));
+            if (!file.isEmpty()) {
+                editPath->setText(file);
+            }
+        });
+    }
+
+    if (buttonBox) {
+        connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+        connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+    }
+
+    if (dlg.exec() == QDialog::Accepted) {
+        // Read back and save
+        if (radioGlo && radioGlo->isChecked()) AppSettings::region = "Glo";
+        if (radioJap && radioJap->isChecked()) AppSettings::region = "Jap";
+        if (comboTheme) AppSettings::chartThemeName = comboTheme->currentText();
+        if (checkCensorId) AppSettings::censorIdDisplay = checkCensorId->isChecked();
+
+        if (checkCustom) AppSettings::useCustomBackground = checkCustom->isChecked();
+        if (editPath) AppSettings::backgroundPath = editPath->text();
+        if (sliderOpacity) AppSettings::backgroundDimPercent = sliderOpacity->value();
+
+        AppSettings::save();
+        updateBackgroundPalette();
+        updateIdLabelDisplay();
+        this->update();
+    }
+}
+
+// NEW: applique le fond d'écran (défaut ou personnalisé) + voile sombre
+void MainWindow::updateBackgroundPalette()
+{
+    QPixmap bgPixmap;
+
+    if (AppSettings::useCustomBackground && !AppSettings::backgroundPath.isEmpty() && QFile::exists(AppSettings::backgroundPath)) {
+        bgPixmap = QPixmap(AppSettings::backgroundPath);
+        // Conserver le comportement précédent: rotation -90°
+        if (!bgPixmap.isNull()) {
+            // bgPixmap = bgPixmap.transformed(QTransform().rotate(-90), Qt::SmoothTransformation);
+        }
+    } else {
+        // // Fallback: image embarquée par défaut (rotation -90°)
+        // QPixmap bundled("xxx");
+        // if (!bundled.isNull()) {
+        //     bgPixmap = bundled.transformed(QTransform().rotate(-90), Qt::SmoothTransformation);
+        // }
+    }
+
+    if (bgPixmap.isNull()) {
+        // Aucun fond valide -> définir une couleur de base
+        QPalette pal = palette();
+        QColor discordBlack(30, 30, 30);
+        pal.setBrush(QPalette::Window, QBrush(discordBlack));
+        setAutoFillBackground(true);
+        setPalette(pal);
+        return;
+    }
+
+    // Mise à l'échelle à la taille de la fenêtre
+    QPixmap scaled = bgPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+    // Appliquer le filtre sombre (0..100 -> alpha 0..255)
+    const int v = qBound(0, AppSettings::backgroundDimPercent, 100);
+    QPixmap composed(scaled.size());
+    composed.fill(Qt::transparent);
+    {
+        QPainter p(&composed);
+        p.drawPixmap(0, 0, scaled);
+        QColor mask(0, 0, 0, qRound(v * 2.55));
+        p.fillRect(composed.rect(), mask);
+    }
+
+    QPalette pal = palette();
+    pal.setBrush(QPalette::Window, QBrush(composed));
+    setAutoFillBackground(true);
+    setPalette(pal);
+}
+//         }
+//     }
+
+//     if (bgPixmap.isNull()) {
+//         // Pas d'image valide, retirer le fond
+//         QPalette pal = palette();
+//         pal.setBrush(QPalette::Window, Qt::NoBrush);
+//         setAutoFillBackground(false);
+//         setPalette(pal);
+//         return;
+//     }
+
+//     // Mise à l'échelle
+//     QPixmap scaled = bgPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+//     // Appliquer le filtre sombre (0..100 -> 0..255 alpha)
+//     int v = qBound(0, AppSettings::backgroundDimPercent, 100);
+//     QPixmap composed(scaled.size());
+//     composed.fill(Qt::transparent);
+//     {
+//         QPainter p(&composed);
+//         p.drawPixmap(0, 0, scaled);
+//         QColor mask(0, 0, 0, qRound(v * 2.55));
+//         p.fillRect(composed.rect(), mask);
+//     }
+
+//     QPalette pal = palette();
+//     pal.setBrush(QPalette::Window, QBrush(composed));
+//     setAutoFillBackground(true);
+//     setPalette(pal);
+// }
+
+// Rafraîchit l'affichage de l'identifiant avec ou sans censure
+void MainWindow::updateIdLabelDisplay()
+{
+    const QString id = AppSettings::savedIdentifier;
+    const QString shown = AppSettings::censorIdDisplay ? maskedIdentifier(id) : id;
+    if (ui && ui->label) {
+        ui->label->setText(tr("Identifiant actuel : ") + shown);
+    }
+}
+
+QString MainWindow::maskedIdentifier(const QString& id) const
+{
+    if (id.isEmpty()) return id;
+    // Masque complet en conservant la longueur
+    return QString(id.size(), QChar(0x2022)); // •
 }

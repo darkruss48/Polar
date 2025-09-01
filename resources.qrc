@@ -3,6 +3,9 @@
         <file>en_US.png</file>
         <file>fr_FR.png</file>
         <file>image.png</file>
+        <file>settings_icon.png</file>
+        <file>medal.png</file>
+        <file>chart.png</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>Polar_en_US.qm</file>
@@ -13,5 +16,7 @@
         <file>mainwindow.ui</file>
         <!-- NEW: classement page -->
         <file>classement.ui</file>
+        <!-- NEW: options dialog -->
+        <file>options.ui</file>
     </qresource>
 </RCC>

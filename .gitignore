@@ -58,3 +58,6 @@ compile_commands.json
 # folder
 build/
 .vscode/
+
+# config file
+polar.json

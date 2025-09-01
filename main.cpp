@@ -1,9 +1,9 @@
 #include "mainwindow.h"
-
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
 #include <QTextEdit>
+#include "appsettings.h" // +
 
 int main(int argc, char *argv[])
 {
@@ -13,6 +13,8 @@ int main(int argc, char *argv[])
         a.installTranslator(&translator);
     }
 
+    // Load settings (creates polar.json with defaults if missing)
+    AppSettings::load();
 
     MainWindow w;
     w.show();

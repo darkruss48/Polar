@@ -19,6 +19,7 @@
 #include <QtCharts/QChartView>
 // #include <QtCharts/QChartTheme>
 #include "ui_mainwindow.h"
+#include "appsettings.h" // +
 
 Render::Render() {}
 
@@ -150,8 +151,8 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
-    // Appliquer le thème céruléen
-    chart->setTheme(QChart::ChartThemeBrownSand);
+    // Appliquer le thème depuis les paramètres
+    chart->setTheme(AppSettings::chartThemeEnum());
 
     // Ajuster les axes du graphique
     adjustChartAxes(chart, points);
@@ -210,8 +211,8 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
-    // Appliquer le thème céruléen
-    chart->setTheme(QChart::ChartThemeBrownSand);
+    // Appliquer le thème depuis les paramètres
+    chart->setTheme(AppSettings::chartThemeEnum());
 
     // Ajuster les axes du graphique
     adjustChartAxes_leaderboard(chart, points);

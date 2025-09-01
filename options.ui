@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OptionsDialog</class>
+ <widget class="QWidget" name="OptionsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>259</width>
+    <height>425</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Options</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupRegion">
+     <property name="title">
+      <string>Région</string>
+     </property>
+     <layout class="QHBoxLayout" name="layoutRegion">
+      <item>
+       <widget class="QRadioButton" name="radioGlo">
+        <property name="text">
+         <string>Glo</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioJap">
+        <property name="text">
+         <string>Jap</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupTheme">
+     <property name="title">
+      <string>Thème des graphiques</string>
+     </property>
+     <layout class="QHBoxLayout" name="layoutTheme">
+      <item>
+       <widget class="QComboBox" name="comboTheme">
+        <item>
+         <property name="text">
+          <string>Bleu Céruléen</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clair - Bleu 1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clair - Bleu 2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clair - Bleu 3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clair - Noir</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Clair - Vert</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Sable</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thème sombre</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBackground">
+     <property name="title">
+      <string>Fond d'écran</string>
+     </property>
+     <layout class="QVBoxLayout" name="layoutBackgroundRoot">
+      <item>
+       <widget class="QCheckBox" name="checkCustomBackground">
+        <property name="text">
+         <string>Utiliser un fond d'écran personnalisé</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layoutBackgroundPath">
+        <item>
+         <widget class="QLineEdit" name="editBackgroundPath">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Chemin de l'image...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonBrowseBackground">
+          <property name="text">
+           <string>Parcourir...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupDim">
+     <property name="title">
+      <string>Opacité du fond</string>
+     </property>
+     <layout class="QHBoxLayout" name="layoutDim">
+      <item>
+       <widget class="QSlider" name="sliderOpacity">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelOpacityValue">
+        <property name="text">
+         <string>0%</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupPrivacy">
+     <property name="title">
+      <string>Confidentialité</string>
+     </property>
+     <layout class="QVBoxLayout" name="layoutPrivacy">
+      <item>
+       <widget class="QCheckBox" name="checkCensorId">
+        <property name="text">
+         <string>Censurer l'identifiant affiché</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

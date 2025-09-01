@@ -26,7 +26,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     render.cpp \
-    updater.cpp
+    updater.cpp \
+    appsettings.cpp
 
 HEADERS += \
     functb.h \
@@ -34,11 +35,13 @@ HEADERS += \
     leaderboard.h \
     mainwindow.h \
     render.h \
-    updater.h
+    updater.h \
+    appsettings.h
 
 FORMS += \
     classement.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    options.ui
 
 TRANSLATIONS += \
     Polar_fr_FR.ts \
