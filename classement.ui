@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1298</width>
+    <width>1283</width>
     <height>618</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>300</x>
      <y>10</y>
-     <width>981</width>
+     <width>961</width>
      <height>361</height>
     </rect>
    </property>
@@ -77,6 +77,23 @@
     <set>Qt::AlignmentFlag::AlignCenter</set>
    </property>
   </widget>
+  <!-- NEW: zone texte sous "Infos Moyenne" -->
+  <widget class="QLabel" name="label_avg_data">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>420</y>
+     <width>241</width>
+     <height>141</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
@@ -101,6 +118,12 @@
      <width>281</width>
      <height>511</height>
     </rect>
+   </property>
+   <property name="alternatingRowColors">
+    <bool>false</bool>
+   </property>
+   <property name="uniformItemSizes">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="button_refresh">

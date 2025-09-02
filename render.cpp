@@ -20,6 +20,8 @@
 // #include <QtCharts/QChartTheme>
 #include "ui_mainwindow.h"
 #include "appsettings.h" // +
+// NEW
+#include <cmath>
 
 Render::Render() {}
 
@@ -45,28 +47,22 @@ void adjustChartAxes(QChart *chart, const QList<double> &points) {
     double minY = *std::min_element(points.begin(), points.end());
     double maxY = *std::max_element(points.begin(), points.end());
 
-    // Si minY est négatif, définir minY à 0
     if (minY < 0) {
         minY = 0;
     }
 
-    // Ajuster les marges selon vos besoins
     double margin = (maxY - minY) * 0.1; // 10% de marge
-    maxY += margin; // Ajouter la marge seulement à maxY
+    maxY += margin;
 
-    // Créer un QCategoryAxis pour l'axe Y
     QCategoryAxis *axisY = new QCategoryAxis();
     axisY->setRange(minY, maxY);
+    axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue); // NEW: labels sur les traits
 
-    // Déterminer le nombre de graduations souhaitées
-    int tickCount = 7; // Vous pouvez ajuster ce nombre selon vos besoins
-
-    // Calculer les valeurs des graduations
+    int tickCount = 7;
     double interval = (maxY - minY) / tickCount;
     for (int i = 0; i <= tickCount; ++i) {
         double value = minY + i * interval;
         QString label;
-
         if (value >= 1000000) {
             label = QString::number(value / 1000000.0, 'f', 1) + " M";
         } else if (value >= 1000) {
@@ -88,37 +84,28 @@ void adjustChartAxes(QChart *chart, const QList<double> &points) {
 void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
     if (points.isEmpty()) return;
 
-    // Trouver les valeurs minimales et maximales des données
-    double minY = 0; // Toujours commencer à 0
+    // Plage Y: commence à 0, ajoute une marge haute
+    double minY = 0.0;
     double maxY = *std::max_element(points.begin(), points.end());
+    double margin = (maxY - minY) * 0.1;
+    maxY += margin;
 
-    // Ajuster les marges selon vos besoins
-    double margin = (maxY - minY) * 0.1; // 10% de marge
-    maxY += margin; // Ajouter la marge seulement à maxY
-
-    // Créer un QCategoryAxis pour l'axe Y
-    QCategoryAxis *axisY = new QCategoryAxis();
+    // Axe Y en catégories, labels posés sur les traits
+    auto axisY = new QCategoryAxis();
     axisY->setRange(minY, maxY);
+    axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue); // NEW
 
-    // Déterminer les marques fixes
-    QList<double> fixedMarks = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18};
-    for (double mark : fixedMarks) {
-        if (mark <= maxY) {
-            axisY->append(QString::number(mark), mark);
-        }
+    // Ticks tous les 2 (0,2,4,...) jusqu'au max visible
+    const int topEven = static_cast<int>(std::ceil(maxY / 2.0)) * 2;
+    for (int v = 0; v <= topEven; v += 2) {
+        axisY->append(QString::number(v), static_cast<double>(v));
     }
 
-    // Ajouter une marque spécifique si une des données est à 14
-    if (std::find(points.begin(), points.end(), 14) != points.end()) {
-        axisY->append("14", 14);
-    }
-
-    // Supprimer l'axe Y de base
-    chart->removeAxis(chart->axes(Qt::Vertical).first());
-
-    // Mettre l'axe Y personnalisé
+    // Remplace l’axe vertical par le nouvel axe
+    const auto vAxes = chart->axes(Qt::Vertical);
+    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
     chart->addAxis(axisY, Qt::AlignLeft);
-    chart->series().first()->attachAxis(axisY);
+    if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
 
 
@@ -154,31 +141,65 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     // Appliquer le thème depuis les paramètres
     chart->setTheme(AppSettings::chartThemeEnum());
 
-    // Ajuster les axes du graphique
+    // NEW: marges légères pour éviter le chevauchement des labels
+    chart->setMargins(QMargins(12, 8, 8, 14));
+    chart->setBackgroundRoundness(0);
+
+    // Ajuster l’axe Y
     adjustChartAxes(chart, points);
 
-    // Agrandir le graphique
-    // Créer un QGraphicsScene et intégrer le graphique
-    QGraphicsScene *scene = new QGraphicsScene();
-    // QGraphicsView *view = new QGraphicsView(scene);
-    QGraphicsView *view = ui->graphiqueTest;
-    // Mettre la scène
-    std::cout << (void*)ui->graphiqueTest << std::endl;
-    qDebug() << ui->graphiqueTest->metaObject()->className();
-    view->setScene(scene);
-    view->fitInView(scene->itemsBoundingRect(), Qt::KeepAspectRatio);
+    // NEW: Axe X personnalisé en heures (catégories à 6h ou 12h)
+    if (!hours.isEmpty()) {
+        const double minX = hours.first();
+        const double maxX = hours.last();
+        const double span = std::max(0.0, maxX - minX);
+        const double step = (span <= 36.0 ? 6.0 : 12.0);
 
-    // Ajout du graphique dans la scène via un proxy
-    QGraphicsProxyWidget *proxy = scene->addWidget(new QChartView(chart));
-    proxy->setRotation(0); // Optionnel : manipulation dans la scène
-    proxy->setPos(0, 0); // Place le graphique en haut à gauche de la scène
-    QRectF adjustedRect = view->rect().adjusted(1, 1, -1, -1);
-    proxy->setGeometry(adjustedRect);
-    // Configurer la vue
+        auto axisX = new QCategoryAxis();
+        axisX->setRange(minX, maxX);
+        axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+
+        if (minX <= 0.0) axisX->append(QStringLiteral("0h"), 0.0);
+
+        double start = std::ceil((minX > 0.0 ? minX : 0.0) / step) * step;
+        for (double v = start; v <= maxX + 1e-6; v += step) {
+            axisX->append(QString::number(v, 'f', 0) + "h", v);
+        }
+
+        // Remplacer l’axe horizontal par le nouvel axe
+        const auto hAxes = chart->axes(Qt::Horizontal);
+        for (auto a : hAxes) chart->removeAxis(a);
+        chart->addAxis(axisX, Qt::AlignBottom);
+        if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisX);
+    }
+
+    // Prepare view/scene
+    QGraphicsView *view = ui->graphiqueTest;
+    if (!view->scene()) {
+        view->setScene(new QGraphicsScene(view));
+    }
+    QGraphicsScene* scene = view->scene();
+    scene->clear(); // NEW: remove previous chart widgets
+
+    // NEW: make scene exactly the viewport size and disable scrollbars
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QRectF vpRect(0, 0, view->viewport()->width(), view->viewport()->height());
+    scene->setSceneRect(vpRect);
+
+    // Create the chartview widget with no frame and no margins
+    auto chartView = new QChartView(chart);
+    chartView->setFrameShape(QFrame::NoFrame);
+    chartView->setLineWidth(0);
+    chartView->setContentsMargins(0, 0, 0, 0);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
+    // Add to scene and fill all space
+    QGraphicsProxyWidget *proxy = scene->addWidget(chartView);
+    proxy->setPos(0, 0);
+    proxy->setGeometry(vpRect); // NEW: fill exactly the viewport
+
     view->setRenderHint(QPainter::Antialiasing);
-    // Avoir un graphique aussi grand que la vue
-    // view->setSceneRect(0, 0, view->width()*3, view->height()*3); // utile pour avoir les "scrolls bars" sur la vue
-    // view->resize(800, 600);
     view->show();
 }
 
@@ -214,45 +235,60 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     // Appliquer le thème depuis les paramètres
     chart->setTheme(AppSettings::chartThemeEnum());
 
-    // Ajuster les axes du graphique
+    // Laisse un peu d'espace pour les labels des axes (évite l'effet "sous les traits")
+    chart->setMargins(QMargins(12, 8, 8, 14)); // NEW: marges légères
+
+    // Ajuster l'axe Y
     adjustChartAxes_leaderboard(chart, points);
 
-    // Agrandir le graphique
-    // Créer un QGraphicsScene et intégrer le graphique
-    // QGraphicsScene *scene = new QGraphicsScene();
-    // afficher le type de graphplaceholder
-    std::cout << (void*)graphPlaceholder << std::endl;
-    qDebug() << graphPlaceholder->metaObject()->className();
-    std::cout << typeid(graphPlaceholder).name() << std::endl;
-    // afficher la classe de graphPlaceholder
-    std::cout << graphPlaceholder->isInteractive() << std::endl;
-    // Vérifier si graphPlaceholder a déjà une scène
-    if (graphPlaceholder->scene() == nullptr) {
-        graphPlaceholder->setScene(new QGraphicsScene());
+    // NEW: Axe X personnalisé en heures (catégories à 6h ou 12h)
+    if (!hours.isEmpty()) {
+        const double minX = hours.first();
+        const double maxX = hours.last();
+        const double span = std::max(0.0, maxX - minX);
+        const double step = (span <= 36.0 ? 6.0 : 12.0);
+
+        auto axisX = new QCategoryAxis();
+        axisX->setRange(minX, maxX);
+        axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+
+        // Ajoute 0h si visible
+        if (minX <= 0.0) axisX->append(QStringLiteral("0h"), 0.0);
+
+        // Première étiquette alignée sur un multiple de 'step'
+        double start = std::ceil((minX > 0.0 ? minX : 0.0) / step) * step;
+        for (double v = start; v <= maxX + 1e-6; v += step) {
+            axisX->append(QString::number(v, 'f', 0) + "h", v);
+        }
+
+        // Remplace l’axe horizontal par le nouvel axe
+        const auto hAxes = chart->axes(Qt::Horizontal);
+        for (auto a : hAxes) chart->removeAxis(a);
+        chart->addAxis(axisX, Qt::AlignBottom);
+        if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisX);
     }
-    else {
-        // graphPlaceholder->scene()->clear();
+
+    // Ensure a scene exists and is empty
+    if (!graphPlaceholder->scene()) {
+        graphPlaceholder->setScene(new QGraphicsScene(graphPlaceholder));
     }
-    // QGraphicsView *view = graphPlaceholder;
-    // QGraphicsScene *scene = new QGraphicsScene(graphPlaceholder);
     QGraphicsScene *scene = graphPlaceholder->scene();
-    // graphPlaceholder->setScene(scene);
-    // QGraphicsView *view = new QGraphicsView(scene);
-    // Mettre la scène
+    scene->clear();
+    graphPlaceholder->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    graphPlaceholder->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QRectF vpRect(0, 0, graphPlaceholder->viewport()->width(), graphPlaceholder->viewport()->height());
+    scene->setSceneRect(vpRect);
 
-    // graphPlaceholder->setScene(scene);
-    graphPlaceholder->fitInView(scene->itemsBoundingRect(), Qt::KeepAspectRatio);
+    auto chartView = new QChartView(chart);
+    chartView->setFrameShape(QFrame::NoFrame);
+    chartView->setLineWidth(0);
+    chartView->setContentsMargins(0, 0, 0, 0);
+    chartView->setRenderHint(QPainter::Antialiasing);
 
-    // Ajout du graphique dans la scène via un proxy
-    QGraphicsProxyWidget *proxy = scene->addWidget(new QChartView(chart));
-    proxy->setRotation(0); // Optionnel : manipulation dans la scène
-    proxy->setPos(0, 0); // Place le graphique en haut à gauche de la scène
-    QRectF adjustedRect = graphPlaceholder->rect().adjusted(1, 1, -1, -1);
-    proxy->setGeometry(adjustedRect);
-    // Configurer la vue
+    QGraphicsProxyWidget *proxy = scene->addWidget(chartView);
+    proxy->setPos(0, 0);
+    proxy->setGeometry(vpRect);
+
     graphPlaceholder->setRenderHint(QPainter::Antialiasing);
-    // Avoir un graphique aussi grand que la vue
-    // view->setSceneRect(0, 0, view->width()*3, view->height()*3); // utile pour avoir les "scrolls bars" sur la vue
-    // view->resize(800, 600);
     graphPlaceholder->show();
 }

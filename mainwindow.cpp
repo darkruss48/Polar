@@ -243,6 +243,8 @@ MainWindow::MainWindow(QWidget *parent)
     auto refreshButton = pageClassement->findChild<QPushButton*>("button_refresh");
     Leaderboard::graphPlaceholder = pageClassement->findChild<QGraphicsView*>("view_graph");
     Leaderboard::dataPlaceholder = pageClassement->findChild<QLabel*>("label_data");
+    // NEW: zone moyenne
+    Leaderboard::avgPlaceholder = pageClassement->findChild<QLabel*>("label_avg_data");
     labelDynamic = pageClassement->findChild<QLabel*>("labelDynamic");
 
     if (refreshButton && playerList_) {

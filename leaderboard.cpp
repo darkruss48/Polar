@@ -8,6 +8,12 @@
 #include <iostream>
 #include <string>
 #include "render.h"
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QRegularExpression>
+#include <QSizePolicy>
+#include <QMap>
 
 Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
 {
@@ -46,6 +52,7 @@ Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
 // pointeurs
 QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
 QLabel *Leaderboard::dataPlaceholder = nullptr;
+QLabel *Leaderboard::avgPlaceholder = nullptr; // NEW
 
 Leaderboard::~Leaderboard() {}
 
@@ -65,76 +72,187 @@ void Leaderboard::retranslateUi()
     // setWindowTitle(tr("Leaderboard"));
 }
 
+// Helpers (formatted numbers)
+static QString formatThousands(qint64 v) {
+    QString s = QString::number(v);
+    return s.replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
+}
+
+// Points -> "X.Y M"
+static QString formatMillions(qint64 v) {
+    double m = static_cast<double>(v) / 1'000'000.0;
+    return QString::number(m, 'f', m >= 10.0 ? 1 : 2) + " M";
+}
+
+// Helpers: convert step-count (15min each) to "XhYmin" string
+static QString formatDurationFromSteps(int steps)
+{
+    if (steps <= 0) return QString("0h");
+    int totalMin = steps * 15;
+    int h = totalMin / 60;
+    int m = totalMin % 60;
+    if (m == 0) return QString::number(h) + "h";
+    if (h == 0) return QString::number(m) + "min";
+    return QString("%1h%2min").arg(h).arg(m);
+}
+
+// trailing stable points count -> steps AFK (15 min per step)
+static int computeAfkStepsTrailing(const QStringList& pointsList) {
+    if (pointsList.size() < 2) return 0;
+    const QString last = pointsList.last().trimmed();
+    int cnt = 0;
+    for (int i = pointsList.size() - 2; i >= 0; --i) {
+        if (pointsList.at(i).trimmed() == last) cnt++;
+        else break;
+    }
+    return cnt;
+}
+
+// trailing strictly increasing points -> steps of continuous farm
+static int computeFarmStepsTrailing(const QStringList& pointsList) {
+    if (pointsList.size() < 2) return 0;
+    int cnt = 0;
+    for (int i = pointsList.size() - 1; i > 0; --i) {
+        qint64 cur = pointsList.at(i).trimmed().toLongLong();
+        qint64 prev = pointsList.at(i-1).trimmed().toLongLong();
+        if (cur > prev) cnt++;
+        else break;
+    }
+    return cnt;
+}
+
+// Build a compact row widget
+static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 points,
+                                      const QString& gapBelowLabel,
+                                      bool isAfk, const QString& statusText) // CHANGED
+{
+    auto row = new QWidget();
+    auto root = new QHBoxLayout(row);
+    root->setContentsMargins(12, 8, 22, 8);
+    root->setSpacing(12);
+
+    // Left: Rank
+    auto lblRank = new QLabel(QString("#%1").arg(rank));
+    QFont fRank = lblRank->font();
+    fRank.setBold(true);
+    fRank.setPointSize(fRank.pointSize() + 3);
+    lblRank->setFont(fRank);
+    lblRank->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    lblRank->setMinimumWidth(52);
+    root->addWidget(lblRank, 0);
+
+    // Middle: Name + Status
+    auto mid = new QVBoxLayout();
+    mid->setSpacing(2);
+    auto lblName = new QLabel(name);
+    QFont fName = lblName->font(); fName.setBold(true); fName.setPointSize(fName.pointSize() + 1);
+    lblName->setFont(fName);
+    auto lblStatus = new QLabel(statusText);
+    lblStatus->setStyleSheet(isAfk ? "color:#E74C3C;" : "color:#2ECC71;");
+    mid->addWidget(lblName);
+    mid->addWidget(lblStatus);
+    root->addLayout(mid, 1);
+
+    // Right: Points + Gap
+    auto right = new QVBoxLayout();
+    right->setSpacing(2);
+    right->setContentsMargins(0, 0, 5, 0); // keep away from scrollbar
+    auto lblPts = new QLabel(QString("%1 pts").arg(formatMillions(points)));
+    lblPts->setStyleSheet("color:#CFCFCF;");
+    lblPts->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    auto lblGap = new QLabel(gapBelowLabel);
+    lblGap->setStyleSheet("color:#A0A0A0;");
+    lblGap->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    right->addWidget(lblPts);
+    right->addWidget(lblGap);
+    root->addLayout(right, 0);
+
+    row->setMinimumHeight(80);
+    row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    row->setStyleSheet("QWidget { background: transparent; }");
+    return row;
+}
+
 void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
 {
     std::cout << "Refresh clicked" << std::endl;
-    // Vider playerList
     playerList->clear();
-    // Ajouter un texte test
-    // new QListWidgetItem("Test", playerList);
+
+    // Ensure custom row sizes are respected and compact
+    playerList->setUniformItemSizes(false);
+    playerList->setSpacing(3);
+    playerList->setStyleSheet("");
+    playerList->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // Récupérer le ladder
     QJsonObject ladder = functb::pologettop();
-    // Afficher le nombre d'éléments dans cette liste
-    std::cout << "Number of players: " << ladder["top"].toArray().size() << std::endl;
-    std::cout << "Nom premier : " << ladder["top"][0]["name"].toString().toStdString() << std::endl;
-    // Check si ya un "error"
     if (ladder.contains("error")) {
         QString error = QString::fromStdString(ladder["error"].toString().toStdString());
         return;
     }
 
-    // check s'il ya plusieurs utilisateurs (la reponse est donc une liste de json)
     if (ladder.contains("top") && ladder["top"].isArray()) {
         QJsonArray jsonArray = ladder["top"].toArray();
-        QStringList userList;
 
-        // affiche dans le std tout le monde
+        struct RowData { int rank; QString name; qint64 lastPoints; QStringList pointsList; QJsonObject obj; };
+        QVector<RowData> rows; rows.reserve(jsonArray.size());
 
         for (const QJsonValue &value : jsonArray) {
             QJsonObject obj = value.toObject();
-            // ajouter
-            QString ex = obj["ranks"].toString().remove("[").remove("]");
-            QStringList values = ex.split(",");
-            QString last_ranks = values.last().trimmed();
-            QString ex_ = obj["points"].toString().remove("[").remove("]");
-            QStringList values_ = ex_.split(",");
-            QString last_points = values_.last().trimmed();
-            // virgules tous les 3 chiffres
-            last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
-            // userList.append(obj["name"].toString() + " : " + last_ranks);
-            userList.append("                                   " + last_ranks + " : " + obj["name"].toString()
-                            + "\n                            " + last_points + " points"
-                            + "\n--------------------------------------------------\n");
-            // QJsonArray users = obj["top"].toArray();
-        }
-        // bool ok;
-        std::cout << "Taille de userList : " << userList.size() << std::endl;
-        // QDialog dialog(this_);
-        // QVBoxLayout layout(&dialog);
-        // layout.addWidget(playerList);
 
-        int i=0;
-        for (const QJsonValue &value : jsonArray) {
-            // std::cout << "azeraz" << std::endl;
-            QJsonObject obj = value.toObject();
-            // auto user = obj["users"][i];
-            // std::cout << "id : " << obj["id"].toString().toStdString() << std::endl;
-            /*QString userInfo = QString("%1 ; %2 ; %3")
-                       .arg(user["name"].toString())
-                       .arg(user["wins_pace"].toString())
-                       .arg(user["id"].toString());
-            */
-            // QListWidgetItem *item = new QListWidgetItem(userInfo, &listWidget);
-            QListWidgetItem *item = new QListWidgetItem(userList[i], playerList);
-            // std::cout << "userList[i] : " << userList[i].toStdString() << std::endl;
-            item->setData(Qt::UserRole, obj);
-            i++;
+            const QString ranksStr = obj["ranks"].toString().remove("[").remove("]");
+            const QStringList ranksVals = ranksStr.split(",", Qt::SkipEmptyParts);
+            int rank = ranksVals.isEmpty() ? 0 : ranksVals.last().trimmed().toInt();
+
+            const QString name = obj["name"].toString();
+
+            const QString pointsStr = obj["points"].toString().remove("[").remove("]");
+            const QStringList pointsList = pointsStr.split(",", Qt::SkipEmptyParts);
+
+            qint64 lastPoints = 0;
+            if (!pointsList.isEmpty()) {
+                bool ok = false;
+                lastPoints = pointsList.last().trimmed().toLongLong(&ok);
+                if (!ok) lastPoints = 0;
+            }
+
+            rows.push_back({rank, name, lastPoints, pointsList, obj});
         }
 
-        connect(playerList, &QListWidget::itemDoubleClicked, [&](QListWidgetItem *item) {
+        std::sort(rows.begin(), rows.end(), [](const RowData& a, const RowData& b){ return a.rank < b.rank; });
+
+        for (int i = 0; i < rows.size(); ++i) {
+            const auto& r = rows[i];
+
+            // trailing status
+            const int afkStepsTrail = computeAfkStepsTrailing(r.pointsList);
+            const int farmStepsTrail = computeFarmStepsTrailing(r.pointsList);
+            const bool isAfk = (afkStepsTrail > 0);
+            const int statusSteps = isAfk ? afkStepsTrail : farmStepsTrail;
+            const QString statusText = isAfk
+                ? QString("AFK %1").arg(formatDurationFromSteps(statusSteps))
+                : QString("Farm %1").arg(formatDurationFromSteps(statusSteps));
+
+            // Gap with below only
+            QString gapBelowLabel;
+            if (i + 1 < rows.size()) {
+                qint64 diff = r.lastPoints - rows[i+1].lastPoints;
+                if (diff > 0) gapBelowLabel = QString("+%1").arg(formatMillions(diff));
+            }
+
+            QWidget* widget = createPlayerRowWidget(r.rank, r.name, r.lastPoints, gapBelowLabel, isAfk, statusText);
+
+            auto* item = new QListWidgetItem(playerList);
+            item->setData(Qt::UserRole, r.obj);
+            item->setSizeHint(QSize(playerList->viewport()->width(), 80));
+            playerList->addItem(item);
+            playerList->setItemWidget(item, widget);
+        }
+
+        // Rewire: double-click opens graph (ensure single connection)
+        QObject::disconnect(playerList, &QListWidget::itemDoubleClicked, nullptr, nullptr);
+        QObject::connect(playerList, &QListWidget::itemDoubleClicked, playerList, [this_, playerList](QListWidgetItem* item){
             QJsonObject user = item->data(Qt::UserRole).toJsonObject();
-            // "mettre a jour" les données
-            // ladder = user;
             Leaderboard::affichergraphiqueettexte(this_, user);
         });
     }
@@ -185,6 +303,92 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     
     std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
     
+    // Parse lists pour stats
+    const QStringList pointsSteps = user["points"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+    const QStringList winsList    = user["wins"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+    const QStringList paceList    = user["wins_pace"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+
+    int afkSteps = 0, activeSteps = 0;
+    qint64 activeWinsGained = 0;
+    QMap<int,int> paceCounts; // pace entier -> occurrences (pas AFK)
+
+    for (int i = 1; i < pointsSteps.size(); ++i) {
+        qint64 curP  = pointsSteps.at(i).trimmed().toLongLong();
+        qint64 prevP = pointsSteps.at(i-1).trimmed().toLongLong();
+        if (curP == prevP) {
+            afkSteps++;
+        } else if (curP > prevP) {
+            activeSteps++;
+            if (i < winsList.size()) {
+                qint64 curW  = winsList.at(i).trimmed().toLongLong();
+                qint64 prevW = winsList.at(i-1).trimmed().toLongLong();
+                activeWinsGained += qMax<qint64>(0, curW - prevW);
+            }
+            if (i < paceList.size()) {
+                bool ok = false;
+                double paceVal = paceList.at(i).trimmed().toDouble(&ok);
+                if (ok) {
+                    int paceInt = static_cast<int>(paceVal + 1e-9); // pas d'arrondi vers le haut
+                    paceCounts[paceInt] += 1;
+                }
+            }
+        }
+    }
+
+    const QString afkStr = formatDurationFromSteps(afkSteps);
+    const QString activeStr = formatDurationFromSteps(activeSteps);
+    const double activeHours = activeSteps * 0.25; // 15 min par pas
+    const double avgWinsPerHour = (activeHours > 0.0) ? (activeWinsGained / activeHours) : 0.0;
+
+    // Meilleures paces: max P et P-1
+    int topPace = 0;
+    for (auto it = paceCounts.constBegin(); it != paceCounts.constEnd(); ++it) {
+        if (it.key() > topPace) topPace = it.key();
+    }
+    const int secondPace = (topPace > 0) ? (topPace - 1) : 0;
+    const int countTop = paceCounts.value(topPace, 0);
+    const int countSecond = paceCounts.value(secondPace, 0);
+    const double totalActiveSteps = qMax(1, activeSteps); // évite /0
+    const double pctTop = (countTop * 100.0) / totalActiveSteps;
+    const double pctSecond = (countSecond * 100.0) / totalActiveSteps;
+
+    // Met à jour label_data (AFK formaté XhYmin)
+    if (Leaderboard::dataPlaceholder) {
+        Leaderboard::dataPlaceholder->setText(
+            tr("Nom : ") + name + "\n" +
+            tr("Rank : ") + last_ranks + "\n\n" +
+            tr("Wins : ") + last_wins + "\n" +
+            tr("Points totaux : ") + last_points + "\n" +
+            tr("Heures AFK : ") + afkStr
+        );
+    }
+
+    // Met à jour la zone "Infos Moyenne"
+    if (Leaderboard::avgPlaceholder) {
+        QString paceLines;
+        if (topPace > 0) {
+            paceLines = QString("Pace %1 : %2% (%5/%6)\nPace %3 : %4% (%7/%6)")
+                            .arg(topPace)
+                            .arg(QString::number(pctTop, 'f', 1))
+                            .arg(secondPace)
+                            .arg(QString::number(pctSecond, 'f', 1))
+                            .arg(countTop)
+                            .arg(totalActiveSteps)
+                            .arg(countSecond);
+        } else {
+            paceLines = QString("Pace 0 : 0%\nPace -1 : 0%");
+        }
+
+        Leaderboard::avgPlaceholder->setText(
+            QString("Non-AFK : %1\nAFK : %2\nWins/h (actif) : %3\n%4")
+                .arg(activeStr)
+                .arg(afkStr)
+                .arg(QString::number(avgWinsPerHour, 'f', 2))
+                .arg(paceLines)
+        );
+    }
+
+    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
 }
 
 

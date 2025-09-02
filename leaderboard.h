@@ -18,6 +18,7 @@ public:
     static void affichergraphiqueettexte(MainWindow * this_, QJsonObject user);
     static QGraphicsView *graphPlaceholder;
     static QLabel *dataPlaceholder;
+    static QLabel *avgPlaceholder;
     explicit Leaderboard(QWidget *parent = nullptr);
     ~Leaderboard();
 
