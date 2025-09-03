@@ -5,6 +5,7 @@
 #include <QtCharts/QChart>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#include <QtCharts/QLegend>   // NEW
 
 #include <QtCharts/QChart>
 #include <QtWidgets/QGraphicsScene>
@@ -22,6 +23,22 @@
 #include "appsettings.h" // +
 // NEW
 #include <cmath>
+
+// Helper: get the QChart currently shown in a QGraphicsView's scene
+static QChart* chartFromGraphicsView(QGraphicsView* view) {
+    if (!view) return nullptr;
+    QGraphicsScene* scene = view->scene();
+    if (!scene) return nullptr;
+    const auto items = scene->items();
+    for (QGraphicsItem* gi : items) {
+        if (auto proxy = dynamic_cast<QGraphicsProxyWidget*>(gi)) {
+            if (auto cv = qobject_cast<QChartView*>(proxy->widget())) {
+                return cv->chart();
+            }
+        }
+    }
+    return nullptr;
+}
 
 Render::Render() {}
 
@@ -222,6 +239,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     for (int i = 0; i < hours.size(); ++i) {
         series->append(hours[i], points[i]);
     }
+    series->setName(name); // NEW: base series named after the player
 
     // Création du graphique
     QChart *chart = new QChart();
@@ -231,6 +249,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->axes(Qt::Horizontal).first()->setTitleText(QObject::tr("Heures"));
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->legend()->setVisible(false); // NEW: show legend only when overlays are added
 
     // Appliquer le thème depuis les paramètres
     chart->setTheme(AppSettings::chartThemeEnum());
@@ -291,4 +310,74 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
 
     graphPlaceholder->setRenderHint(QPainter::Antialiasing);
     graphPlaceholder->show();
+}
+
+// NEW: add an extra line series to the existing chart inside a QGraphicsView
+bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursStr, const QString &pointsStr, const QString &seriesName)
+{
+    QChart* chart = chartFromGraphicsView(view);
+    if (!chart) return false;
+
+    QList<double> hours = parseJsonArray(hoursStr);
+    QList<double> points = parseJsonArray(pointsStr);
+    if (hours.size() != points.size() || hours.isEmpty()) return false;
+
+    // Avoid duplicates by name
+    for (auto s : chart->series()) {
+        if (s->name() == seriesName) return false;
+    }
+
+    auto s = new QLineSeries();
+    s->setName(seriesName);
+    for (int i = 0; i < hours.size(); ++i) s->append(hours[i], points[i]);
+
+    chart->addSeries(s);
+    // Attach to existing axes
+    if (!chart->axes(Qt::Horizontal).isEmpty()) s->attachAxis(chart->axes(Qt::Horizontal).first());
+    if (!chart->axes(Qt::Vertical).isEmpty()) s->attachAxis(chart->axes(Qt::Vertical).first());
+
+    // Show legend when more than one series
+    chart->legend()->setVisible(chart->series().size() > 1);
+    return true;
+}
+
+// NEW: remove a series by its name (does not remove the base if name matches it is allowed)
+bool Render::removeSeriesByName(QGraphicsView *view, const QString &seriesName)
+{
+    QChart* chart = chartFromGraphicsView(view);
+    if (!chart) return false;
+
+    for (auto s : chart->series()) {
+        if (s->name() == seriesName) {
+            chart->removeSeries(s);
+            delete s;
+            chart->legend()->setVisible(chart->series().size() > 1);
+            return true;
+        }
+    }
+    return false;
+}
+
+// NEW: clear all overlays (keep base if it exists and matches baseSeriesName)
+void Render::clearAllOverlaySeries(QGraphicsView *view, const QString &baseSeriesName)
+{
+    QChart* chart = chartFromGraphicsView(view);
+    if (!chart) return;
+
+    // Collect to remove: all that are not the base
+    QList<QAbstractSeries*> toRemove;
+    for (auto s : chart->series()) {
+        if (s->name() != baseSeriesName) toRemove.append(s);
+    }
+    for (auto s : toRemove) {
+        chart->removeSeries(s);
+        delete s;
+    }
+    chart->legend()->setVisible(chart->series().size() > 1);
+}
+
+// NEW: public wrapper
+QChart* Render::chartFromView(QGraphicsView* view)
+{
+    return chartFromGraphicsView(view);
 }

@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGraphicsView>
+#include <QSet>              // NEW
 #include "mainwindow.h"
 
 class Leaderboard : public QWidget
@@ -19,6 +20,10 @@ public:
     static QGraphicsView *graphPlaceholder;
     static QLabel *dataPlaceholder;
     static QLabel *avgPlaceholder;
+    // NEW: overlay state
+    static QString baseSeriesName;
+    static QSet<QString> overlayNames;
+
     explicit Leaderboard(QWidget *parent = nullptr);
     ~Leaderboard();
 

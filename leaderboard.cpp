@@ -14,6 +14,17 @@
 #include <QRegularExpression>
 #include <QSizePolicy>
 #include <QMap>
+#include <QMenu>
+#include <QAction>
+#include <QSet>
+
+// pointeurs
+QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
+QLabel *Leaderboard::dataPlaceholder = nullptr;
+QLabel *Leaderboard::avgPlaceholder = nullptr; // NEW
+// NEW: overlay state
+QString Leaderboard::baseSeriesName = QString();
+QSet<QString> Leaderboard::overlayNames;
 
 Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
 {
@@ -48,11 +59,6 @@ Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
     std::cout << "LEADERBOARDu : " << std::endl;
 
 }
-
-// pointeurs
-QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
-QLabel *Leaderboard::dataPlaceholder = nullptr;
-QLabel *Leaderboard::avgPlaceholder = nullptr; // NEW
 
 Leaderboard::~Leaderboard() {}
 
@@ -249,12 +255,84 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
             playerList->setItemWidget(item, widget);
         }
 
-        // Rewire: double-click opens graph (ensure single connection)
+        // Fix: disconnect only what we rewire (avoid breaking other handlers)
         QObject::disconnect(playerList, &QListWidget::itemDoubleClicked, nullptr, nullptr);
+        QObject::disconnect(playerList, &QListWidget::customContextMenuRequested, nullptr, nullptr);
+
         QObject::connect(playerList, &QListWidget::itemDoubleClicked, playerList, [this_, playerList](QListWidgetItem* item){
+            if (!item) return;
             QJsonObject user = item->data(Qt::UserRole).toJsonObject();
             Leaderboard::affichergraphiqueettexte(this_, user);
         });
+
+        // Right-click context menu on the list to add overlay series
+        playerList->setContextMenuPolicy(Qt::CustomContextMenu);
+        QObject::connect(playerList, &QListWidget::customContextMenuRequested, playerList,
+                         [this_, playerList](const QPoint& pos){
+            QListWidgetItem* item = playerList->itemAt(pos);
+            if (!item) return;
+            QJsonObject user = item->data(Qt::UserRole).toJsonObject();
+            const QString name = user["name"].toString();
+            const QString hoursStr = user["hour"].toString();
+            const QString paceStr  = user["wins_pace"].toString();
+
+            QMenu menu(playerList);
+            QAction* actAdd = menu.addAction(QString("Rajouter %1 au graphique").arg(name));
+
+            const bool alreadyAdded = Leaderboard::overlayNames.contains(name);
+            const bool isBase = (!Leaderboard::baseSeriesName.isEmpty() && Leaderboard::baseSeriesName == name);
+            if ((Leaderboard::overlayNames.size() >= 4 && !alreadyAdded) || isBase || name.isEmpty()) {
+                actAdd->setEnabled(false);
+            }
+
+            QObject::connect(actAdd, &QAction::triggered, playerList, [this_, name, hoursStr, paceStr](){
+                // If no chart yet, make this selection the base
+                QChart* chart = Render::chartFromView(Leaderboard::graphPlaceholder);
+                if (!chart) {
+                    QJsonObject u; u["name"] = name; u["hour"] = hoursStr; u["wins_pace"] = paceStr;
+                    Leaderboard::affichergraphiqueettexte(this_, u);
+                    return;
+                }
+                // Otherwise, add as overlay
+                if (Render::addSeriesToExistingChart(Leaderboard::graphPlaceholder, hoursStr, paceStr, name)) {
+                    Leaderboard::overlayNames.insert(name);
+                }
+            });
+
+            menu.exec(playerList->mapToGlobal(pos));
+        });
+
+        // Chart right-click to remove overlays
+        if (Leaderboard::graphPlaceholder) {
+            QObject::disconnect(Leaderboard::graphPlaceholder, &QWidget::customContextMenuRequested, nullptr, nullptr);
+            Leaderboard::graphPlaceholder->setContextMenuPolicy(Qt::CustomContextMenu);
+            QObject::connect(Leaderboard::graphPlaceholder, &QWidget::customContextMenuRequested,
+                             Leaderboard::graphPlaceholder, [this_](const QPoint& pos){
+                if (!Leaderboard::graphPlaceholder) return;
+                QMenu menu(Leaderboard::graphPlaceholder);
+                if (Leaderboard::overlayNames.isEmpty()) {
+                    QAction* none = menu.addAction("Aucun joueur ajouté");
+                    none->setEnabled(false);
+                } else {
+                    for (const QString& name : std::as_const(Leaderboard::overlayNames)) {
+                        QAction* act = menu.addAction(QString("Supprimer %1").arg(name));
+                        QObject::connect(act, &QAction::triggered, Leaderboard::graphPlaceholder, [name](){
+                            if (Render::removeSeriesByName(Leaderboard::graphPlaceholder, name)) {
+                                Leaderboard::overlayNames.remove(name);
+                            }
+                        });
+                    }
+                    menu.addSeparator();
+                    QAction* actClear = menu.addAction("Supprimer tout le monde");
+                    QObject::connect(actClear, &QAction::triggered, Leaderboard::graphPlaceholder, [](){
+                        Render::clearAllOverlaySeries(Leaderboard::graphPlaceholder, Leaderboard::baseSeriesName);
+                        Leaderboard::overlayNames.clear();
+                    });
+                }
+                QPoint globalPos = Leaderboard::graphPlaceholder->viewport()->mapToGlobal(pos);
+                menu.exec(globalPos);
+            });
+        }
     }
 
 
@@ -277,6 +355,10 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     QString points = QString::fromStdString(user[ydata].toString().toStdString());
     // Afficher le graphe
     const QString a = QString(user["name"].toString());
+    // NEW: set base series name and clear overlays whenever we render a new base chart
+    Leaderboard::baseSeriesName = a;
+    Leaderboard::overlayNames.clear();
+
     Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, a);
     QString last_points = user["points"].toString().remove("[").remove("]").split(",").last().trimmed();
     last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
