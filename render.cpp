@@ -23,6 +23,10 @@
 #include "appsettings.h" // +
 // NEW
 #include <cmath>
+#include <QMouseEvent>
+#include <QGraphicsRectItem>
+#include <QGraphicsTextItem>
+#include <algorithm> // NEW: for sort/min/max/clamp
 
 // Helper: get the QChart currently shown in a QGraphicsView's scene
 static QChart* chartFromGraphicsView(QGraphicsView* view) {
@@ -39,6 +43,246 @@ static QChart* chartFromGraphicsView(QGraphicsView* view) {
     }
     return nullptr;
 }
+
+// NEW: sélection de plage + bulle d’infos
+class SelectionHandler : public QObject {
+    // Q_OBJECT // REMOVED: no moc needed, avoids linker errors
+public:
+    SelectionHandler(QChartView* view, QChart* chart)
+        : QObject(view), view(view), chart(chart) {
+        // Install on the viewport (QGraphicsView delivers mouse events to viewport)
+        if (view && view->viewport()) {
+            view->viewport()->installEventFilter(this);
+            view->viewport()->setMouseTracking(true); // ensure move events while dragging
+        }
+        view->setMouseTracking(true);
+        scene = chart ? chart->scene() : nullptr;
+    }
+
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        // Only handle events coming from the viewport
+        if (!view || obj != view->viewport()) return QObject::eventFilter(obj, ev);
+        switch (ev->type()) {
+            case QEvent::MouseButtonPress: {
+                auto* me = static_cast<QMouseEvent*>(ev);
+                if (me->button() == Qt::LeftButton) {
+                    pressPos = me->pos();
+                    dragging = true;
+                    moved = false;
+                    ensureBand();
+                    const double cx = mouseToChartX(pressPos);
+                    updateBandRect(cx, cx);
+                    return true;
+                }
+                break;
+            }
+            case QEvent::MouseMove: {
+                auto* me = static_cast<QMouseEvent*>(ev);
+                if (dragging) {
+                    if (!moved && (me->pos() - pressPos).manhattanLength() > 3) moved = true;
+                    const double c0 = mouseToChartX(pressPos);
+                    const double c1 = mouseToChartX(me->pos());
+                    updateBandRect(c0, c1);
+                    return true;
+                }
+                break;
+            }
+            case QEvent::MouseButtonRelease: {
+                auto* me = static_cast<QMouseEvent*>(ev);
+                if (me->button() == Qt::LeftButton) {
+                    if (!moved) {
+                        clearVisuals(); // simple click: clear band + bubble
+                    } else {
+                        const QRectF plot = chart->plotArea();
+                        const double left = std::min(selLeft, selRight);
+                        const double right = std::max(selLeft, selRight);
+                        if (right - left > 2.0) { // pixels in chart coords
+                            const double xMin = chart->property("xMin").toDouble();
+                            const double xMax = chart->property("xMax").toDouble();
+                            const double v0 = chartXToValue(left, plot, xMin, xMax);
+                            const double v1 = chartXToValue(right, plot, xMin, xMax);
+                            showBubbleForRange(std::min(v0,v1), std::max(v0,v1));
+                        }
+                    }
+                    dragging = false;
+                    moved = false;
+                    return true;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        return QObject::eventFilter(obj, ev);
+    }
+
+private:
+    QChartView* view = nullptr;
+    QChart* chart = nullptr;
+    QGraphicsScene* scene = nullptr;
+    bool dragging = false;
+    bool moved = false;
+    QPoint pressPos;
+    QGraphicsRectItem* band = nullptr;
+    // bubble
+    QGraphicsRectItem* bubbleBg = nullptr;
+    QGraphicsTextItem* bubbleText = nullptr;
+    // selection bounds in chart coords (pixels relative to chart item)
+    double selLeft = 0.0, selRight = 0.0;
+
+    void ensureBand() {
+        if (!scene) return;
+        if (!band) {
+            band = scene->addRect(QRectF(), QPen(Qt::NoPen), QBrush(QColor(0,0,0,80)));
+            band->setZValue(1000);
+        }
+    }
+    void clearBubble() {
+        if (scene && bubbleText) { scene->removeItem(bubbleText); delete bubbleText; bubbleText = nullptr; }
+        if (scene && bubbleBg)   { scene->removeItem(bubbleBg);   delete bubbleBg;   bubbleBg = nullptr; }
+    }
+    void clearBand() {
+        if (scene && band) { scene->removeItem(band); delete band; band = nullptr; }
+    }
+    void clearVisuals() {
+        clearBand();
+        clearBubble();
+    }
+
+    double mouseToChartX(const QPoint& pos) const {
+        const QPointF scenePt = view->mapToScene(pos);
+        const QPointF chartPt = chart->mapFromScene(scenePt);
+        return chartPt.x();
+    }
+    static double chartXToValue(double cx, const QRectF& plot, double xMinVal, double xMaxVal) {
+        if (plot.width() <= 0.0) return xMinVal;
+        const double t = std::clamp((cx - plot.left()) / plot.width(), 0.0, 1.0);
+        return xMinVal + t * (xMaxVal - xMinVal);
+    }
+    void updateBandRect(double x0, double x1) {
+        if (!scene || !chart) return;
+        const QRectF plot = chart->plotArea();
+        selLeft = x0; selRight = x1;
+
+        // Map chart coords -> scene coords for a vertical full-height band over plot
+        const double leftChartX  = std::min(x0, x1);
+        const double rightChartX = std::max(x0, x1);
+
+        const QPointF plotTopLeftScene    = chart->mapToScene(plot.topLeft());
+        const QPointF plotBottomLeftScene = chart->mapToScene(QPointF(plot.left(), plot.bottom()));
+        const double plotTopSceneY = plotTopLeftScene.y();
+        const double plotHeightScene = plotBottomLeftScene.y() - plotTopSceneY;
+
+        const double leftSceneX  = chart->mapToScene(QPointF(leftChartX,  plot.top())).x();
+        const double rightSceneX = chart->mapToScene(QPointF(rightChartX, plot.top())).x();
+        const double wScene = std::abs(rightSceneX - leftSceneX);
+
+        if (band) {
+            band->setRect(QRectF(QPointF(std::min(leftSceneX, rightSceneX), plotTopSceneY),
+                                 QSizeF(wScene, plotHeightScene)));
+            band->setVisible(true);
+        }
+        // moving selection hides bubble until release
+        clearBubble();
+    }
+
+    void showBubbleForRange(double xFrom, double xTo) {
+        if (!scene || !chart) return;
+
+        // Collect averages per series within [xFrom, xTo]
+        struct Row { int rank; QString name; double avg; };
+        QVector<Row> rows;
+
+        for (auto* s : chart->series()) {
+            auto* ls = qobject_cast<QLineSeries*>(s);
+            if (!ls) continue;
+            const auto pts = ls->points();
+            if (pts.isEmpty()) continue;
+
+            double sum = 0.0; int cnt = 0;
+            for (const QPointF& p : pts) {
+                if (p.x() >= xFrom - 1e-9 && p.x() <= xTo + 1e-9) {
+                    sum += p.y(); cnt++;
+                }
+            }
+            if (cnt <= 0) continue;
+            const double avg = sum / cnt;
+            const int rank = ls->property("rank").isValid() ? ls->property("rank").toInt() : -1;
+            rows.push_back({ rank, ls->name(), avg });
+        }
+
+        std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b){
+            return a.avg > b.avg; // desc
+        });
+
+        // Header: selected time slice + percentage of total time
+        const double allMin = chart->property("xMin").toDouble();
+        const double allMax = chart->property("xMax").toDouble();
+        double pct = 0.0;
+        if (allMax > allMin + 1e-9) {
+            pct = ((xTo - xFrom) / (allMax - allMin)) * 100.0;
+            pct = std::clamp(pct, 0.0, 100.0);
+        }
+        auto formatHourLabel = [](double h)->QString {
+            if (h <= 0.0) return QStringLiteral("0h");
+            const int totalMin = qRound(h * 60.0);
+            const int hh = totalMin / 60;
+            const int mm = totalMin % 60;
+            return mm == 0 ? QString("%1h").arg(hh) : QString("%1h%2").arg(hh).arg(mm, 2, 10, QLatin1Char('0'));
+        };
+        QStringList lines;
+        lines << QString("%1 – %2 (%3%)")
+                    .arg(formatHourLabel(std::min(xFrom, xTo)),
+                         formatHourLabel(std::max(xFrom, xTo)),
+                         QString::number(pct, 'f', 1));
+        lines << ""; // blank line above ranking
+
+        // Format rows: "#rank name : value"
+        for (const Row& r : rows) {
+            const QString left = (r.rank > 0) ? QString("#%1 %2").arg(r.rank).arg(r.name) : r.name;
+            lines << QString("%1 : %2").arg(left).arg(QString::number(r.avg, 'f', 2));
+        }
+        const QString text = lines.join("\n");
+        if (text.trimmed().isEmpty()) {
+            clearBubble();
+            return;
+        }
+
+        if (!bubbleText) {
+            bubbleText = scene->addText(QString());
+            bubbleText->setDefaultTextColor(Qt::white);
+            bubbleText->setZValue(1100);
+        }
+        bubbleText->setPlainText(text);
+
+        if (!bubbleBg) {
+            bubbleBg = scene->addRect(QRectF(), QPen(QColor(255,255,255,30)), QBrush(QColor(0,0,0,200)));
+            bubbleBg->setZValue(1090);
+        }
+
+        // Place bubble near right side of selection, within plot bounds
+        const QRectF plot = chart->plotArea();
+        const double leftChartX  = std::min(selLeft, selRight);
+        const double rightChartX = std::max(selLeft, selRight);
+        const double rightSceneX = chart->mapToScene(QPointF(rightChartX, plot.top())).x();
+        const QPointF plotTopLeftScene    = chart->mapToScene(plot.topLeft());
+        const QPointF plotTopRightScene   = chart->mapToScene(plot.topRight());
+
+        const double plotLeftSceneX  = plotTopLeftScene.x();
+        const double plotRightSceneX = plotTopRightScene.x();
+        const double by = plotTopLeftScene.y() + 10.0;
+
+        const QSizeF pad(12, 10);
+        const QRectF bb = bubbleText->boundingRect();
+        double bx = std::min(rightSceneX + 10.0, plotRightSceneX - (bb.width() + pad.width()));
+        bx = std::max(plotLeftSceneX + 6.0, bx);
+
+        bubbleText->setPos(QPointF(bx + pad.width()/2.0, by + pad.height()/2.0));
+        bubbleBg->setRect(QRectF(QPointF(bx, by), QSizeF(bb.width() + pad.width(), bb.height() + pad.height())));
+        bubbleBg->setVisible(true);
+        bubbleText->setVisible(true);
+    }
+};
 
 Render::Render() {}
 
@@ -220,7 +464,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     view->show();
 }
 
-void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlaceholder, const QString &hoursStr, const QString &pointsStr, const QString element, const QString &name)
+void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlaceholder, const QString &hoursStr, const QString &pointsStr, const QString element, const QString &name, int rank)
 {
     // Conversion des chaînes JSON en listes de valeurs
     QList<double> hours = parseJsonArray(hoursStr);
@@ -239,7 +483,8 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     for (int i = 0; i < hours.size(); ++i) {
         series->append(hours[i], points[i]);
     }
-    series->setName(name); // NEW: base series named after the player
+    series->setName(name); // base series named after the player
+    series->setProperty("rank", rank); // NEW: store rank for later display
 
     // Création du graphique
     QChart *chart = new QChart();
@@ -291,6 +536,14 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
         if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisX);
     }
 
+    // NEW: mémoriser la plage X pour le mapping (utilisée par la sélection)
+    if (!hours.isEmpty()) {
+        const double minX = hours.first();
+        const double maxX = hours.last();
+        chart->setProperty("xMin", minX);
+        chart->setProperty("xMax", maxX);
+    }
+
     // Ensure a scene exists and is empty
     if (!graphPlaceholder->scene()) {
         graphPlaceholder->setScene(new QGraphicsScene(graphPlaceholder));
@@ -307,17 +560,25 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chartView->setLineWidth(0);
     chartView->setContentsMargins(0, 0, 0, 0);
     chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setMouseTracking(true); // keep
+    if (chartView->viewport()) chartView->viewport()->setMouseTracking(true); // NEW
 
     QGraphicsProxyWidget *proxy = scene->addWidget(chartView);
     proxy->setPos(0, 0);
     proxy->setGeometry(vpRect);
+
+    // Activate selection handler (install on viewport)
+    if (!chartView->property("selectionHandler").toBool()) {
+        new SelectionHandler(chartView, chart); // parented to chartView
+        chartView->setProperty("selectionHandler", true);
+    }
 
     graphPlaceholder->setRenderHint(QPainter::Antialiasing);
     graphPlaceholder->show();
 }
 
 // NEW: add an extra line series to the existing chart inside a QGraphicsView
-bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursStr, const QString &pointsStr, const QString &seriesName)
+bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursStr, const QString &pointsStr, const QString &seriesName, int rank)
 {
     QChart* chart = chartFromGraphicsView(view);
     if (!chart) return false;
@@ -333,6 +594,7 @@ bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursS
 
     auto s = new QLineSeries();
     s->setName(seriesName);
+    s->setProperty("rank", rank); // NEW: store rank
     for (int i = 0; i < hours.size(); ++i) s->append(hours[i], points[i]);
 
     chart->addSeries(s);
@@ -340,10 +602,9 @@ bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursS
     if (!chart->axes(Qt::Horizontal).isEmpty()) s->attachAxis(chart->axes(Qt::Horizontal).first());
     if (!chart->axes(Qt::Vertical).isEmpty()) s->attachAxis(chart->axes(Qt::Vertical).first());
 
-    // Show legend when more than one series
-    chart->legend()->setBackgroundVisible(false);            // NEW
-    chart->legend()->setAlignment(Qt::AlignBottom);          // NEW
-    chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries); // NEW
+    chart->legend()->setBackgroundVisible(false);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries);
     chart->legend()->setVisible(chart->series().size() > 1);
     return true;
 }

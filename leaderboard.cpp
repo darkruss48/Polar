@@ -486,16 +486,22 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
                 actAdd->setEnabled(false);
             }
 
-            QObject::connect(actAdd, &QAction::triggered, playerList, [this_, name, hoursStr, paceStr](){
+            QObject::connect(actAdd, &QAction::triggered, playerList, [this_, name, hoursStr, paceStr, user](){
                 // If no chart yet, make this selection the base
                 QChart* chart = Render::chartFromView(Leaderboard::graphPlaceholder);
+                // Parse rank from 'user'
+                int r = 0;
+                const QString rs = user["ranks"].toString().remove("[").remove("]");
+                const QStringList rv = rs.split(",", Qt::SkipEmptyParts);
+                if (!rv.isEmpty()) r = rv.last().trimmed().toInt();
+
                 if (!chart) {
-                    QJsonObject u; u["name"] = name; u["hour"] = hoursStr; u["wins_pace"] = paceStr;
+                    QJsonObject u; u["name"] = name; u["hour"] = hoursStr; u["wins_pace"] = paceStr; u["ranks"] = user["ranks"];
                     Leaderboard::affichergraphiqueettexte(this_, u);
                     return;
                 }
-                // Otherwise, add as overlay
-                if (Render::addSeriesToExistingChart(Leaderboard::graphPlaceholder, hoursStr, paceStr, name)) {
+                // Otherwise, add as overlay (with rank)
+                if (Render::addSeriesToExistingChart(Leaderboard::graphPlaceholder, hoursStr, paceStr, name, r)) {
                     Leaderboard::overlayNames.insert(name);
                 }
             });
@@ -546,6 +552,7 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     QString ex = user["ranks"].toString().remove("[").remove("]");
     QStringList values = ex.split(",");
     QString last_ranks = values.last().trimmed();
+    int baseRank = last_ranks.toInt();
     auto name = user["name"].toString();
     std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
 
@@ -560,7 +567,8 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     Leaderboard::baseSeriesName = a;
     Leaderboard::overlayNames.clear();
 
-    Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, a);
+    // Render + passer le rang
+    Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, a, baseRank);
     QString last_points = user["points"].toString().remove("[").remove("]").split(",").last().trimmed();
     last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
     QString last_wins = user["wins"].toString().remove("[").remove("]").split(",").last().trimmed();
