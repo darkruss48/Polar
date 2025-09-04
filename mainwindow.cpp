@@ -239,12 +239,23 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(pageClassement);
 
     // Récupérer les widgets de la page Classement
-    auto playerList_ = pageClassement->findChild<QListWidget*>("list_players");
+    auto playerList_   = pageClassement->findChild<QListWidget*>("list_players");
     auto refreshButton = pageClassement->findChild<QPushButton*>("button_refresh");
     Leaderboard::graphPlaceholder = pageClassement->findChild<QGraphicsView*>("view_graph");
-    Leaderboard::dataPlaceholder = pageClassement->findChild<QLabel*>("label_data");
-    // NEW: zone moyenne
-    Leaderboard::avgPlaceholder = pageClassement->findChild<QLabel*>("label_avg_data");
+
+    // NEW: two-column placeholders
+    Leaderboard::dataLeftPlaceholder  = pageClassement->findChild<QLabel*>("label_data_left");
+    Leaderboard::dataRightPlaceholder = pageClassement->findChild<QLabel*>("label_data_right");
+    Leaderboard::avgLeftPlaceholder   = pageClassement->findChild<QLabel*>("label_avg_left");
+    Leaderboard::avgRightPlaceholder  = pageClassement->findChild<QLabel*>("label_avg_right");
+    Leaderboard::gapLeftPlaceholder   = pageClassement->findChild<QLabel*>("label_gap_left");
+    Leaderboard::gapRightPlaceholder  = pageClassement->findChild<QLabel*>("label_gap_right");
+
+    // Legacy single-label pointers not used anymore
+    Leaderboard::dataPlaceholder = nullptr;
+    Leaderboard::avgPlaceholder  = nullptr;
+    Leaderboard::gapPlaceholder  = nullptr;
+
     labelDynamic = pageClassement->findChild<QLabel*>("labelDynamic");
 
     if (refreshButton && playerList_) {

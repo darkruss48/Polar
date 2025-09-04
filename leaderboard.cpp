@@ -17,14 +17,26 @@
 #include <QMenu>
 #include <QAction>
 #include <QSet>
+#include <cmath> // NEW: for std::llabs
 
 // pointeurs
 QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
 QLabel *Leaderboard::dataPlaceholder = nullptr;
 QLabel *Leaderboard::avgPlaceholder = nullptr; // NEW
+QLabel *Leaderboard::gapPlaceholder = nullptr; // NEW
 // NEW: overlay state
 QString Leaderboard::baseSeriesName = QString();
 QSet<QString> Leaderboard::overlayNames;
+// NEW: snapshot
+QVector<Leaderboard::SimpleRow> Leaderboard::snapshotRows;
+
+// NEW: two-column placeholders (define statics)
+QLabel *Leaderboard::dataLeftPlaceholder = nullptr;
+QLabel *Leaderboard::dataRightPlaceholder = nullptr;
+QLabel *Leaderboard::avgLeftPlaceholder = nullptr;
+QLabel *Leaderboard::avgRightPlaceholder = nullptr;
+QLabel *Leaderboard::gapLeftPlaceholder = nullptr;
+QLabel *Leaderboard::gapRightPlaceholder = nullptr;
 
 Leaderboard::Leaderboard(QWidget *parent) : QWidget(parent)
 {
@@ -72,9 +84,8 @@ void Leaderboard::changeEvent(QEvent *event)
 
 void Leaderboard::retranslateUi()
 {
-    refreshButton->setText(tr("Refreshe"));
-    // graphPlaceholder->setText(tr("Graph placeholder here"));
-    dataPlaceholder->setText(tr("Data placeholder here"));
+    if (refreshButton) refreshButton->setText(tr("Refreshe"));
+    if (dataPlaceholder) dataPlaceholder->setText(tr("Data placeholder here"));
     // setWindowTitle(tr("Leaderboard"));
 }
 
@@ -88,6 +99,48 @@ static QString formatThousands(qint64 v) {
 static QString formatMillions(qint64 v) {
     double m = static_cast<double>(v) / 1'000'000.0;
     return QString::number(m, 'f', m >= 10.0 ? 1 : 2) + " M";
+}
+
+// Format M with sign (e.g. +1.2 M / -0.7 M)
+static QString formatMillionsSigned(qint64 v) {
+    const qint64 av = std::llabs(v);
+    const double m = static_cast<double>(av) / 1'000'000.0;
+    const QString sign = (v > 0 ? "+" : (v < 0 ? "-" : ""));
+    return QString("%1%2 M").arg(sign).arg(QString::number(m, 'f', m >= 10.0 ? 1 : 2));
+}
+
+// NEW: compact signed M for tight cell display (e.g. +1.2M)
+static QString formatMillionsSignedCompact(qint64 v) {
+    const qint64 av = std::llabs(v);
+    const double m = static_cast<double>(av) / 1'000'000.0;
+    const QString sign = (v > 0 ? "+" : (v < 0 ? "-" : ""));
+    return QString("%1%2M").arg(sign).arg(QString::number(m, 'f', m >= 10.0 ? 1 : 2));
+}
+
+// NEW: ETA formatter from hours -> "~XhYmin" or "~Zmin"
+static QString formatEtaFromHours(double hours)
+{
+    if (hours <= 0.0) return QString("~0min");
+    const int totalMin = static_cast<int>(std::round(hours * 60.0));
+    const int h = totalMin / 60;
+    const int m = totalMin % 60;
+    if (h == 0) return QString("~%1min").arg(m);
+    if (m == 0) return QString("~%1h").arg(h);
+    return QString("~%1h%2min").arg(h).arg(m);
+}
+
+// NEW: Points/hour on recent window (last K steps, 15min per step)
+static double computePointsPerHour(const QStringList& pts, int stepsWindow = 8) {
+    if (pts.size() < 2) return 0.0;
+    const int iLast = pts.size() - 1;
+    const int iStart = qMax(0, iLast - stepsWindow);
+    bool okFirst = false, okLast = false;
+    const qint64 first = pts.at(iStart).trimmed().toLongLong(&okFirst);
+    const qint64 last  = pts.at(iLast).trimmed().toLongLong(&okLast);
+    const int steps = iLast - iStart;
+    if (steps <= 0 || !okFirst || !okLast) return 0.0;
+    const double hours = steps * 0.25; // 15 minutes par step
+    return (last - first) / hours;
 }
 
 // Helpers: convert step-count (15min each) to "XhYmin" string
@@ -130,12 +183,14 @@ static int computeFarmStepsTrailing(const QStringList& pointsList) {
 // Build a compact row widget
 static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 points,
                                       const QString& gapBelowLabel,
-                                      bool isAfk, const QString& statusText) // CHANGED
+                                      bool isAfk, const QString& statusText,
+                                      const QString& gapDeltaLabel, const QString& gapDeltaColor)
 {
     auto row = new QWidget();
     auto root = new QHBoxLayout(row);
-    root->setContentsMargins(12, 8, 22, 8);
-    root->setSpacing(12);
+    // NEW: tighter layout
+    root->setContentsMargins(8, 6, 16, 6);
+    root->setSpacing(8);
 
     // Left: Rank
     auto lblRank = new QLabel(QString("#%1").arg(rank));
@@ -144,7 +199,7 @@ static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 poin
     fRank.setPointSize(fRank.pointSize() + 3);
     lblRank->setFont(fRank);
     lblRank->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    lblRank->setMinimumWidth(52);
+    lblRank->setMinimumWidth(44);
     root->addWidget(lblRank, 0);
 
     // Middle: Name + Status
@@ -154,29 +209,146 @@ static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 poin
     QFont fName = lblName->font(); fName.setBold(true); fName.setPointSize(fName.pointSize() + 1);
     lblName->setFont(fName);
     auto lblStatus = new QLabel(statusText);
-    lblStatus->setStyleSheet(isAfk ? "color:#E74C3C;" : "color:#2ECC71;");
+    // NEW: status en plus petit et discret
+    lblStatus->setStyleSheet(QString("color:%1; font-size:11px;").arg(isAfk ? "#E74C3C" : "#2ECC71"));
     mid->addWidget(lblName);
     mid->addWidget(lblStatus);
     root->addLayout(mid, 1);
 
-    // Right: Points + Gap
+    // Right: Points + Gap (+ colored delta on the left)
     auto right = new QVBoxLayout();
     right->setSpacing(2);
-    right->setContentsMargins(0, 0, 5, 0); // keep away from scrollbar
+    right->setContentsMargins(0, 0, 5, 0);
     auto lblPts = new QLabel(QString("%1 pts").arg(formatMillions(points)));
     lblPts->setStyleSheet("color:#CFCFCF;");
     lblPts->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    // bottom row with colored delta then grey gap
+    auto gapRow = new QHBoxLayout();
+    gapRow->setContentsMargins(0,0,0,0);
+    gapRow->setSpacing(6);
+
+    auto lblDelta = new QLabel(gapDeltaLabel);
+    lblDelta->setStyleSheet(QString("color:%1;").arg(gapDeltaColor));
+    lblDelta->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    lblDelta->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    lblDelta->setFixedWidth(62);
+
     auto lblGap = new QLabel(gapBelowLabel);
     lblGap->setStyleSheet("color:#A0A0A0;");
     lblGap->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    lblGap->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    gapRow->addWidget(lblDelta, 0);
+    gapRow->addWidget(lblGap, 1);
+    gapRow->setStretch(0, 0);
+    gapRow->setStretch(1, 1);
+
     right->addWidget(lblPts);
-    right->addWidget(lblGap);
+    right->addLayout(gapRow);
     root->addLayout(right, 0);
 
-    row->setMinimumHeight(80);
+    row->setMinimumHeight(68);
     row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     row->setStyleSheet("QWidget { background: transparent; }");
     return row;
+}
+
+// NEW: style all info labels (left+right)
+static void ensureInfoLabelsStyled()
+{
+    auto apply = [](QLabel* lbl, bool isLeft){
+        if (!lbl) return;
+        if (lbl->property("twoColStyled").toBool()) return; // apply once
+
+        lbl->setTextFormat(Qt::PlainText);
+        lbl->setWordWrap(false);
+        lbl->setAlignment(isLeft ? (Qt::AlignLeft | Qt::AlignTop) : (Qt::AlignRight | Qt::AlignTop));
+
+        // Fixed size (slightly bigger) to avoid cumulative growth
+        lbl->setStyleSheet(QString(
+            "QLabel {"
+            "  font-size:13px;"
+            "  padding:2px 4px;"
+            "%1"
+            "}"
+        ).arg(isLeft ? "color:#A8A8A8;" : ""));
+
+        lbl->setMinimumSize(0, 0);
+        lbl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+        // mark as styled
+        lbl->setProperty("twoColStyled", true);
+    };
+    apply(Leaderboard::dataLeftPlaceholder,  true);
+    apply(Leaderboard::dataRightPlaceholder, false);
+    apply(Leaderboard::avgLeftPlaceholder,   true);
+    apply(Leaderboard::avgRightPlaceholder,  false);
+    apply(Leaderboard::gapLeftPlaceholder,   true);
+    apply(Leaderboard::gapRightPlaceholder,  false);
+}
+
+// NEW: helper to set two columns with same number of lines
+static void setTwoColumnText(QLabel* leftLbl, QLabel* rightLbl,
+                             QStringList leftLines, QStringList rightLines)
+{
+    if (!leftLbl || !rightLbl) return;
+    const int n = qMax(leftLines.size(), rightLines.size());
+    leftLines.reserve(n);
+    rightLines.reserve(n);
+    while (leftLines.size() < n)  leftLines << "";
+    while (rightLines.size() < n) rightLines << "";
+    leftLbl->setText(leftLines.join("\n"));
+    rightLbl->setText(rightLines.join("\n"));
+}
+
+// Séparateur avec espace plus généreux
+static QString hr() { return "<div style='border-top:1px solid rgba(255,255,255,0.14); margin:12px 0;'></div>"; }
+
+// 2-col table helper (tuned spacing + largeur col. label fixe)
+static QString kvTable(const QList<QPair<QString,QString>>& rows) {
+    QString html = "<table style='width:100%; border-collapse:separate; border-spacing:0 6px;'>";
+    for (const auto& r : rows) {
+        html += QString(
+            "<tr>"
+              "<td style='color:#A8A8A8; width:52%; padding:2px 8px 2px 0; white-space:nowrap;'>%1</td>"
+              "<td style='text-align:right; padding:2px 0 2px 8px;'>%2</td>"
+            "</tr>"
+        ).arg(r.first.toHtmlEscaped(), r.second.toHtmlEscaped());
+    }
+    html += "</table>";
+    return html;
+}
+
+// Indentation utilitaire (décaler à droite un bloc HTML)
+static QString indentBlock(const QString& inner, int px = 14) {
+    return QString("<div style='margin-left:%1px;'>%2</div>").arg(px).arg(inner);
+}
+
+// NEW: builders without headings (titles now provided by QGroupBox)
+static QString buildInfoHtml(const QString& name, const QString& rank, const QString& wins, const QString& totalPts, const QString& afk)
+{
+    return kvTable({
+        { QObject::tr("Nom"), name },
+        { QObject::tr("Rank"), rank },
+        { QObject::tr("Wins"), wins },
+        { QObject::tr("Points totaux"), totalPts },
+        { QObject::tr("Heures AFK"), afk }
+    });
+}
+
+// Dernier paramètre: paceHtml déjà formaté (table)
+static QString buildAvgHtml(const QString& activeStr, const QString& afkStr, double avgWinsPerHour, const QString& paceHtml)
+{
+    const QString tbl = kvTable({
+        { QObject::tr("Non-AFK"), activeStr },
+        { QObject::tr("AFK"), afkStr },
+        { QObject::tr("Wins/h (actif)"), QString::number(avgWinsPerHour, 'f', 2) }
+    });
+    const QString paceBlock = paceHtml.isEmpty()
+        ? QString()
+        : QString("<div style='margin-top:8px;'>%1</div>").arg(paceHtml);
+    return tbl + paceBlock;
 }
 
 void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
@@ -227,6 +399,10 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
 
         std::sort(rows.begin(), rows.end(), [](const RowData& a, const RowData& b){ return a.rank < b.rank; });
 
+        // NEW: fill snapshot
+        snapshotRows.clear();
+        snapshotRows.reserve(rows.size());
+
         for (int i = 0; i < rows.size(); ++i) {
             const auto& r = rows[i];
 
@@ -239,20 +415,45 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
                 ? QString("AFK %1").arg(formatDurationFromSteps(statusSteps))
                 : QString("Farm %1").arg(formatDurationFromSteps(statusSteps));
 
-            // Gap with below only
+            // Gap with below only (current - below)
             QString gapBelowLabel;
+            qint64 gapBelow = 0;
             if (i + 1 < rows.size()) {
-                qint64 diff = r.lastPoints - rows[i+1].lastPoints;
-                if (diff > 0) gapBelowLabel = QString("+%1").arg(formatMillions(diff));
+                gapBelow = r.lastPoints - rows[i+1].lastPoints;
+                if (gapBelow > 0) gapBelowLabel = QString("+%1").arg(formatMillions(gapBelow));
             }
 
-            QWidget* widget = createPlayerRowWidget(r.rank, r.name, r.lastPoints, gapBelowLabel, isAfk, statusText);
+            // NEW: delta gap (last step) with compact display and color
+            QString gapDeltaLabel = "0";
+            QString gapDeltaColor = "#A0A0A0";
+            if (i + 1 < rows.size()) {
+                const auto& b = rows[i+1];
+                auto prevVal = [&](const QStringList& lst)->qint64 {
+                    if (lst.size() >= 2) return lst.at(lst.size()-2).trimmed().toLongLong();
+                    return lst.isEmpty() ? 0 : lst.last().trimmed().toLongLong();
+                };
+                const qint64 prevA = prevVal(r.pointsList);
+                const qint64 prevB = prevVal(b.pointsList);
+                const qint64 prevGap = prevA - prevB;
+                const qint64 deltaGap = gapBelow - prevGap;
+                gapDeltaLabel = formatMillionsSignedCompact(deltaGap); // NEW
+                if (deltaGap > 0) gapDeltaColor = "#2ECC71"; // green = on creuse
+                else if (deltaGap < 0) gapDeltaColor = "#E74C3C"; // red = on perd
+            }
+
+            QWidget* widget = createPlayerRowWidget(
+                r.rank, r.name, r.lastPoints, gapBelowLabel, isAfk, statusText,
+                gapDeltaLabel, gapDeltaColor
+            );
 
             auto* item = new QListWidgetItem(playerList);
             item->setData(Qt::UserRole, r.obj);
             item->setSizeHint(QSize(playerList->viewport()->width(), 80));
             playerList->addItem(item);
             playerList->setItemWidget(item, widget);
+
+            // snapshot item
+            snapshotRows.push_back({r.rank, r.name, r.lastPoints, r.pointsList});
         }
 
         // Fix: disconnect only what we rewire (avoid breaking other handlers)
@@ -376,15 +577,14 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     }
     double hoursWithoutPoints = zeroPointsCount * 0.25; // 15 minutes = 0.25 heures
     std::cout << "Nombre d'heures sans points : " << hoursWithoutPoints << std::endl;
-    // Créer un texte explicatif
-    Leaderboard::dataPlaceholder->setText("a");
-    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
-    Leaderboard::dataPlaceholder->setText(tr("Nom : ") + name + "\n" + tr("Rank : ") + last_ranks + "\n"
-                                          + "\n" + tr("Wins : ") + last_wins + "\n" + tr("Points totaux : ") + last_points
-                                          + "\n" + tr("Heures AFK : ") + QString::number(hoursWithoutPoints));
-    
-    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
-    
+
+    // REMOVE legacy single-label writes (dataPlaceholder is nullptr with new UI)
+    // Leaderboard::dataPlaceholder->setText("a");
+    // std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
+    // Leaderboard::dataPlaceholder->setText(tr("Nom : ") + name + "\n" + tr("Rank : ") + last_ranks + "\n"
+    //                                       + "\n" + tr("Wins : ") + last_wins + "\n" + tr("Points totaux : ") + last_points
+    //                                       + "\n" + tr("Heures AFK : ") + QString::number(hoursWithoutPoints));
+
     // Parse lists pour stats
     const QStringList pointsSteps = user["points"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
     const QStringList winsList    = user["wins"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
@@ -434,40 +634,100 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     const double pctTop = (countTop * 100.0) / totalActiveSteps;
     const double pctSecond = (countSecond * 100.0) / totalActiveSteps;
 
-    // Met à jour label_data (AFK formaté XhYmin)
-    if (Leaderboard::dataPlaceholder) {
-        Leaderboard::dataPlaceholder->setText(
-            tr("Nom : ") + name + "\n" +
-            tr("Rank : ") + last_ranks + "\n\n" +
-            tr("Wins : ") + last_wins + "\n" +
-            tr("Points totaux : ") + last_points + "\n" +
-            tr("Heures AFK : ") + afkStr
-        );
+    ensureInfoLabelsStyled(); // ensure styles applied
+
+    // INFOS: left labels + right values
+    if (Leaderboard::dataLeftPlaceholder && Leaderboard::dataRightPlaceholder) {
+        QStringList left = {
+            tr("Nom"), tr("Rank"), tr("Wins"), tr("Points totaux"), tr("Heures AFK")
+        };
+        QStringList right = { name, last_ranks, last_wins, last_points, afkStr };
+        setTwoColumnText(Leaderboard::dataLeftPlaceholder, Leaderboard::dataRightPlaceholder, left, right);
     }
 
-    // Met à jour la zone "Infos Moyenne"
-    if (Leaderboard::avgPlaceholder) {
-        QString paceLines;
+    // INFOS MOYENNE: base rows + paces as rows
+    if (Leaderboard::avgLeftPlaceholder && Leaderboard::avgRightPlaceholder) {
+        QStringList left = { tr("Non-AFK"), tr("AFK"), tr("Wins/h (actif)") };
+        QStringList right = { activeStr, afkStr, QString::number(avgWinsPerHour, 'f', 2) };
         if (topPace > 0) {
-            paceLines = QString("Pace %1 : %2% (%5/%6)\nPace %3 : %4% (%7/%6)")
-                            .arg(topPace)
-                            .arg(QString::number(pctTop, 'f', 1))
-                            .arg(secondPace)
-                            .arg(QString::number(pctSecond, 'f', 1))
-                            .arg(countTop)
-                            .arg(totalActiveSteps)
-                            .arg(countSecond);
-        } else {
-            paceLines = QString("Pace 0 : 0%\nPace -1 : 0%");
+            left  << QString("Pace %1").arg(topPace)    << QString("Pace %1").arg(secondPace);
+            right << QString("%1% (%2/%3)").arg(QString::number(pctTop, 'f', 1)).arg(countTop).arg(int(totalActiveSteps))
+                  << QString("%1% (%2/%3)").arg(QString::number(pctSecond, 'f', 1)).arg(countSecond).arg(int(totalActiveSteps));
+        }
+        setTwoColumnText(Leaderboard::avgLeftPlaceholder, Leaderboard::avgRightPlaceholder, left, right);
+    }
+
+    // GAP: au-dessus (devant) + ligne vide + en-dessous (derrière)
+    if (Leaderboard::gapLeftPlaceholder && Leaderboard::gapRightPlaceholder && !snapshotRows.isEmpty()) {
+        // Rank of selected
+        const QString name = user["name"].toString();
+        const int rank = [&]{
+            QString ex = user["ranks"].toString().remove("[").remove("]");
+            const QStringList vals = ex.split(",", Qt::SkipEmptyParts);
+            return vals.isEmpty() ? 0 : vals.last().trimmed().toInt();
+        }();
+
+        int idx = -1;
+        for (int i = 0; i < snapshotRows.size(); ++i) {
+            if (snapshotRows[i].rank == rank) { idx = i; break; }
         }
 
-        Leaderboard::avgPlaceholder->setText(
-            QString("Non-AFK : %1\nAFK : %2\nWins/h (actif) : %3\n%4")
-                .arg(activeStr)
-                .arg(afkStr)
-                .arg(QString::number(avgWinsPerHour, 'f', 2))
-                .arg(paceLines)
-        );
+        auto prevVal = [&](const QStringList& lst)->qint64 {
+            if (lst.size() >= 2) return lst.at(lst.size()-2).trimmed().toLongLong();
+            return lst.isEmpty() ? 0 : lst.last().trimmed().toLongLong();
+        };
+
+        auto pph = [&](const QStringList& lst)->double { return computePointsPerHour(lst, 8); };
+
+        QString html;
+
+        if (idx >= 0) {
+            const auto& me = snapshotRows[idx];
+
+            QStringList left, right;
+
+            // Above
+            if (idx - 1 >= 0) {
+                const auto& up = snapshotRows[idx-1];
+                const qint64 gapUp = up.lastPoints - me.lastPoints;
+                const qint64 prevGapUp = prevVal(up.pointsList) - prevVal(me.pointsList);
+                const qint64 dGapUp = gapUp - prevGapUp;
+                const double dvUp = computePointsPerHour(me.pointsList, 8) - computePointsPerHour(up.pointsList, 8);
+                const QString etaUp = (dvUp > 1e-6 && gapUp > 0) ? formatEtaFromHours(gapUp / dvUp) : QString("—");
+
+                left  << tr("Au-dessus") << tr("Gap") << tr("Rattraper");
+                right << QString("#%1 %2").arg(up.rank).arg(up.name)
+                      << QString("%1 (%2)").arg(formatMillions(gapUp)).arg(formatMillionsSigned(dGapUp))
+                      << etaUp;
+            } else {
+                left  << tr("Au-dessus");
+                right << tr("Aucun");
+            }
+
+            // blank separator line
+            left  << "";
+            right << "";
+
+            // Below
+            if (idx + 1 < snapshotRows.size()) {
+                const auto& down = snapshotRows[idx+1];
+                const qint64 gapDown = me.lastPoints - down.lastPoints;
+                const qint64 prevGapDown = prevVal(me.pointsList) - prevVal(down.pointsList);
+                const qint64 dGapDown = gapDown - prevGapDown;
+                const double dvDown = computePointsPerHour(down.pointsList, 8) - computePointsPerHour(me.pointsList, 8);
+                const QString etaDown = (dvDown > 1e-6 && gapDown > 0) ? formatEtaFromHours(gapDown / dvDown) : QString("—");
+
+                left  << tr("En-dessous") << tr("Gap") << tr("Se faire rattraper");
+                right << QString("#%1 %2").arg(down.rank).arg(down.name)
+                      << QString("%1 (%2)").arg(formatMillions(gapDown)).arg(formatMillionsSigned(dGapDown))
+                      << etaDown;
+            } else {
+                left  << tr("En-dessous");
+                right << tr("Aucun");
+            }
+
+            setTwoColumnText(Leaderboard::gapLeftPlaceholder, Leaderboard::gapRightPlaceholder, left, right);
+        }
     }
 
     std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;

@@ -8,7 +8,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGraphicsView>
-#include <QSet>              // NEW
+#include <QSet>
+#include <QVector> // NEW
 #include "mainwindow.h"
 
 class Leaderboard : public QWidget
@@ -18,11 +19,32 @@ public:
     static void onRefreshClicked(MainWindow * this_, QListWidget *playerList);
     static void affichergraphiqueettexte(MainWindow * this_, QJsonObject user);
     static QGraphicsView *graphPlaceholder;
+
+    // Old single-column placeholders (kept for safety)
     static QLabel *dataPlaceholder;
     static QLabel *avgPlaceholder;
+    static QLabel *gapPlaceholder;
+
+    // NEW: two-column placeholders
+    static QLabel *dataLeftPlaceholder;
+    static QLabel *dataRightPlaceholder;
+    static QLabel *avgLeftPlaceholder;
+    static QLabel *avgRightPlaceholder;
+    static QLabel *gapLeftPlaceholder;
+    static QLabel *gapRightPlaceholder;     // NEW
+
     // NEW: overlay state
     static QString baseSeriesName;
     static QSet<QString> overlayNames;
+
+    // NEW: snapshot rows
+    struct SimpleRow {
+        int rank;
+        QString name;
+        qint64 lastPoints;
+        QStringList pointsList;
+    };
+    static QVector<SimpleRow> snapshotRows;
 
     explicit Leaderboard(QWidget *parent = nullptr);
     ~Leaderboard();

@@ -250,6 +250,10 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->legend()->setVisible(false); // NEW: show legend only when overlays are added
+    // NEW: style de légende (s'applique quand visible)
+    chart->legend()->setBackgroundVisible(false);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries);
 
     // Appliquer le thème depuis les paramètres
     chart->setTheme(AppSettings::chartThemeEnum());
@@ -337,6 +341,9 @@ bool Render::addSeriesToExistingChart(QGraphicsView *view, const QString &hoursS
     if (!chart->axes(Qt::Vertical).isEmpty()) s->attachAxis(chart->axes(Qt::Vertical).first());
 
     // Show legend when more than one series
+    chart->legend()->setBackgroundVisible(false);            // NEW
+    chart->legend()->setAlignment(Qt::AlignBottom);          // NEW
+    chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries); // NEW
     chart->legend()->setVisible(chart->series().size() > 1);
     return true;
 }
