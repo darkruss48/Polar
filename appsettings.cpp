@@ -1,108 +1,116 @@
 #include "appsettings.h"
-#include <QStandardPaths>
-#include <QDir>
 #include <QFile>
 #include <QJsonDocument>
-#include <QMap>
+#include <QJsonObject>
+#include <QStandardPaths>
+#include <QDir>
 
-QString AppSettings::region = "Glo";
-QString AppSettings::chartThemeName = "ChartThemeBrownSand";
-// NEW defaults
-bool AppSettings::censorIdDisplay = false;
+// Défauts
 QString AppSettings::savedIdentifier = "";
+QString AppSettings::savedLanguage = "en_US";
+QString AppSettings::region = "Glo";
+bool AppSettings::censorIdDisplay = false;
 bool AppSettings::useCustomBackground = false;
 QString AppSettings::backgroundPath = "";
-int AppSettings::backgroundDimPercent = 0; // 0 = transparent, 100 = noir
+int AppSettings::backgroundDimPercent = 0;
+int AppSettings::autoRefreshExtraDelayMinutes = 0;
+QString AppSettings::chartThemeName = "";
+int AppSettings::chartThemeIndex = 0;
+bool AppSettings::transparentControls = false;
 
-static QString appDirPath() {
-    QString base = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    if (base.isEmpty()) {
-        base = QDir::homePath() + "/.polar";
-    }
-    QDir().mkpath(base);
-    return base;
+static QString settingsFile()
+{
+    return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+           .filePath("polar.json");
 }
 
-QString AppSettings::settingsFilePath() {
-    return appDirPath() + "/polar.json";
-}
+// Ordre FIXE (NE PAS CHANGER L’ORDRE)
+static const QVector<QPair<QString,QChart::ChartTheme>> kThemes = {
+    { QStringLiteral("Bleu Céruléen"),       QChart::ChartThemeBlueCerulean },
+    { QStringLiteral("Clair - Bleu 1"),      QChart::ChartThemeLight       },
+    { QStringLiteral("Clair - Bleu 2"),      QChart::ChartThemeBlueNcs     },
+    { QStringLiteral("Clair - Bleu 3"),      QChart::ChartThemeBlueIcy     },
+    { QStringLiteral("Clair - Noir"),        QChart::ChartThemeHighContrast},
+    { QStringLiteral("Clair - Vert"),        QChart::ChartThemeQt          },
+    { QStringLiteral("Sable"),               QChart::ChartThemeBrownSand   },
+    { QStringLiteral("Thème sombre"),        QChart::ChartThemeDark        }
+};
 
-QJsonObject AppSettings::toJson() {
-    QJsonObject obj;
-    obj["region"] = region;
-    obj["chartTheme"] = chartThemeName;
-    // NEW
-    obj["useCustomBackground"] = useCustomBackground;
-    obj["backgroundPath"] = backgroundPath;
-    obj["backgroundDimPercent"] = backgroundDimPercent;
-    obj["censorIdDisplay"] = censorIdDisplay;
-    obj["savedIdentifier"] = savedIdentifier;
-    return obj;
-}
-
-void AppSettings::fromJson(const QJsonObject& obj) {
-    region = obj.value("region").toString(region);
-    chartThemeName = obj.value("chartTheme").toString(chartThemeName);
-    // NEW
-    useCustomBackground = obj.value("useCustomBackground").toBool(useCustomBackground);
-    backgroundPath = obj.value("backgroundPath").toString(backgroundPath);
-    backgroundDimPercent = obj.value("backgroundDimPercent").toInt(backgroundDimPercent);
-    censorIdDisplay = obj.value("censorIdDisplay").toBool(censorIdDisplay);
-    savedIdentifier = obj.value("savedIdentifier").toString(savedIdentifier);
-}
-
-void AppSettings::load() {
-    QFile f(settingsFilePath());
-    if (!f.exists()) {
-        save();
+void AppSettings::load()
+{
+    QFile f(settingsFile());
+    if (!f.open(QIODevice::ReadOnly)) {
+        save(); // créer fichier par défaut
         return;
     }
-    if (f.open(QIODevice::ReadOnly)) {
-        const auto doc = QJsonDocument::fromJson(f.readAll());
-        f.close();
-        if (doc.isObject()) {
-            fromJson(doc.object());
+    QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+    f.close();
+    if (!doc.isObject()) return;
+    QJsonObject o = doc.object();
+
+    savedIdentifier = o.value("savedIdentifier").toString(savedIdentifier);
+    savedLanguage   = o.value("savedLanguage").toString(savedLanguage);
+    region          = o.value("region").toString(region);
+    censorIdDisplay = o.value("censorIdDisplay").toBool(censorIdDisplay);
+    useCustomBackground = o.value("useCustomBackground").toBool(useCustomBackground);
+    backgroundPath  = o.value("backgroundPath").toString(backgroundPath);
+    backgroundDimPercent = o.value("backgroundDimPercent").toInt(backgroundDimPercent);
+    autoRefreshExtraDelayMinutes = o.value("autoRefreshExtraDelayMinutes").toInt(autoRefreshExtraDelayMinutes);
+    // NEW: transparence des widgets
+    transparentControls = o.value("transparentControls").toBool(transparentControls);
+
+    // Legacy name
+    chartThemeName  = o.value("chartThemeName").toString(chartThemeName);
+
+    // NEW: index prioritaire
+    if (o.contains("chartThemeIndex")) {
+        chartThemeIndex = o.value("chartThemeIndex").toInt(chartThemeIndex);
+    } else {
+        // Rétro-compatibilité: dériver index depuis l’ancien nom si possible
+        if (!chartThemeName.isEmpty()) {
+            for (int i = 0; i < kThemes.size(); ++i) {
+                if (kThemes[i].first == chartThemeName) {
+                    chartThemeIndex = i;
+                    break;
+                }
+            }
         }
     }
+    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
+        chartThemeIndex = 0;
 }
 
-void AppSettings::save() {
-    QFile f(settingsFilePath());
-    if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QJsonDocument doc(toJson());
-        f.write(doc.toJson(QJsonDocument::Indented));
+void AppSettings::save()
+{
+    QDir().mkpath(QFileInfo(settingsFile()).path());
+    QJsonObject o;
+    o["savedIdentifier"] = savedIdentifier;
+    o["savedLanguage"] = savedLanguage;
+    o["region"] = region;
+    o["censorIdDisplay"] = censorIdDisplay;
+    o["useCustomBackground"] = useCustomBackground;
+    o["backgroundPath"] = backgroundPath;
+    o["backgroundDimPercent"] = backgroundDimPercent;
+    o["autoRefreshExtraDelayMinutes"] = autoRefreshExtraDelayMinutes;
+    // NEW: transparence des widgets
+    o["transparentControls"] = transparentControls;
+
+    // Conserver aussi le nom (lecture humaine) mais index source de vérité
+    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
+        chartThemeIndex = 0;
+    o["chartThemeIndex"] = chartThemeIndex;
+    o["chartThemeName"]  = kThemes[chartThemeIndex].first;
+
+    QFile f(settingsFile());
+    if (f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
+        f.write(QJsonDocument(o).toJson(QJsonDocument::Indented));
         f.close();
     }
 }
 
-QChart::ChartTheme AppSettings::themeFromName(const QString& name) {
-    static const QMap<QString, QChart::ChartTheme> map = {
-        {"Clair - Bleu 1", QChart::ChartThemeLight},
-        {"Bleu Céruléen", QChart::ChartThemeBlueCerulean},
-        {"Thème sombre", QChart::ChartThemeDark},
-        {"Sable", QChart::ChartThemeBrownSand},
-        {"Clair - Bleu 2", QChart::ChartThemeBlueNcs},
-        {"Clair - Noir", QChart::ChartThemeHighContrast},
-        {"Clair - Bleu 3", QChart::ChartThemeBlueIcy},
-        {"Clair - Vert", QChart::ChartThemeQt}
-    };
-    return map.value(name, QChart::ChartThemeBrownSand);
-}
-
-QString AppSettings::nameFromTheme(QChart::ChartTheme theme) {
-    switch (theme) {
-        case QChart::ChartThemeLight: return "Clair - Bleu";
-        case QChart::ChartThemeBlueCerulean: return "Bleu Céruléen";
-        case QChart::ChartThemeDark: return "Thème sombre";
-        case QChart::ChartThemeBrownSand: return "Sable";
-        case QChart::ChartThemeBlueNcs: return "Clair - Bleu 2";
-        case QChart::ChartThemeHighContrast: return "Clair - Noir";
-        case QChart::ChartThemeBlueIcy: return "Clair - Bleu 3";
-        case QChart::ChartThemeQt: return "Clair - Vert";
-        default: return "Sable";
-    }
-}
-
-QChart::ChartTheme AppSettings::chartThemeEnum() {
-    return themeFromName(chartThemeName);
+QChart::ChartTheme AppSettings::chartThemeEnum()
+{
+    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
+        chartThemeIndex = 0;
+    return kThemes[chartThemeIndex].second;
 }

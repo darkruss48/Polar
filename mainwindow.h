@@ -24,6 +24,7 @@
 #include <QStringList>
 #include <QRandomGenerator>
 #include <QEvent>
+#include <QTimer> // NEW
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -120,5 +121,10 @@ private:
     // NEW: refresh displayed identifier according to settings
     void updateIdLabelDisplay();
     QString maskedIdentifier(const QString& id) const;
+
+    // Auto-refresh
+    QTimer* autoRefreshTimer = nullptr;     // NEW
+    void scheduleNextAutoRefresh();         // NEW
+    void doAutoRefreshIfClassement();       // NEW
 };
 #endif // MAINWINDOW_H

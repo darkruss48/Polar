@@ -24,11 +24,15 @@ QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
 QLabel *Leaderboard::dataPlaceholder = nullptr;
 QLabel *Leaderboard::avgPlaceholder = nullptr; // NEW
 QLabel *Leaderboard::gapPlaceholder = nullptr; // NEW
+// NEW
+QListWidget* Leaderboard::playerListPtr = nullptr; // NEW
 // NEW: overlay state
 QString Leaderboard::baseSeriesName = QString();
 QSet<QString> Leaderboard::overlayNames;
 // NEW: snapshot
 QVector<Leaderboard::SimpleRow> Leaderboard::snapshotRows;
+// NEW: current selection
+QString Leaderboard::currentSelectedName = QString(); // NEW
 
 // NEW: two-column placeholders (define statics)
 QLabel *Leaderboard::dataLeftPlaceholder = nullptr;
@@ -466,6 +470,13 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
             Leaderboard::affichergraphiqueettexte(this_, user);
         });
 
+        // NEW: also react on single click to show infos immediately
+        QObject::connect(playerList, &QListWidget::itemClicked, playerList, [this_, playerList](QListWidgetItem* item){
+            if (!item) return;
+            QJsonObject user = item->data(Qt::UserRole).toJsonObject();
+            Leaderboard::affichergraphiqueettexte(this_, user);
+        });
+
         // Right-click context menu on the list to add overlay series
         playerList->setContextMenuPolicy(Qt::CustomContextMenu);
         QObject::connect(playerList, &QListWidget::customContextMenuRequested, playerList,
@@ -478,7 +489,7 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
             const QString paceStr  = user["wins_pace"].toString();
 
             QMenu menu(playerList);
-            QAction* actAdd = menu.addAction(QString("Rajouter %1 au graphique").arg(name));
+            QAction* actAdd = menu.addAction(QString(tr("Rajouter %1 au graphique").arg(name)));
 
             const bool alreadyAdded = Leaderboard::overlayNames.contains(name);
             const bool isBase = (!Leaderboard::baseSeriesName.isEmpty() && Leaderboard::baseSeriesName == name);
@@ -518,11 +529,11 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
                 if (!Leaderboard::graphPlaceholder) return;
                 QMenu menu(Leaderboard::graphPlaceholder);
                 if (Leaderboard::overlayNames.isEmpty()) {
-                    QAction* none = menu.addAction("Aucun joueur ajouté");
+                    QAction* none = menu.addAction(tr("Aucun joueur ajouté"));
                     none->setEnabled(false);
                 } else {
                     for (const QString& name : std::as_const(Leaderboard::overlayNames)) {
-                        QAction* act = menu.addAction(QString("Supprimer %1").arg(name));
+                        QAction* act = menu.addAction(tr("Supprimer %1").arg(name));
                         QObject::connect(act, &QAction::triggered, Leaderboard::graphPlaceholder, [name](){
                             if (Render::removeSeriesByName(Leaderboard::graphPlaceholder, name)) {
                                 Leaderboard::overlayNames.remove(name);
@@ -530,7 +541,7 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
                         });
                     }
                     menu.addSeparator();
-                    QAction* actClear = menu.addAction("Supprimer tout le monde");
+                    QAction* actClear = menu.addAction(tr("Supprimer tout le monde"));
                     QObject::connect(actClear, &QAction::triggered, Leaderboard::graphPlaceholder, [](){
                         Render::clearAllOverlaySeries(Leaderboard::graphPlaceholder, Leaderboard::baseSeriesName);
                         Leaderboard::overlayNames.clear();
@@ -546,61 +557,55 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
     // Mettre à jour la liste, le graphe, etc.
 }
 
-void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
+void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user, bool preserveOverlays)
 {
     // Afficher les données du joueur sélectionné
     QString ex = user["ranks"].toString().remove("[").remove("]");
-    QStringList values = ex.split(",");
-    QString last_ranks = values.last().trimmed();
+    QStringList values = ex.split(",", Qt::SkipEmptyParts);
+    QString last_ranks = values.isEmpty() ? QStringLiteral("0") : values.last().trimmed();
     int baseRank = last_ranks.toInt();
-    auto name = user["name"].toString();
-    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
+    const QString name = user["name"].toString();
+    Leaderboard::currentSelectedName = name; // pour auto-refresh
+    std::cout << "Utilisateur sélectionné : " << name.toStdString() << std::endl;
 
     QString ydata = "wins_pace";
 
-    // Transformer les données QJsonValueRef en std::string
-    QString hours = QString::fromStdString(user["hour"].toString().toStdString());
-    QString points = QString::fromStdString(user[ydata].toString().toStdString());
-    // Afficher le graphe
-    const QString a = QString(user["name"].toString());
-    // NEW: set base series name and clear overlays whenever we render a new base chart
-    Leaderboard::baseSeriesName = a;
-    Leaderboard::overlayNames.clear();
+    // Récup données pour le graphe
+    QString hours = user["hour"].toString();
+    QString points = user[ydata].toString();
 
-    // Render + passer le rang
-    Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, a, baseRank);
+    // Base series + overlays (préserver si demandé)
+    Leaderboard::baseSeriesName = name;
+    if (!preserveOverlays) {
+        Leaderboard::overlayNames.clear();
+    }
+    Render::render_leaderboard(this_, Leaderboard::graphPlaceholder, hours, points, ydata, name, baseRank);
+
+    // Dernières valeurs formatées
     QString last_points = user["points"].toString().remove("[").remove("]").split(",").last().trimmed();
-    last_points = QString::number(last_points.toInt()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
+    last_points = QString::number(last_points.toLongLong()).replace(QRegularExpression("(\\d)(?=(\\d{3})+(?!\\d))"), "\\1,");
     QString last_wins = user["wins"].toString().remove("[").remove("]").split(",").last().trimmed();
     QString last_hours = user["hour"].toString().remove("[").remove("]").split(",").last().trimmed();
-    // Calculer le nombre d'heures où l'utilisateur n'a pas gagné de points
-    QStringList pointsList = user["points"].toString().remove("[").remove("]").split(",");
-    int zeroPointsCount = 0;
-    auto last_point = QString("");
-    for (const QString &point : pointsList) {
-        if (point.trimmed() == last_point) {
-            zeroPointsCount++;
-        }
-        last_point = point.trimmed();
-    }
-    double hoursWithoutPoints = zeroPointsCount * 0.25; // 15 minutes = 0.25 heures
-    std::cout << "Nombre d'heures sans points : " << hoursWithoutPoints << std::endl;
 
-    // REMOVE legacy single-label writes (dataPlaceholder is nullptr with new UI)
-    // Leaderboard::dataPlaceholder->setText("a");
-    // std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
-    // Leaderboard::dataPlaceholder->setText(tr("Nom : ") + name + "\n" + tr("Rank : ") + last_ranks + "\n"
-    //                                       + "\n" + tr("Wins : ") + last_wins + "\n" + tr("Points totaux : ") + last_points
-    //                                       + "\n" + tr("Heures AFK : ") + QString::number(hoursWithoutPoints));
-
-    // Parse lists pour stats
+    // Calcul AFK via pas consécutifs identiques
     const QStringList pointsSteps = user["points"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
-    const QStringList winsList    = user["wins"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
-    const QStringList paceList    = user["wins_pace"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+    int zeroPointsCount = 0;
+    QString last_point;
+    for (const QString &p : pointsSteps) {
+        const QString pt = p.trimmed();
+        if (!last_point.isEmpty() && pt == last_point) zeroPointsCount++;
+        last_point = pt;
+    }
+    const double hoursWithoutPoints = zeroPointsCount * 0.25;
 
+    // Listes pour stats
+    const QStringList winsList = user["wins"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+    const QStringList paceList = user["wins_pace"].toString().remove("[").remove("]").split(",", Qt::SkipEmptyParts);
+
+    // Compte des pas actifs, AFK et wins gagnées uniquement sur pas actifs
     int afkSteps = 0, activeSteps = 0;
     qint64 activeWinsGained = 0;
-    QMap<int,int> paceCounts; // pace entier -> occurrences (pas AFK)
+    QMap<int,int> paceCounts; // pace entier -> occurrences sur pas actifs
 
     for (int i = 1; i < pointsSteps.size(); ++i) {
         qint64 curP  = pointsSteps.at(i).trimmed().toLongLong();
@@ -618,7 +623,7 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
                 bool ok = false;
                 double paceVal = paceList.at(i).trimmed().toDouble(&ok);
                 if (ok) {
-                    int paceInt = static_cast<int>(paceVal + 1e-9); // pas d'arrondi vers le haut
+                    int paceInt = static_cast<int>(paceVal + 1e-9);
                     paceCounts[paceInt] += 1;
                 }
             }
@@ -627,10 +632,10 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
 
     const QString afkStr = formatDurationFromSteps(afkSteps);
     const QString activeStr = formatDurationFromSteps(activeSteps);
-    const double activeHours = activeSteps * 0.25; // 15 min par pas
-    const double avgWinsPerHour = (activeHours > 0.0) ? (activeWinsGained / activeHours) : 0.0;
+    const double activeHours = activeSteps * 0.25; // 15 min
+    const double avgWinsPerHour = (activeHours > 0.0) ? (static_cast<double>(activeWinsGained) / activeHours) : 0.0;
 
-    // Meilleures paces: max P et P-1
+    // Meilleures paces: top pace et pace-1
     int topPace = 0;
     for (auto it = paceCounts.constBegin(); it != paceCounts.constEnd(); ++it) {
         if (it.key() > topPace) topPace = it.key();
@@ -638,43 +643,42 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
     const int secondPace = (topPace > 0) ? (topPace - 1) : 0;
     const int countTop = paceCounts.value(topPace, 0);
     const int countSecond = paceCounts.value(secondPace, 0);
-    const double totalActiveSteps = qMax(1, activeSteps); // évite /0
+    const int totalActiveSteps = qMax(1, activeSteps); // éviter /0
     const double pctTop = (countTop * 100.0) / totalActiveSteps;
     const double pctSecond = (countSecond * 100.0) / totalActiveSteps;
 
-    ensureInfoLabelsStyled(); // ensure styles applied
+    // Styliser et remplir les 3 blocs
+    ensureInfoLabelsStyled();
 
-    // INFOS: left labels + right values
+    // INFOS
     if (Leaderboard::dataLeftPlaceholder && Leaderboard::dataRightPlaceholder) {
-        QStringList left = {
-            tr("Nom"), tr("Rank"), tr("Wins"), tr("Points totaux"), tr("Heures AFK")
-        };
+        QStringList left = { tr("Nom"), tr("Rank"), tr("Wins"), tr("Points totaux"), tr("Heures AFK") };
         QStringList right = { name, last_ranks, last_wins, last_points, afkStr };
         setTwoColumnText(Leaderboard::dataLeftPlaceholder, Leaderboard::dataRightPlaceholder, left, right);
     }
 
-    // INFOS MOYENNE: base rows + paces as rows
+    // INFOS MOYENNE (+ deux meilleures paces)
     if (Leaderboard::avgLeftPlaceholder && Leaderboard::avgRightPlaceholder) {
         QStringList left = { tr("Non-AFK"), tr("AFK"), tr("Wins/h (actif)") };
         QStringList right = { activeStr, afkStr, QString::number(avgWinsPerHour, 'f', 2) };
         if (topPace > 0) {
             left  << QString("Pace %1").arg(topPace)    << QString("Pace %1").arg(secondPace);
-            right << QString("%1% (%2/%3)").arg(QString::number(pctTop, 'f', 1)).arg(countTop).arg(int(totalActiveSteps))
-                  << QString("%1% (%2/%3)").arg(QString::number(pctSecond, 'f', 1)).arg(countSecond).arg(int(totalActiveSteps));
+            right << QString("%1% (%2/%3)").arg(QString::number(pctTop, 'f', 1)).arg(countTop).arg(totalActiveSteps)
+                  << QString("%1% (%2/%3)").arg(QString::number(pctSecond, 'f', 1)).arg(countSecond).arg(totalActiveSteps);
         }
         setTwoColumnText(Leaderboard::avgLeftPlaceholder, Leaderboard::avgRightPlaceholder, left, right);
     }
 
-    // GAP: au-dessus (devant) + ligne vide + en-dessous (derrière)
+    // GAP: Au-dessus et En-dessous (nom + gap + Δ + ETA)
     if (Leaderboard::gapLeftPlaceholder && Leaderboard::gapRightPlaceholder && !snapshotRows.isEmpty()) {
-        // Rank of selected
-        const QString name = user["name"].toString();
+        // Rank courant
         const int rank = [&]{
             QString ex = user["ranks"].toString().remove("[").remove("]");
             const QStringList vals = ex.split(",", Qt::SkipEmptyParts);
             return vals.isEmpty() ? 0 : vals.last().trimmed().toInt();
         }();
 
+        // Position dans le snapshot
         int idx = -1;
         for (int i = 0; i < snapshotRows.size(); ++i) {
             if (snapshotRows[i].rank == rank) { idx = i; break; }
@@ -685,16 +689,11 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
             return lst.isEmpty() ? 0 : lst.last().trimmed().toLongLong();
         };
 
-        auto pph = [&](const QStringList& lst)->double { return computePointsPerHour(lst, 8); };
-
-        QString html;
-
+        QStringList left, right;
         if (idx >= 0) {
             const auto& me = snapshotRows[idx];
 
-            QStringList left, right;
-
-            // Above
+            // Au-dessus
             if (idx - 1 >= 0) {
                 const auto& up = snapshotRows[idx-1];
                 const qint64 gapUp = up.lastPoints - me.lastPoints;
@@ -712,11 +711,11 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
                 right << tr("Aucun");
             }
 
-            // blank separator line
+            // Ligne vide séparatrice
             left  << "";
             right << "";
 
-            // Below
+            // En-dessous
             if (idx + 1 < snapshotRows.size()) {
                 const auto& down = snapshotRows[idx+1];
                 const qint64 gapDown = me.lastPoints - down.lastPoints;
@@ -733,15 +732,62 @@ void Leaderboard::affichergraphiqueettexte(MainWindow * this_, QJsonObject user)
                 left  << tr("En-dessous");
                 right << tr("Aucun");
             }
-
-            setTwoColumnText(Leaderboard::gapLeftPlaceholder, Leaderboard::gapRightPlaceholder, left, right);
         }
+
+        setTwoColumnText(Leaderboard::gapLeftPlaceholder, Leaderboard::gapRightPlaceholder, left, right);
     }
 
-    std::cout << "Utilisateur sélectionné : " + name.toStdString() << std::endl;
+    std::cout << "Utilisateur sélectionné : " << name.toStdString() << std::endl;
 }
 
+// NEW: auto-refresh that preserves overlays and updates list + chart + infos
+void Leaderboard::autoRefresh(MainWindow* this_)
+{
+    std::cout << "[AutoRefresh] Triggered at " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
+    if (!Leaderboard::playerListPtr) return;
+    // Keep current selection + overlays
+    const QString baseName = Leaderboard::currentSelectedName;
+    const QSet<QString> overlays = Leaderboard::overlayNames;
 
+    // Refresh the list (also rebuilds snapshotRows)
+    Leaderboard::onRefreshClicked(this_, Leaderboard::playerListPtr);
+
+    if (baseName.isEmpty()) return;
+
+    // Helper to find user QJsonObject in refreshed list by name
+    auto findUserByName = [](QListWidget* list, const QString& name)->QJsonObject {
+        if (!list) return QJsonObject();
+        for (int i = 0; i < list->count(); ++i) {
+            auto* it = list->item(i);
+            QJsonObject obj = it->data(Qt::UserRole).toJsonObject();
+            if (obj["name"].toString() == name) return obj;
+        }
+        return QJsonObject();
+    };
+
+    // Re-render base chart with fresh data
+    QJsonObject baseUser = findUserByName(Leaderboard::playerListPtr, baseName);
+    if (!baseUser.isEmpty()) {
+        Leaderboard::affichergraphiqueettexte(this_, baseUser, /*preserveOverlays=*/true);
+    } else {
+        return; // base not found
+    }
+
+    // Re-add overlays to the new chart
+    for (const QString& ov : overlays) {
+        if (ov == baseName) continue;
+        QJsonObject u = findUserByName(Leaderboard::playerListPtr, ov);
+        if (u.isEmpty()) continue;
+        const QString hoursStr = u["hour"].toString();
+        const QString paceStr  = u["wins_pace"].toString();
+        // rank
+        int r = 0;
+        const QString rs = u["ranks"].toString().remove("[").remove("]");
+        const QStringList rv = rs.split(",", Qt::SkipEmptyParts);
+        if (!rv.isEmpty()) r = rv.last().trimmed().toInt();
+        Render::addSeriesToExistingChart(Leaderboard::graphPlaceholder, hoursStr, paceStr, ov, r);
+    }
+}
 
 void Leaderboard::onPlayerDoubleClicked(QListWidgetItem *item)
 {

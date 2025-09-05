@@ -18,6 +18,16 @@ public:
     static bool censorIdDisplay;      // false by default
     static QString savedIdentifier;   // persisted user ID
 
+    // NEW: Language + auto-refresh delay
+    static QString savedLanguage;               // "en_US" or "fr_FR"
+    static int autoRefreshExtraDelayMinutes;    // 0..15
+
+    // NOUVEAU: stockage stable par indice (ordre fixe du combo)
+    static int chartThemeIndex;
+
+    // NEW: Transparence des widgets (boutons, listes, etc.)
+    static bool transparentControls;
+
     // Load from polar.json (create with defaults if missing)
     static void load();
     // Save to polar.json

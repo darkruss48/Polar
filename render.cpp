@@ -399,7 +399,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
-    // Appliquer le thème depuis les paramètres
+    // Appliquer le thème depuis les paramètres (index interne stable)
     chart->setTheme(AppSettings::chartThemeEnum());
 
     // NEW: marges légères pour éviter le chevauchement des labels
@@ -500,7 +500,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->legend()->setAlignment(Qt::AlignBottom);
     chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries);
 
-    // Appliquer le thème depuis les paramètres
+    // Appliquer le thème depuis les paramètres (index interne stable)
     chart->setTheme(AppSettings::chartThemeEnum());
 
     // Laisse un peu d'espace pour les labels des axes (évite l'effet "sous les traits")

@@ -52,6 +52,9 @@
 #include <QSlider>           // NEW
 #include <QCheckBox>         // NEW
 #include <QLineEdit>         // NEW
+#include <QTimer>       // NEW
+#include <QDateTime>    // NEW
+#include <QSpinBox>
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -190,6 +193,10 @@ MainWindow::MainWindow(QWidget *parent)
     }
     updateIdLabelDisplay();
 
+    // NEW: apply saved language on startup (default en_US)
+    loadLanguage(AppSettings::savedLanguage.isEmpty() ? QStringLiteral("en_US")
+                                                      : AppSettings::savedLanguage);
+
     // Que des chiffres dans les goals, et mettre des virgules tous les 3 chiffres
     ui->lineEdit_goal->setValidator( new QIntValidator(0, 10000000000, this) );
     ui->lineEdit_goal->setMaxLength(13);
@@ -210,6 +217,12 @@ MainWindow::MainWindow(QWidget *parent)
         formatNumberWithCommas(ui->lineEdit_afk->text(), formattedNumber);
         ui->lineEdit_afk->setText(formattedNumber);
     });
+
+    // NEW: recalculer quand les minutes AFK changent
+    if (ui->combo_afk_minutes) {
+        connect(ui->combo_afk_minutes, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int){ on_lineEdit_afk_textEdited(ui->lineEdit_afk->text()); });
+    }
 
     // Mettre en anglais de base
     // loadLanguage("en_US");
@@ -242,6 +255,8 @@ MainWindow::MainWindow(QWidget *parent)
     auto playerList_   = pageClassement->findChild<QListWidget*>("list_players");
     auto refreshButton = pageClassement->findChild<QPushButton*>("button_refresh");
     Leaderboard::graphPlaceholder = pageClassement->findChild<QGraphicsView*>("view_graph");
+    // NEW: expose list widget for auto-refresh
+    Leaderboard::playerListPtr = playerList_; // NEW
 
     // NEW: two-column placeholders
     Leaderboard::dataLeftPlaceholder  = pageClassement->findChild<QLabel*>("label_data_left");
@@ -363,7 +378,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // + Menu Options
     QMenu *menuOptions = menuBar->addMenu(tr("Options"));
-    QAction *actionOptions = new QAction(tr("Paramètres..."), this);
+    QAction *actionOptions = new QAction(tr("Paramètres"), this);
     menuOptions->addAction(actionOptions);
     connect(actionOptions, &QAction::triggered, this, &MainWindow::showOptionsDialog);
 
@@ -395,7 +410,9 @@ MainWindow::MainWindow(QWidget *parent)
     createLanguageMenu();
     this->setWindowTitle("Polar " + QString::fromStdString(Updater::polar_version));
 
-    loadLanguage("en_US");
+    // REMOVE: hardcoded English load; language is applied from settings above
+    // loadLanguage("en_US");
+
     // mise a jour
     updater = new Updater(this);
     connect(updater, &Updater::updateAvailable, this, &MainWindow::onUpdateAvailable);
@@ -409,6 +426,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     // REMPLACE l'ancien code de fond par:
     updateBackgroundPalette();
+
+    // NEW: auto-refresh timer
+    autoRefreshTimer = new QTimer(this);
+    autoRefreshTimer->setSingleShot(true);
+    connect(autoRefreshTimer, &QTimer::timeout, this, &MainWindow::doAutoRefreshIfClassement);
+    scheduleNextAutoRefresh();
 }
 
 MainWindow::~MainWindow()
@@ -669,6 +692,9 @@ void MainWindow::slotLanguageChanged(QAction* action)
     if (action) {
         QString selectedLocale = action->data().toString();
         loadLanguage(selectedLocale);
+        // NEW: persist language
+        AppSettings::savedLanguage = selectedLocale;
+        AppSettings::save();
     }
 }
 
@@ -931,14 +957,21 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         int seedValue = std::stoi(seedStr);
         std::cout << "Step 7: Converted seedStr to integer: " << seedValue << std::endl;
 
-        int afkValue = ui->lineEdit_afk->text().remove(',').toInt();
-        std::cout << "Step 8: Retrieved afkValue from lineEdit_afk: " << afkValue << std::endl;
+        // Hours/minutes AFK (minutes come from combo box 0/15/30/45)
+        int afkHoursInt = ui->lineEdit_afk->text().remove(',').toInt();
+        int afkMinutesInt = 0;
+        if (ui->combo_afk_minutes) {
+            afkMinutesInt = ui->combo_afk_minutes->currentText().toInt(); // 0,15,30,45
+        }
+        double afkTotalHours = static_cast<double>(afkHoursInt) + (static_cast<double>(afkMinutesInt) / 60.0);
+        std::cout << "Step 8: AFK hours=" << afkHoursInt << " AFK minutes=" << afkMinutesInt
+                  << " => AFK total=" << afkTotalHours << "h" << std::endl;
 
         int goalValue = ui->lineEdit_goal->text().remove(',').toInt();
         std::cout << "Step 9: Retrieved goalValue from lineEdit_goal: " << goalValue << std::endl;
 
-        float hours_left = std::stof(hourStr);
-        std::cout << "Step 10: Converted hourStr to float: " << hours_left << std::endl;
+        float hours_left_total = std::stof(hourStr);
+        std::cout << "Step 10: Converted hourStr to float: " << hours_left_total << std::endl;
 
         if(points > goalValue) {
             std::cout << "Step 10.1: points is greater than goalValue, exiting function." << std::endl;
@@ -962,8 +995,9 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             return;
         }
 
-        if(afkValue >= hours_left) {
-            std::cout << "Step 10.3: afkValue is greater than or equal to hours_left, exiting function." << std::endl;
+        // NEW: validate AFK vs remaining time using minutes too
+        if (afkTotalHours >= hours_left_total) {
+            std::cout << "Step 10.3: AFK total >= remaining hours, exiting function." << std::endl;
             ui->label_win_pace->setText("");
             QString color = "red";
             QString comment = tr("Impossible");
@@ -973,7 +1007,11 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             return;
         }
 
-        float winsPerHour = (goalValue - points) / (seedValue * hours_left);
+        // NEW: compute active hours and use them in pace calculation
+        const double activeHours = hours_left_total - afkTotalHours;
+        std::cout << "Active hours: " << activeHours << std::endl;
+
+        float winsPerHour = (goalValue - points) / (seedValue * static_cast<float>(activeHours));
         std::cout << "Step 11: Calculated winsPerHour: " << winsPerHour << std::endl;
 
         QString color;
@@ -1029,7 +1067,7 @@ void MainWindow::showOptionsDialog()
     QDialog dlg(this);
     dlg.setWindowTitle(tr("Options"));
     QVBoxLayout layout(&dlg);
-    layout.setContentsMargins(0,0,0,0);
+    layout.setContentsMargins(0, 0, 0, 0);
     layout.addWidget(content);
 
     // Find widgets
@@ -1045,6 +1083,10 @@ void MainWindow::showOptionsDialog()
     auto btnBrowse = content->findChild<QPushButton*>("buttonBrowseBackground");
     auto sliderOpacity = content->findChild<QSlider*>("sliderOpacity");
     auto labelOpacityValue = content->findChild<QLabel*>("labelOpacityValue");
+    // NEW: extra delay spin
+    auto spinExtraDelay = content->findChild<QSpinBox*>("spinExtraDelay"); // NEW
+    // NEW: transparent controls
+    auto checkTransparent = content->findChild<QCheckBox*>("checkTransparentControls"); // NEW
 
     // Initialize from settings
     if (radioGlo && radioJap) {
@@ -1052,8 +1094,12 @@ void MainWindow::showOptionsDialog()
         else radioGlo->setChecked(true);
     }
     if (comboTheme) {
-        int idx = comboTheme->findText(AppSettings::chartThemeName);
-        if (idx >= 0) comboTheme->setCurrentIndex(idx);
+        // OLD (par texte) supprimé
+        // int idx = comboTheme->findText(AppSettings::chartThemeName);
+        // if (idx >= 0) comboTheme->setCurrentIndex(idx);
+        comboTheme->setCurrentIndex(
+            qBound(0, AppSettings::chartThemeIndex,
+                   comboTheme->count() > 0 ? comboTheme->count()-1 : 0));
     }
     if (checkCensorId) checkCensorId->setChecked(AppSettings::censorIdDisplay);
     if (checkCustom) checkCustom->setChecked(AppSettings::useCustomBackground);
@@ -1084,6 +1130,15 @@ void MainWindow::showOptionsDialog()
             }
         });
     }
+    // NEW: init extra delay from saved settings
+    if (spinExtraDelay) {
+        spinExtraDelay->setRange(0, 15); // safety (also set in .ui)
+        spinExtraDelay->setValue(AppSettings::autoRefreshExtraDelayMinutes);
+    }
+    // NEW: init transparent controls checkbox
+    if (checkTransparent) {
+        checkTransparent->setChecked(AppSettings::transparentControls);
+    }
 
     if (buttonBox) {
         connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
@@ -1094,113 +1149,148 @@ void MainWindow::showOptionsDialog()
         // Read back and save
         if (radioGlo && radioGlo->isChecked()) AppSettings::region = "Glo";
         if (radioJap && radioJap->isChecked()) AppSettings::region = "Jap";
-        if (comboTheme) AppSettings::chartThemeName = comboTheme->currentText();
+        if (comboTheme) {
+            AppSettings::chartThemeIndex = comboTheme->currentIndex(); // NEW
+            // (optionnel: garder compat nom lisible)
+            // AppSettings::chartThemeName = comboTheme->currentText(); // plus nécessaire
+        }
         if (checkCensorId) AppSettings::censorIdDisplay = checkCensorId->isChecked();
 
         if (checkCustom) AppSettings::useCustomBackground = checkCustom->isChecked();
         if (editPath) AppSettings::backgroundPath = editPath->text();
         if (sliderOpacity) AppSettings::backgroundDimPercent = sliderOpacity->value();
-
+        // NEW: save extra delay 0..15
+        if (spinExtraDelay) AppSettings::autoRefreshExtraDelayMinutes = qBound(0, spinExtraDelay->value(), 15);
+        // NEW: save transparent controls setting
+        if (checkTransparent) AppSettings::transparentControls = checkTransparent->isChecked();
         AppSettings::save();
         updateBackgroundPalette();
         updateIdLabelDisplay();
         this->update();
+        // NEW: reschedule auto-refresh with new offset
+        scheduleNextAutoRefresh();
     }
 }
 
-// NEW: applique le fond d'écran (défaut ou personnalisé) + voile sombre
+// NEW: apply background from settings (image + dim overlay)
 void MainWindow::updateBackgroundPalette()
 {
-    QPixmap bgPixmap;
+    const bool useBg = AppSettings::useCustomBackground && !AppSettings::backgroundPath.isEmpty();
+    const bool transparentControls = AppSettings::transparentControls; // NEW
+    QMenuBar* mb = this->menuBar();
+    QWidget* central = this->centralWidget();
 
-    if (AppSettings::useCustomBackground && !AppSettings::backgroundPath.isEmpty() && QFile::exists(AppSettings::backgroundPath)) {
-        bgPixmap = QPixmap(AppSettings::backgroundPath);
-        // Conserver le comportement précédent: rotation -90°
-        if (!bgPixmap.isNull()) {
-            // bgPixmap = bgPixmap.transformed(QTransform().rotate(-90), Qt::SmoothTransformation);
+    // Always keep menu bar and status bar transparent
+    if (mb) {
+        mb->setAttribute(Qt::WA_StyledBackground, true);
+        mb->setAutoFillBackground(false);
+        mb->setStyleSheet("QMenuBar { background: transparent; }");
+    }
+    if (statusBar()) {
+        statusBar()->setAttribute(Qt::WA_StyledBackground, true);
+        statusBar()->setAutoFillBackground(false);
+        statusBar()->setStyleSheet("QStatusBar { background: transparent; }");
+    }
+
+    if (useBg) {
+        QPixmap src(AppSettings::backgroundPath);
+        if (!src.isNull()) {
+            // Paint the wallpaper on the whole main window (client area)
+            QPixmap scaled = src.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+            QPixmap composed(scaled.size());
+            composed.fill(Qt::transparent);
+            {
+                QPainter p(&composed);
+                p.drawPixmap(0, 0, scaled);
+                if (AppSettings::backgroundDimPercent > 0) {
+                    const int a = qBound(0, AppSettings::backgroundDimPercent, 100) * 255 / 100;
+                    p.fillRect(composed.rect(), QColor(0, 0, 0, a));
+                }
+            }
+            QPalette pal = this->palette();
+            pal.setBrush(QPalette::Window, QBrush(composed));
+            this->setPalette(pal);
+            this->setAutoFillBackground(true);
         }
     } else {
-        // // Fallback: image embarquée par défaut (rotation -90°)
-        // QPixmap bundled("xxx");
-        // if (!bundled.isNull()) {
-        //     bgPixmap = bundled.transformed(QTransform().rotate(-90), Qt::SmoothTransformation);
-        // }
+        // No wallpaper
+        this->setAutoFillBackground(false);
+        this->setPalette(QPalette());
     }
 
-    if (bgPixmap.isNull()) {
-        // Aucun fond valide -> définir une couleur de base
-        QPalette pal = palette();
-        QColor discordBlack(30, 30, 30);
-        pal.setBrush(QPalette::Window, QBrush(discordBlack));
-        setAutoFillBackground(true);
-        setPalette(pal);
-        return;
+    // Central content transparency follows the setting
+    if (central) {
+        if (transparentControls) {
+            // All content transparent (inherit), wallpaper visible everywhere
+            central->setAutoFillBackground(false);
+            central->setPalette(QPalette());
+            central->setAttribute(Qt::WA_StyledBackground, true);
+            central->setStyleSheet("background: transparent;");
+        } else {
+            // Keep wallpaper visible in gaps (no fill), but let children paint opaque by removing inherited transparency
+            central->setAttribute(Qt::WA_StyledBackground, false);
+            central->setAutoFillBackground(false); // CHANGED: was true (hid the wallpaper)
+            central->setPalette(QPalette());
+            central->setStyleSheet("");            // remove transparent background inheritance
+        }
+        central->update();
     }
 
-    // Mise à l'échelle à la taille de la fenêtre
-    QPixmap scaled = bgPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-    // Appliquer le filtre sombre (0..100 -> alpha 0..255)
-    const int v = qBound(0, AppSettings::backgroundDimPercent, 100);
-    QPixmap composed(scaled.size());
-    composed.fill(Qt::transparent);
-    {
-        QPainter p(&composed);
-        p.drawPixmap(0, 0, scaled);
-        QColor mask(0, 0, 0, qRound(v * 2.55));
-        p.fillRect(composed.rect(), mask);
-    }
-
-    QPalette pal = palette();
-    pal.setBrush(QPalette::Window, QBrush(composed));
-    setAutoFillBackground(true);
-    setPalette(pal);
-}
-//         }
-//     }
-
-//     if (bgPixmap.isNull()) {
-//         // Pas d'image valide, retirer le fond
-//         QPalette pal = palette();
-//         pal.setBrush(QPalette::Window, Qt::NoBrush);
-//         setAutoFillBackground(false);
-//         setPalette(pal);
-//         return;
-//     }
-
-//     // Mise à l'échelle
-//     QPixmap scaled = bgPixmap.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-//     // Appliquer le filtre sombre (0..100 -> 0..255 alpha)
-//     int v = qBound(0, AppSettings::backgroundDimPercent, 100);
-//     QPixmap composed(scaled.size());
-//     composed.fill(Qt::transparent);
-//     {
-//         QPainter p(&composed);
-//         p.drawPixmap(0, 0, scaled);
-//         QColor mask(0, 0, 0, qRound(v * 2.55));
-//         p.fillRect(composed.rect(), mask);
-//     }
-
-//     QPalette pal = palette();
-//     pal.setBrush(QPalette::Window, QBrush(composed));
-//     setAutoFillBackground(true);
-//     setPalette(pal);
-// }
-
-// Rafraîchit l'affichage de l'identifiant avec ou sans censure
-void MainWindow::updateIdLabelDisplay()
-{
-    const QString id = AppSettings::savedIdentifier;
-    const QString shown = AppSettings::censorIdDisplay ? maskedIdentifier(id) : id;
-    if (ui && ui->label) {
-        ui->label->setText(tr("Identifiant actuel : ") + shown);
-    }
+    if (mb) mb->update();
+    if (statusBar()) statusBar()->update();
+    this->update();
 }
 
+// NEW: mask helper for ID display
 QString MainWindow::maskedIdentifier(const QString& id) const
 {
-    if (id.isEmpty()) return id;
-    // Masque complet en conservant la longueur
-    return QString(id.size(), QChar(0x2022)); // •
+    if (id.isEmpty()) return QString();
+    // Full password-like masking with bullet characters
+    return QString(id.size(), QChar(0x2022)); // •••••
+}
+
+// NEW: refresh the "Identifiant actuel" label
+void MainWindow::updateIdLabelDisplay()
+{
+    if (!ui || !ui->label) return;
+    const QString prefix = tr("Identifiant actuel : ");
+    const QString realId = QString::fromStdString(functb::identifier).trimmed();
+    const QString shown = AppSettings::censorIdDisplay ? maskedIdentifier(realId) : realId;
+    ui->label->setText(prefix + shown);
+}
+
+// NEW: schedule next trigger at next quarter + offset (in minutes)
+void MainWindow::scheduleNextAutoRefresh()
+{
+    if (!autoRefreshTimer) return;
+    const QDateTime now = QDateTime::currentDateTime();
+    const QTime t = now.time();
+    const int totalMin = t.hour() * 60 + t.minute();
+    const int sec = t.second();
+    const int msec = t.msec();
+
+    const int d = (AppSettings::autoRefreshExtraDelayMinutes % 15 + 15) % 15;
+    int rem = ((d - (totalMin % 15)) + 15) % 15;
+    if (rem == 0 && (sec > 0 || msec > 0)) rem = 15;
+
+    const qint64 toNextMinute = (60 - sec) * 1000 - msec;
+    qint64 msToNext = (rem == 0) ? toNextMinute : (toNextMinute + (rem - 1) * 60 * 1000);
+    if (msToNext < 250) msToNext = 250;
+
+    // NEW: log scheduling info
+    std::cout << "[AutoRefresh] offset=" << d
+              << "min, next in " << (msToNext / 1000) << "s (rem=" << rem << "min)"
+              << std::endl;
+
+    autoRefreshTimer->start(msToNext);
+}
+
+// NEW: perform refresh if Classement page is selected; always reschedule
+void MainWindow::doAutoRefreshIfClassement()
+{
+    std::cout << "[AutoRefresh] Timer fired" << std::endl;
+    if (stackedWidget && stackedWidget->currentIndex() == 1) {
+        Leaderboard::autoRefresh(this);
+    }
+    scheduleNextAutoRefresh();
 }

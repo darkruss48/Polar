@@ -17,8 +17,12 @@ class Leaderboard : public QWidget
     Q_OBJECT
 public:
     static void onRefreshClicked(MainWindow * this_, QListWidget *playerList);
-    static void affichergraphiqueettexte(MainWindow * this_, QJsonObject user);
+    static void affichergraphiqueettexte(MainWindow * this_, QJsonObject user, bool preserveOverlays = false);
+    static void autoRefresh(MainWindow* this_); // NEW
     static QGraphicsView *graphPlaceholder;
+
+    // NEW: keep access to the list widget
+    static QListWidget* playerListPtr; // NEW
 
     // Old single-column placeholders (kept for safety)
     static QLabel *dataPlaceholder;
@@ -36,6 +40,7 @@ public:
     // NEW: overlay state
     static QString baseSeriesName;
     static QSet<QString> overlayNames;
+    static QString currentSelectedName; // NEW
 
     // NEW: snapshot rows
     struct SimpleRow {

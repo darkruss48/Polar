@@ -230,8 +230,8 @@
     <widget class="QLabel" name="label_4">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>160</y>
+       <x>40</x>
+       <y>170</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -275,8 +275,8 @@
     <widget class="QLineEdit" name="lineEdit_afk">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>190</y>
+       <x>20</x>
+       <y>200</y>
        <width>113</width>
        <height>24</height>
       </rect>
@@ -285,13 +285,59 @@
       <string notr="true">0</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_afk_minutes">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>170</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Minutes AFK</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="combo_afk_minutes">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>200</y>
+       <width>81</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>15</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>30</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>45</string>
+      </property>
+     </item>
+    </widget>
     <widget class="QCheckBox" name="checkBox">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
-       <x>210</x>
+       <x>250</x>
        <y>200</y>
        <width>191</width>
        <height>22</height>
@@ -334,7 +380,7 @@
      <property name="geometry">
       <rect>
        <x>220</x>
-       <y>130</y>
+       <y>120</y>
        <width>171</width>
        <height>61</height>
       </rect>
