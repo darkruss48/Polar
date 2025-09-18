@@ -13,8 +13,10 @@ A simple, powerful WT Performance Analyser for Dragon Ball Z : Dokkan Battle.
 **_- :arrows_counterclockwise: Auto-refresh with extra insights for the top leaderboard_**
 
 ## Gallery
-![](https://cdn.discordapp.com/attachments/1275138121566126326/1415707233660047483/image.png?ex=68c42f9b&is=68c2de1b&hm=a6b99c568740bb0dc5f1e650647bb6f16817614977ec8313028c129977fa6ad3&)
-![](https://cdn.discordapp.com/attachments/1275138121566126326/1415702133109559296/image.png?ex=68c42adb&is=68c2d95b&hm=d8433aa02a0ed89ce6ee5a256c76d0499749a8f55100bdd3af8d2aa50388f3c9&)
+
+<img width="1256" height="732" alt="image" src="https://github.com/user-attachments/assets/c9803824-1125-42d7-a333-c6337add7cec" />
+<img width="1251" height="744" alt="image" src="https://github.com/user-attachments/assets/6c12aae4-c82a-4025-acb5-45535609f60a" />
+
 
 
 ## Installation
