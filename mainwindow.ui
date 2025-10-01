@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1260</width>
-    <height>717</height>
+    <height>736</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>400</y>
+      <y>650</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -66,154 +66,30 @@
    <widget class="QGraphicsView" name="graphiqueTest">
     <property name="geometry">
      <rect>
-      <x>520</x>
-      <y>140</y>
+      <x>510</x>
+      <y>200</y>
       <width>721</width>
-      <height>521</height>
+      <height>471</height>
      </rect>
     </property>
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::NoFrame</enum>
-    </property>
     <property name="styleSheet">
      <string notr="true">border: 0;</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::NoFrame</enum>
     </property>
     <property name="cacheMode">
      <set>QGraphicsView::CacheModeFlag::CacheNone</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="bouton_graphique">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>400</y>
-      <width>131</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Générer graphique</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="idButton">
-    <property name="geometry">
-     <rect>
-      <x>270</x>
-      <y>10</y>
-      <width>171</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Changer l'identifiant</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
+   <widget class="QGroupBox" name="goal">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>20</y>
-      <width>211</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="text">
-     <string>Identifiant actuel : </string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="ydataBox">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>400</y>
-      <width>131</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>wins_pace</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>max_points</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>max_wins</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>points</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>points_pace</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>points_wins</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>ranks</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>wins</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>220</x>
-      <y>370</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Donnée en ordonnée</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="boitetext">
-    <property name="geometry">
-     <rect>
-      <x>23</x>
-      <y>450</y>
-      <width>481</width>
-      <height>211</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QFrame" name="goal">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>80</y>
+      <y>110</y>
       <width>441</width>
       <height>261</height>
      </rect>
@@ -221,17 +97,8 @@
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::Shape::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Shadow::Raised</enum>
-    </property>
-    <property name="lineWidth">
-     <number>2</number>
-    </property>
-    <property name="midLineWidth">
-     <number>0</number>
+    <property name="title">
+     <string>Objectif</string>
     </property>
     <widget class="QLabel" name="label_4">
      <property name="geometry">
@@ -399,24 +266,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>60</y>
-      <width>49</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Objectif</string>
-    </property>
-   </widget>
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
       <x>520</x>
-      <y>20</y>
+      <y>10</y>
       <width>551</width>
       <height>16</height>
      </rect>
@@ -429,7 +283,7 @@
     <property name="geometry">
      <rect>
       <x>1090</x>
-      <y>20</y>
+      <y>10</y>
       <width>151</width>
       <height>16</height>
      </rect>
@@ -442,7 +296,7 @@
     <property name="geometry">
      <rect>
       <x>540</x>
-      <y>50</y>
+      <y>40</y>
       <width>141</width>
       <height>16</height>
      </rect>
@@ -455,7 +309,7 @@
     <property name="geometry">
      <rect>
       <x>860</x>
-      <y>60</y>
+      <y>40</y>
       <width>321</width>
       <height>61</height>
      </rect>
@@ -466,6 +320,169 @@
     <property name="alignment">
      <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>100</y>
+      <width>701</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Graphique</string>
+    </property>
+    <widget class="QComboBox" name="ydataBox">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>20</y>
+       <width>191</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>wins_pace</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>max_points</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>max_wins</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>points</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>points_pace</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>points_wins</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>ranks</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>wins</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QPushButton" name="bouton_graphique">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>20</y>
+       <width>231</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Générer graphique</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>40</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Donnée en ordonnée</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>0</y>
+      <width>441</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Identification</string>
+    </property>
+    <widget class="QPushButton" name="idButton">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>20</y>
+       <width>171</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Changer l'identifiant</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>40</y>
+       <width>211</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Identifiant actuel : </string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>390</y>
+      <width>441</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Sortie d'application</string>
+    </property>
+    <widget class="QTextEdit" name="boitetext">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>421</width>
+       <height>211</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
