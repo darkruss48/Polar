@@ -24,7 +24,8 @@
 #include <QStringList>
 #include <QRandomGenerator>
 #include <QEvent>
-#include <QTimer> // NEW
+#include <QTimer>
+#include <QtCharts/QChart>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -74,6 +75,17 @@ private slots:
     void showOptionsDialog(); // +
 
     void resizeEvent(QResizeEvent *event) override;
+
+    // NEW: copy current Classement chart to clipboard
+    void copyClassementGraphToClipboard(); // NEW
+    // NEW: copy current page graph (Graphs or Classement)
+    void copyAnyGraphToClipboard(); // NEW
+    // NEW: checkbox toggled
+    void onGoalOverlayToggled(bool checked); // NEW
+
+    void on_checkBox_clicked();
+
+    void on_checkBox_clicked(bool checked);
 
 private:
     // loads a language by the given language shortcur (e.g. de, en)
@@ -126,5 +138,19 @@ private:
     QTimer* autoRefreshTimer = nullptr;     // NEW
     void scheduleNextAutoRefresh();         // NEW
     void doAutoRefreshIfClassement();       // NEW
+
+    // NEW: copy-confirm UI
+    QLabel* confirmCopyLabel = nullptr;               // NEW
+    QGraphicsOpacityEffect* confirmCopyEffect = nullptr; // NEW
+    QPropertyAnimation* confirmCopyFade = nullptr;    // NEW
+    QTimer* confirmCopyHoldTimer = nullptr;           // NEW
+
+    // NEW: goal overlay state for Graphs page
+    double lastWinPace = std::numeric_limits<double>::quiet_NaN(); // NEW
+    bool   hasWinPace = false;                                      // NEW
+
+    // NEW: helpers for Graphs page overlay
+    void updateGoalOverlayOnGraphs(bool allowAxisAdjust); // NEW
+    static QColor goalLineColorForTheme(QChart::ChartTheme t); // NEW
 };
 #endif // MAINWINDOW_H

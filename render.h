@@ -26,6 +26,9 @@ public:
     static void clearAllOverlaySeries(QGraphicsView *view, const QString &baseSeriesName);
     // NEW: query current chart
     static QChart* chartFromView(QGraphicsView* view);
+    // NEW: snapshot helpers
+    static QImage grabChartImage(QGraphicsView* view);
+    static QImage grabChartOnly(QGraphicsView* view); // NEW: crop to chart area with rounded corners
 };
 
 #endif // RENDER_H

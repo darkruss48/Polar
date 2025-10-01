@@ -20,7 +20,7 @@
 
 #include <QActionGroup>
 
-#include <sstream>  // Nécessaire pour std::ostringstream
+#include <sstream>
 #include <iostream>
 #include <fstream>
 
@@ -38,23 +38,25 @@
 #include <QLabel>
 #include <QtUiTools/QUiLoader>
 #include <QFile>
-#include <QDialog>             // +
-#include <QDialogButtonBox>    // +
-#include <QRadioButton>        // +
-#include <QComboBox>           // +
-#include "appsettings.h"       // +
-#include <QMenu>               // +
-#include <QPixmap>           // NEW
-#include <QTransform>        // NEW
-#include <QPalette>          // NEW
-#include <QBrush>            // NEW
-#include <QPainter>          // NEW
-#include <QSlider>           // NEW
-#include <QCheckBox>         // NEW
-#include <QLineEdit>         // NEW
-#include <QTimer>       // NEW
-#include <QDateTime>    // NEW
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QRadioButton>
+#include <QComboBox>
+#include "appsettings.h"
+#include <QMenu>
+#include <QPixmap>
+#include <QTransform>
+#include <QPalette>
+#include <QBrush>
+#include <QPainter>
+#include <QSlider>
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QTimer>
+#include <QDateTime>
 #include <QSpinBox>
+#include <QClipboard>
+#include <QPen> // NEW
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -277,6 +279,41 @@ MainWindow::MainWindow(QWidget *parent)
         connect(refreshButton, &QPushButton::clicked, this, [this, playerList_]() {
             Leaderboard::onRefreshClicked(this, playerList_);
         });
+    }
+
+    // NEW: wire copy button + confirm label + Ctrl+C shortcut
+    if (pageClassement) {
+        if (auto btnCopy = pageClassement->findChild<QPushButton*>("copy_graph")) {
+            connect(btnCopy, &QPushButton::clicked, this, &MainWindow::copyClassementGraphToClipboard);
+        }
+        confirmCopyLabel = pageClassement->findChild<QLabel*>("confirm_copy");
+        if (confirmCopyLabel) {
+            confirmCopyLabel->clear();
+            confirmCopyLabel->setVisible(false);
+            confirmCopyEffect = new QGraphicsOpacityEffect(confirmCopyLabel);
+            confirmCopyEffect->setOpacity(0.0);
+            confirmCopyLabel->setGraphicsEffect(confirmCopyEffect);
+            confirmCopyFade = new QPropertyAnimation(confirmCopyEffect, "opacity", this);
+            confirmCopyFade->setDuration(1200);
+            confirmCopyHoldTimer = new QTimer(this);
+            confirmCopyHoldTimer->setSingleShot(true);
+            connect(confirmCopyHoldTimer, &QTimer::timeout, this, [this]() {
+                if (confirmCopyFade && confirmCopyEffect) {
+                    confirmCopyFade->stop();
+                    confirmCopyFade->setStartValue(1.0);
+                    confirmCopyFade->setEndValue(0.0);
+                    connect(confirmCopyFade, &QPropertyAnimation::finished, this, [this]() {
+                        if (confirmCopyLabel) confirmCopyLabel->setVisible(false);
+                    }, Qt::SingleShotConnection);
+                    confirmCopyFade->start();
+                }
+            });
+        }
+        // Ctrl+C shortcut (only acts on Classement page)
+        auto actCopy = new QAction(this);
+        actCopy->setShortcut(QKeySequence::Copy);
+        addAction(actCopy);
+        connect(actCopy, &QAction::triggered, this, &MainWindow::copyAnyGraphToClipboard); // CHANGED
     }
 
     // this->resize(1260, 717);
@@ -578,6 +615,9 @@ void MainWindow::on_bouton_graphique_clicked()
 
     // on reset le "goal"
     MainWindow::on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+
+    // NEW: (re)apply goal overlay if needed on newly created chart
+    updateGoalOverlayOnGraphs(true); // NEW
 }
 
 
@@ -948,6 +988,8 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             QString style = QString("color: %1; font-size: 14px;").arg(color);
             labeltext->setStyleSheet(style);
             labeltext->setText(comment);
+            hasWinPace = false; // NEW: invalidate
+            updateGoalOverlayOnGraphs(true); // NEW: remove if showing
             return;
         }
 
@@ -992,6 +1034,8 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             QString style = QString("color: %1; font-size: 14px;").arg(color);
             labeltext->setStyleSheet(style);
             labeltext->setText(comment);
+            hasWinPace = false; // NEW
+            updateGoalOverlayOnGraphs(true); // NEW
             return;
         }
 
@@ -1004,6 +1048,8 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             QString style = QString("color: %1; font-size: 14px;").arg(color);
             labeltext->setStyleSheet(style);
             labeltext->setText(comment);
+            hasWinPace = false; // NEW
+            updateGoalOverlayOnGraphs(true); // NEW
             return;
         }
 
@@ -1044,6 +1090,11 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         QString style_ = QString("color: %1; font-size: 14px;").arg(color);
         labeltext->setStyleSheet(style_);
         labeltext->setText(comment);
+
+        // NEW: store last computed win pace and update overlay if asked
+        lastWinPace = static_cast<double>(winsPerHour);
+        hasWinPace = std::isfinite(lastWinPace) && lastWinPace > 0.0;
+        updateGoalOverlayOnGraphs(false);
     }
 }
 
@@ -1294,3 +1345,245 @@ void MainWindow::doAutoRefreshIfClassement()
     }
     scheduleNextAutoRefresh();
 }
+
+// NEW: copy graph and show confirmation
+void MainWindow::copyClassementGraphToClipboard()
+{
+    // Only when Classement page is active
+    if (!stackedWidget || stackedWidget->currentIndex() != 1) return;
+    if (!Leaderboard::graphPlaceholder) {
+        // Other error
+        if (confirmCopyLabel && confirmCopyEffect && confirmCopyHoldTimer) {
+            confirmCopyLabel->setStyleSheet("color: red;");
+            confirmCopyLabel->setText(tr("Une erreur est survenue lors de la copie du graphique."));
+            confirmCopyLabel->setVisible(true);
+            confirmCopyHoldTimer->stop();
+            if (confirmCopyFade) confirmCopyFade->stop();
+            confirmCopyEffect->setOpacity(1.0);
+            confirmCopyHoldTimer->start(3000);
+        }
+        return;
+    }
+
+    QGraphicsView* view = Leaderboard::graphPlaceholder;
+
+    // If no chart currently displayed
+    if (!view->scene() || view->scene()->items().isEmpty()) {
+        if (confirmCopyLabel && confirmCopyEffect && confirmCopyHoldTimer) {
+            confirmCopyLabel->setStyleSheet("color: red;");
+            confirmCopyLabel->setText(tr("Aucun graphique n'a\nété affiché !"));
+            confirmCopyLabel->setVisible(true);
+            confirmCopyHoldTimer->stop();
+            if (confirmCopyFade) confirmCopyFade->stop();
+            confirmCopyEffect->setOpacity(1.0);
+            confirmCopyHoldTimer->start(3000);
+        }
+        return;
+    }
+
+    // Grab image of current chart (base + overlays) - CHANGED: only the chart, not the whole view
+    QImage img = Render::grabChartOnly(view);
+    if (img.isNull()) {
+        img = Render::grabChartImage(view); // fallback
+    }
+    if (img.isNull()) {
+        // Other error
+        if (confirmCopyLabel && confirmCopyEffect && confirmCopyHoldTimer) {
+            confirmCopyLabel->setStyleSheet("color: red;");
+            confirmCopyLabel->setText(tr("Erreur lors de la copie."));
+            confirmCopyLabel->setVisible(true);
+            confirmCopyHoldTimer->stop();
+            if (confirmCopyFade) confirmCopyFade->stop();
+            confirmCopyEffect->setOpacity(1.0);
+            confirmCopyHoldTimer->start(3000);
+        }
+        return;
+    }
+
+    // Copy to clipboard
+    QClipboard* cb = QApplication::clipboard();
+    cb->setImage(img);
+
+    // Show confirmation text: "Graphique copié !" (reset any error style)
+    if (confirmCopyLabel && confirmCopyEffect && confirmCopyHoldTimer) {
+        confirmCopyLabel->setStyleSheet(""); // reset style (no red on success)
+        confirmCopyLabel->setText(tr("Graphique copié !"));
+        confirmCopyLabel->setVisible(true);
+        confirmCopyHoldTimer->stop();
+        if (confirmCopyFade) confirmCopyFade->stop();
+        confirmCopyEffect->setOpacity(1.0);
+        // Hold 3 seconds then fade 1.2s (wired in constructor)
+        confirmCopyHoldTimer->start(3000);
+    }
+}
+
+// NEW: copy context-aware (Graphs or Classement)
+void MainWindow::copyAnyGraphToClipboard()
+{
+    if (!stackedWidget) return;
+    const int idx = stackedWidget->currentIndex();
+    if (idx == 1) {
+        // Classement page
+        copyClassementGraphToClipboard();
+        return;
+    }
+    if (!ui || !ui->graphiqueTest) return;
+    QGraphicsView* view = ui->graphiqueTest;
+    if (!view->scene() || view->scene()->items().isEmpty()) {
+        if (ui->boitetext) {
+            auto prev = ui->boitetext->textColor();
+            ui->boitetext->setTextColor(Qt::red);
+            ui->boitetext->append(tr("Erreur : aucun graphique affiché."));
+            ui->boitetext->setTextColor(prev);
+        }
+        return;
+    }
+
+    // CHANGED: only the chart, not the entire viewport
+    QImage img = Render::grabChartOnly(view);
+    if (img.isNull()) {
+        img = Render::grabChartImage(view); // fallback
+    }
+    if (img.isNull()) {
+        if (ui->boitetext) {
+            auto prev = ui->boitetext->textColor();
+            ui->boitetext->setTextColor(Qt::red);
+            ui->boitetext->append(tr("Erreur : une erreur s'est produite lors de la copie du graphique"));
+            ui->boitetext->setTextColor(prev);
+        }
+        return;
+    }
+    QClipboard* cb = QApplication::clipboard();
+    cb->setImage(img);
+}
+
+// NEW: checkbox toggled -> compute pace if needed, then update overlay
+void MainWindow::onGoalOverlayToggled(bool checked)
+{
+    // If user enables the overlay but we don't have a computed pace yet, compute it now
+    if (checked && !hasWinPace) {
+        if (ui && ui->lineEdit_afk) {
+            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+        }
+    }
+    updateGoalOverlayOnGraphs(true);
+}
+
+// NEW: theme-based color for the goal line
+QColor MainWindow::goalLineColorForTheme(QChart::ChartTheme t)
+{
+    switch (t) {
+    case QChart::ChartThemeDark:         return QColor("#FFD700"); // gold
+    case QChart::ChartThemeBlueCerulean: return QColor("#DC143C"); // crimson
+    case QChart::ChartThemeBlueNcs:      return QColor("#FF8C00"); // dark orange
+    case QChart::ChartThemeBlueIcy:      return QColor("#8B0000"); // dark red
+    case QChart::ChartThemeHighContrast: return QColor("#00FFFF"); // cyan
+    case QChart::ChartThemeQt:           return QColor("#8A2BE2"); // blue violet
+    case QChart::ChartThemeBrownSand:    return QColor("#00BFFF"); // deep sky blue
+    case QChart::ChartThemeLight:
+    default:                             return QColor("#FF0000"); // red
+    }
+}
+
+// NEW: add/remove/update goal overlay on main Graphs chart
+void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
+{
+    // Tout compte fait, on ne fera PAS de resize des abscisses
+    allowAxisAdjust = false;
+    if (!ui || !ui->graphiqueTest) return;
+    QGraphicsView* view = ui->graphiqueTest;
+    QChart* chart = Render::chartFromView(view);
+    if (!chart) return;
+
+    // Remove existing goal line if any
+    const QString kGoalName = tr("Objectif");
+    QAbstractSeries* goalSeries = nullptr;
+    for (auto s : chart->series()) {
+        if (s->name() == kGoalName) { goalSeries = s; break; }
+    }
+    if (goalSeries) {
+        chart->removeSeries(goalSeries);
+        delete goalSeries;
+        goalSeries = nullptr;
+    }
+
+    // When unchecked: optionally restore X axis to data range
+    const bool wantOverlay = (ui->checkBox && ui->checkBox->isChecked());
+    if (!wantOverlay) {
+        if (allowAxisAdjust) {
+            // Restore X range from first series data if available
+            if (!chart->series().isEmpty()) {
+                if (auto ls = qobject_cast<QLineSeries*>(chart->series().first())) {
+                    const auto pts = ls->pointsVector();
+                    if (!pts.isEmpty()) {
+                        double minX = pts.first().x();
+                        double maxX = pts.last().x();
+                        for (const auto& p : pts) { minX = std::min(minX, p.x()); maxX = std::max(maxX, p.x()); }
+                        const auto hAxes = chart->axes(Qt::Horizontal);
+                        if (!hAxes.isEmpty()) {
+                            hAxes.first()->setRange(minX, maxX);
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    // Need overlay: require valid pace and ydata == wins_pace
+    const bool yIsWinsPace = (ui->ydataBox && ui->ydataBox->currentText() == QStringLiteral("wins_pace"));
+    if (!hasWinPace || !yIsWinsPace) {
+        // Clamp X anyway if requested and checkbox is checked
+        if (allowAxisAdjust) {
+            const double minX = 0.0;
+            const double maxX = 71.75;
+            const auto hAxes = chart->axes(Qt::Horizontal);
+            if (!hAxes.isEmpty()) hAxes.first()->setRange(minX, maxX);
+        }
+        return;
+    }
+
+    // Clamp X to [0; 71.75]
+    const double minX = 0.0;
+    const double maxX = 71.75;
+    if (allowAxisAdjust) {
+        const auto hAxes = chart->axes(Qt::Horizontal);
+        if (!hAxes.isEmpty()) hAxes.first()->setRange(minX, maxX);
+    }
+
+    // Add horizontal line at y = lastWinPace
+    auto line = new QLineSeries();
+    line->setName(kGoalName);
+    line->append(minX, lastWinPace);
+    line->append(maxX, lastWinPace);
+
+    QPen pen(goalLineColorForTheme(chart->theme()));
+    pen.setWidth(2);
+    pen.setStyle(Qt::DashLine);
+    line->setPen(pen);
+
+    chart->addSeries(line);
+    // Attach to current axes
+    if (!chart->axes(Qt::Horizontal).isEmpty())
+        line->attachAxis(chart->axes(Qt::Horizontal).first());
+    if (!chart->axes(Qt::Vertical).isEmpty())
+        line->attachAxis(chart->axes(Qt::Vertical).first());
+}
+
+void MainWindow::on_checkBox_clicked()
+{
+
+}
+
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    // If user enables the overlay but we don't have a computed pace yet, compute it now
+    if (checked && !hasWinPace) {
+        if (ui && ui->lineEdit_afk) {
+            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+        }
+    }
+    updateGoalOverlayOnGraphs(true);
+}
+

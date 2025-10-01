@@ -27,6 +27,38 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsTextItem>
 #include <algorithm> // NEW: for sort/min/max/clamp
+#include <QApplication>       // NEW
+#include <QScreen>            // NEW
+#include <QWindow>            // FIX: Include QWindow for completeness
+#include <QFrame>             // NEW: for setFrameShape(NoFrame)
+
+// NEW: helper to keep the chart proxy filling the view on resize
+class ViewResizeFilter : public QObject {
+public:
+    ViewResizeFilter(QGraphicsView* v, QGraphicsProxyWidget* p)
+        : QObject(v), view(v), proxy(p) {
+        if (view->viewport()) view->viewport()->installEventFilter(this);
+        view->installEventFilter(this);
+        updateNow();
+    }
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        if (!view || !proxy) return QObject::eventFilter(obj, ev);
+        if ((obj == view || obj == view->viewport()) && ev->type() == QEvent::Resize) {
+            updateNow();
+        }
+        return QObject::eventFilter(obj, ev);
+    }
+    void updateNow() {
+        if (!view || !proxy) return;
+        const QRectF vpRect(0, 0, view->viewport()->width(), view->viewport()->height());
+        if (view->scene()) view->scene()->setSceneRect(vpRect);
+        proxy->setPos(0, 0);
+        proxy->setGeometry(vpRect);
+    }
+private:
+    QGraphicsView* view = nullptr;
+    QGraphicsProxyWidget* proxy = nullptr;
+};
 
 // Helper: get the QChart currently shown in a QGraphicsView's scene
 static QChart* chartFromGraphicsView(QGraphicsView* view) {
@@ -304,42 +336,24 @@ QList<double> parseJsonArray(const QString &jsonString) {
 void adjustChartAxes(QChart *chart, const QList<double> &points) {
     if (points.isEmpty()) return;
 
-    // Trouver les valeurs minimales et maximales des données
     double minY = *std::min_element(points.begin(), points.end());
     double maxY = *std::max_element(points.begin(), points.end());
-
-    if (minY < 0) {
-        minY = 0;
-    }
-
-    double margin = (maxY - minY) * 0.1; // 10% de marge
+    if (minY < 0) minY = 0;
+    double margin = (maxY - minY) * 0.06; // 6% margin (slightly lower)
+    if (margin <= 0) margin = 1.0;
     maxY += margin;
 
-    QCategoryAxis *axisY = new QCategoryAxis();
+    // Replace vertical axis with a numeric axis for perfect alignment
+    auto axisY = new QValueAxis();
     axisY->setRange(minY, maxY);
-    axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue); // NEW: labels sur les traits
+    axisY->setTickCount(7);
+    axisY->setLabelFormat("%.0f");
 
-    int tickCount = 7;
-    double interval = (maxY - minY) / tickCount;
-    for (int i = 0; i <= tickCount; ++i) {
-        double value = minY + i * interval;
-        QString label;
-        if (value >= 1000000) {
-            label = QString::number(value / 1000000.0, 'f', 1) + " M";
-        } else if (value >= 1000) {
-            label = QString::number(value / 1000.0, 'f', 1) + " k";
-        } else {
-            label = QString::number(value, 'f', 0);
-        }
-        axisY->append(label, value);
-    }
-
-    // supprimer l'axe Y de base
-    chart->removeAxis(chart->axes(Qt::Vertical).first());
-
-    // mettre l'axe Y personnalisé
+    // Remove old vertical axis and attach new one
+    const auto vAxes = chart->axes(Qt::Vertical);
+    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
     chart->addAxis(axisY, Qt::AlignLeft);
-    chart->series().first()->attachAxis(axisY);
+    if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
 
 void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
@@ -348,7 +362,7 @@ void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
     // Plage Y: commence à 0, ajoute une marge haute
     double minY = 0.0;
     double maxY = *std::max_element(points.begin(), points.end());
-    double margin = (maxY - minY) * 0.1;
+    double margin = (maxY - minY) * 0.06; // 6% margin (slightly lower)
     maxY += margin;
 
     // Axe Y en catégories, labels posés sur les traits
@@ -399,12 +413,11 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
 
-    // Appliquer le thème depuis les paramètres (index interne stable)
+    // Appliquer le thème
     chart->setTheme(AppSettings::chartThemeEnum());
-
-    // NEW: marges légères pour éviter le chevauchement des labels
     chart->setMargins(QMargins(12, 8, 8, 14));
-    chart->setBackgroundRoundness(0);
+    // NEW: keep theme background and rounded corners, but remove the border pen (black contour)
+    chart->setBackgroundPen(Qt::NoPen);
 
     // Ajuster l’axe Y
     adjustChartAxes(chart, points);
@@ -440,25 +453,45 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
         view->setScene(new QGraphicsScene(view));
     }
     QGraphicsScene* scene = view->scene();
-    scene->clear(); // NEW: remove previous chart widgets
+    scene->clear();
+    // NEW: transparent scene to avoid dark halo around rounded corners
+    scene->setBackgroundBrush(Qt::NoBrush);
 
-    // NEW: make scene exactly the viewport size and disable scrollbars
+    // Disable scrollbars and borders
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    view->setFrameShape(QFrame::NoFrame);
+    view->setBackgroundBrush(Qt::NoBrush);
+    view->setStyleSheet("border: 0;");
+    // NEW: make the viewport transparent
+    if (view->viewport()) {
+        view->viewport()->setAutoFillBackground(false);
+        view->viewport()->setStyleSheet("background: transparent;");
+    }
+
     QRectF vpRect(0, 0, view->viewport()->width(), view->viewport()->height());
     scene->setSceneRect(vpRect);
 
-    // Create the chartview widget with no frame and no margins
     auto chartView = new QChartView(chart);
     chartView->setFrameShape(QFrame::NoFrame);
     chartView->setLineWidth(0);
     chartView->setContentsMargins(0, 0, 0, 0);
     chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setStyleSheet("border: 0;");
+    // NEW: ensure chart view is transparent outside the chart rounded corners
+    chartView->setAutoFillBackground(false);
+    chartView->setBackgroundBrush(Qt::NoBrush);
+    chartView->setAttribute(Qt::WA_TranslucentBackground);
+    if (chartView->viewport()) {
+        chartView->viewport()->setAutoFillBackground(false);
+        chartView->viewport()->setAttribute(Qt::WA_TranslucentBackground);
+    }
 
-    // Add to scene and fill all space
     QGraphicsProxyWidget *proxy = scene->addWidget(chartView);
     proxy->setPos(0, 0);
-    proxy->setGeometry(vpRect); // NEW: fill exactly the viewport
+    proxy->setGeometry(vpRect);
+    new ViewResizeFilter(view, proxy);
 
     view->setRenderHint(QPainter::Antialiasing);
     view->show();
@@ -494,17 +527,15 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->axes(Qt::Horizontal).first()->setTitleText(QObject::tr("Heures"));
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->legend()->setVisible(false); // NEW: show legend only when overlays are added
-    // NEW: style de légende (s'applique quand visible)
+    chart->legend()->setVisible(false);
     chart->legend()->setBackgroundVisible(false);
     chart->legend()->setAlignment(Qt::AlignBottom);
     chart->legend()->setMarkerShape(QLegend::MarkerShapeFromSeries);
 
-    // Appliquer le thème depuis les paramètres (index interne stable)
     chart->setTheme(AppSettings::chartThemeEnum());
-
-    // Laisse un peu d'espace pour les labels des axes (évite l'effet "sous les traits")
-    chart->setMargins(QMargins(12, 8, 8, 14)); // NEW: marges légères
+    chart->setMargins(QMargins(12, 8, 8, 14));
+    // NEW: remove chart border pen (prevents black outline) while keeping themed background
+    chart->setBackgroundPen(Qt::NoPen);
 
     // Ajuster l'axe Y
     adjustChartAxes_leaderboard(chart, points);
@@ -550,8 +581,21 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     }
     QGraphicsScene *scene = graphPlaceholder->scene();
     scene->clear();
+    // NEW: transparent scene
+    scene->setBackgroundBrush(Qt::NoBrush);
+
     graphPlaceholder->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     graphPlaceholder->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    graphPlaceholder->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    graphPlaceholder->setFrameShape(QFrame::NoFrame);
+    graphPlaceholder->setBackgroundBrush(Qt::NoBrush);
+    graphPlaceholder->setStyleSheet("border: 0;");
+    // NEW: transparent viewport
+    if (graphPlaceholder->viewport()) {
+        graphPlaceholder->viewport()->setAutoFillBackground(false);
+        graphPlaceholder->viewport()->setStyleSheet("background: transparent;");
+    }
+
     QRectF vpRect(0, 0, graphPlaceholder->viewport()->width(), graphPlaceholder->viewport()->height());
     scene->setSceneRect(vpRect);
 
@@ -560,12 +604,22 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chartView->setLineWidth(0);
     chartView->setContentsMargins(0, 0, 0, 0);
     chartView->setRenderHint(QPainter::Antialiasing);
-    chartView->setMouseTracking(true); // keep
-    if (chartView->viewport()) chartView->viewport()->setMouseTracking(true); // NEW
+    chartView->setMouseTracking(true);
+    if (chartView->viewport()) chartView->viewport()->setMouseTracking(true);
+    chartView->setStyleSheet("border: 0;");
+    // NEW: transparent outside rounded corners
+    chartView->setAutoFillBackground(false);
+    chartView->setBackgroundBrush(Qt::NoBrush);
+    chartView->setAttribute(Qt::WA_TranslucentBackground);
+    if (chartView->viewport()) {
+        chartView->viewport()->setAutoFillBackground(false);
+        chartView->viewport()->setAttribute(Qt::WA_TranslucentBackground);
+    }
 
     QGraphicsProxyWidget *proxy = scene->addWidget(chartView);
     proxy->setPos(0, 0);
     proxy->setGeometry(vpRect);
+    new ViewResizeFilter(graphPlaceholder, proxy);
 
     // Activate selection handler (install on viewport)
     if (!chartView->property("selectionHandler").toBool()) {
@@ -575,6 +629,81 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
 
     graphPlaceholder->setRenderHint(QPainter::Antialiasing);
     graphPlaceholder->show();
+}
+
+// NEW: snapshot helper
+QImage Render::grabChartImage(QGraphicsView* view)
+{
+    if (!view) return QImage();
+    // Ensure something is displayed
+    if (!view->scene() || view->scene()->items().isEmpty()) return QImage();
+
+    const QSize vpSize = view->viewport()->size();
+    if (vpSize.isEmpty()) return QImage();
+
+    qreal dpr = 1.0;
+    if (view->windowHandle() && view->windowHandle()->screen())
+        dpr = view->windowHandle()->screen()->devicePixelRatio();
+
+    QImage img(vpSize * dpr, QImage::Format_ARGB32_Premultiplied);
+    img.setDevicePixelRatio(dpr);
+    img.fill(Qt::transparent);
+
+    QPainter p(&img);
+    view->render(&p); // renders the viewport (chart + overlays)
+    p.end();
+    return img;
+}
+
+// NEW: crop render to chart area and composite on opaque background to avoid borders
+QImage Render::grabChartOnly(QGraphicsView* view)
+{
+    if (!view || !view->scene()) return QImage();
+
+    // Locate the embedded QChartView and its QChart
+    QChartView* chartView = nullptr;
+    QChart* chart = nullptr;
+    for (QGraphicsItem* gi : view->scene()->items()) {
+        if (auto proxy = dynamic_cast<QGraphicsProxyWidget*>(gi)) {
+            if (auto cv = qobject_cast<QChartView*>(proxy->widget())) {
+                chartView = cv;
+                chart = cv->chart();
+                break;
+            }
+        }
+    }
+    if (!chartView || !chart) return QImage();
+
+    // Exact chart rect inside the QChartView
+    const QRectF chartRectF = chart->geometry();
+    const QRect chartRect = chartRectF.toRect();
+    if (chartRect.isEmpty()) return QImage();
+
+    // Target DPR
+    qreal dpr = 1.0;
+    if (view->windowHandle() && view->windowHandle()->screen())
+        dpr = view->windowHandle()->screen()->devicePixelRatio();
+
+    // Prepare an opaque image filled with the chart background color (no transparent corners)
+    QColor bg = chart->backgroundBrush().color();
+    if (!bg.isValid()) bg = chartView->palette().window().color();
+    bg.setAlpha(255);
+
+    const QSize outSize(qMax(1, int(std::round(chartRect.width()  * dpr))),
+                        qMax(1, int(std::round(chartRect.height() * dpr))));
+    QImage img(outSize, QImage::Format_ARGB32_Premultiplied);
+    img.setDevicePixelRatio(dpr);
+    img.fill(bg.rgba());
+
+    QPainter p(&img);
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    // Render only the chart area from the chartView onto our opaque image
+    const QRectF target(QPointF(0, 0), QSizeF(chartRect.size()));
+    chartView->render(&p, target, chartRect); // FIX: third arg must be QRect
+    p.end();
+
+    return img;
 }
 
 // NEW: add an extra line series to the existing chart inside a QGraphicsView

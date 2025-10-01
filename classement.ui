@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1283</width>
-    <height>618</height>
+    <height>673</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,6 +27,15 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Shape::NoFrame</enum>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border: 0;</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="group_infos">
@@ -248,7 +257,7 @@
      <x>10</x>
      <y>10</y>
      <width>281</width>
-     <height>511</height>
+     <height>551</height>
     </rect>
    </property>
    <property name="alternatingRowColors">
@@ -262,7 +271,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>530</y>
+     <y>570</y>
      <width>281</width>
      <height>71</height>
     </rect>
@@ -274,8 +283,8 @@
   <widget class="QLabel" name="labelDynamic">
    <property name="geometry">
     <rect>
-     <x>647</x>
-     <y>580</y>
+     <x>380</x>
+     <y>600</y>
      <width>301</width>
      <height>20</height>
     </rect>
@@ -285,6 +294,35 @@
    </property>
    <property name="alignment">
     <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="confirm_copy">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>600</y>
+     <width>151</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="copy_graph">
+   <property name="geometry">
+    <rect>
+     <x>1000</x>
+     <y>580</y>
+     <width>171</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Copier le graphique</string>
    </property>
   </widget>
  </widget>

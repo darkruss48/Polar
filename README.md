@@ -1,6 +1,24 @@
 # Polar
 A simple, powerful WT Performance Analyser for Dragon Ball Z : Dokkan Battle.
 
+## Features
+**_- :rocket: Fast & Easy to use_**
+
+**_- :art: Highly customisable & User-friendly UI_**
+
+**_- :bar_chart: Produces high-quality graphs_**
+
+**_- :earth_africa: Multilingual support_**
+
+**_- :arrows_counterclockwise: Auto-refresh with extra insights for the top leaderboard_**
+
+## Gallery
+
+<img width="1256" height="732" alt="image" src="https://github.com/user-attachments/assets/c9803824-1125-42d7-a333-c6337add7cec" />
+<img width="1251" height="744" alt="image" src="https://github.com/user-attachments/assets/6c12aae4-c82a-4025-acb5-45535609f60a" />
+
+
+
 ## Installation
 
 Check the releases.

@@ -73,7 +73,13 @@
      </rect>
     </property>
     <property name="autoFillBackground">
-     <bool>true</bool>
+     <bool>false</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::NoFrame</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 0;</string>
     </property>
     <property name="cacheMode">
      <set>QGraphicsView::CacheModeFlag::CacheNone</set>
@@ -333,7 +339,7 @@
     </widget>
     <widget class="QCheckBox" name="checkBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="geometry">
       <rect>

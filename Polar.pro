@@ -2,7 +2,30 @@ QT       += core gui uitools
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17
+CONFIG += c++20
+
+QMAKE_CFLAGS_RELEASE -= -MD
+QMAKE_CFLAGS_DEBUG   -= -MDd
+QMAKE_CXXFLAGS_RELEASE -= -MD
+QMAKE_CXXFLAGS_DEBUG   -= -MDd
+
+# optimisation globale (LTO)
+QMAKE_CXXFLAGS_RELEASE += /GL
+QMAKE_CFLAGS_RELEASE     += /GL
+
+# optimisation de l'éditeur de liens : supprimer code non utilisé et combiner identiques
+QMAKE_LFLAGS_RELEASE += /LTCG /OPT:REF /OPT:ICF
+
+# fonction-level linking
+QMAKE_CXXFLAGS_RELEASE += /Gy
+QMAKE_CFLAGS_RELEASE     += /Gy
+QMAKE_CXXFLAGS_RELEASE += /O1         # optimise pour la taille (au lieu de /O2)
+QMAKE_CFLAGS_RELEASE   += /O1
+
+
+
+
+
 
 # JE VEUX UN STANDALONE --> RAJOUTER CETTE LIGNE POUR LINKER DE MANIERE STATIQUE ET NON DYNAMIQUE
 CONFIG += static

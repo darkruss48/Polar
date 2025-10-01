@@ -804,5 +804,13 @@ reached this score !</translation>
         <source>Wins/h (actif)</source>
         <translation>Wins/h (non-afk)</translation>
     </message>
+    <message>
+        <source>Erreur : aucun graphique affiché.</source>
+        <translation>Error: no chart displayed.</translation>
+    </message>
+    <message>
+        <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
+        <translation>Error: an error occurred while copying the chart</translation>
+    </message>
 </context>
 </TS>
