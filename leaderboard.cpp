@@ -18,6 +18,329 @@
 #include <QAction>
 #include <QSet>
 #include <cmath> // NEW: for std::llabs
+#include <QGraphicsDropShadowEffect>  // NEW
+#include <QPropertyAnimation>         // NEW
+#include <QPainter>                   // NEW
+#include <QPainterPath>               // NEW
+#include <QTimer>                     // NEW
+#include <QRandomGenerator>           // NEW
+
+static int g_EmbersParticleBudget = 320; // + c'est grand, + de particules
+
+// NEW: keep the shine overlay sized with its label
+class LabelResizeFilter : public QObject {
+public:
+    LabelResizeFilter(QLabel* label, QWidget* shine, QObject* parent = nullptr)
+        : QObject(parent), m_label(label), m_shine(shine) {
+        if (m_label) m_label->installEventFilter(this);
+    }
+protected:
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        if (obj == m_label && ev->type() == QEvent::Resize) {
+            if (m_shine && m_label) {
+                m_shine->resize(18, m_label->height());
+            }
+        }
+        return QObject::eventFilter(obj, ev);
+    }
+private:
+    QLabel*  m_label = nullptr;
+    QWidget* m_shine = nullptr;
+};
+
+// REMOVE: old flame particle/tongue overlay
+// class FlameParticlesWidget : public QWidget { ... }  // removed
+
+// NEW: Gradient-painted metallic label for ranks #1/#2/#3 (text-only, with shine)
+class MetallicLabel : public QLabel {
+public:
+    enum class Type { Gold, Silver, Bronze };
+    explicit MetallicLabel(const QString& text, Type t, QWidget* parent = nullptr)
+        : QLabel(text, parent), m_type(t)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, [this](){
+            m_shine += 0.03;
+            if (m_shine > 1.5) m_shine = -0.5;
+            update();
+        });
+        m_timer->start(50); // ~20 FPS
+    }
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setRenderHint(QPainter::TextAntialiasing, true);
+
+        const QString txt = text();
+        if (txt.isEmpty()) return;
+
+        const QFontMetrics fm(font());
+        const int w = width();
+        const int h = height();
+        // Position: left + vertically centered (like default)
+        const int textW = fm.horizontalAdvance(txt);
+        const int x = 0; // align left
+        const int baseline = (h + fm.ascent() - fm.descent()) / 2;
+
+        // Build glyph path
+        QPainterPath path;
+        path.addText(x, baseline, font(), txt);
+
+        // Metallic vertical gradient
+        QLinearGradient g(0, baseline - fm.ascent(), 0, baseline + fm.descent());
+        switch (m_type) {
+            case Type::Gold:
+                g.setColorAt(0.00, QColor("#B8860B"));
+                g.setColorAt(0.45, QColor("#FFD700"));
+                g.setColorAt(0.55, QColor("#FFF3A6"));
+                g.setColorAt(1.00, QColor("#B8860B"));
+                break;
+            case Type::Silver:
+                g.setColorAt(0.00, QColor("#6E7B8B"));
+                g.setColorAt(0.45, QColor("#C0C0C0"));
+                g.setColorAt(0.55, QColor("#F0F0F0"));
+                g.setColorAt(1.00, QColor("#6E7B8B"));
+                break;
+            case Type::Bronze:
+                g.setColorAt(0.00, QColor("#6B3E1F"));
+                g.setColorAt(0.45, QColor("#CD7F32"));
+                g.setColorAt(0.55, QColor("#E6B07A"));
+                g.setColorAt(1.00, QColor("#6B3E1F"));
+                break;
+        }
+
+        p.setPen(Qt::NoPen);
+        p.setBrush(g);
+        p.drawPath(path);
+
+        // Soft glow (draw again slightly larger with low alpha)
+        QPen outline(QColor(255,255,255,40), 1.0);
+        p.setPen(outline);
+        p.setBrush(Qt::NoBrush);
+        p.drawPath(path);
+
+        // Shine band: thin diagonal sweep, clipped to text
+        p.save();
+        p.setClipPath(path);
+        const qreal bandW = qMax(10, textW/10);
+        const qreal cx = (x + textW * m_shine);
+        QLinearGradient shineGrad(cx - bandW, 0, cx + bandW, 0);
+        shineGrad.setColorAt(0.0, QColor(255,255,255,0));
+        shineGrad.setColorAt(0.5, QColor(255,255,255,120));
+        shineGrad.setColorAt(1.0, QColor(255,255,255,0));
+        p.fillRect(QRectF(0, 0, w, h), shineGrad);
+        p.restore();
+    }
+private:
+    Type m_type;
+    QTimer* m_timer = nullptr;
+    qreal m_shine = -0.5; // sweep position (relative [~ -0.5..1.5])
+};
+
+// NEW: flaming text label (orange base + smooth moving white highlights on glyphs)
+class FlameTextLabel : public QLabel {
+public:
+    explicit FlameTextLabel(const QString& text, QWidget* parent = nullptr)
+        : QLabel(text, parent)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, [this](){
+            updateFlickers();
+            update();
+        });
+        m_timer->start(33); // ~30 FPS: smooth enough, low CPU
+        initFlickers();
+    }
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setRenderHint(QPainter::TextAntialiasing, true);
+
+        const QString txt = text();
+        if (txt.isEmpty()) return;
+
+        const QFontMetrics fm(font());
+        const int h = height();
+        const int baseline = (h + fm.ascent() - fm.descent()) / 2;
+        const int x = 0; // align left
+
+        QPainterPath path;
+        path.addText(x, baseline, font(), txt);
+
+        // Base warm orange gradient
+        const QRectF bb = path.boundingRect();
+        QLinearGradient baseGrad(bb.center().x(), bb.top(), bb.center().x(), bb.bottom());
+        baseGrad.setColorAt(0.00, QColor(255,128,32));
+        baseGrad.setColorAt(0.50, QColor(255,160,64));
+        baseGrad.setColorAt(1.00, QColor(240,110,28));
+
+        p.setPen(Qt::NoPen);
+        p.setBrush(baseGrad);
+        p.drawPath(path);
+
+        // Smooth highlights: narrow bands with sinusoidal alpha, blended softly
+        p.save();
+        p.setClipPath(path);
+        p.setCompositionMode(QPainter::CompositionMode_Screen); // soft additive
+        for (const Flicker& f : m_flickers) {
+            const qreal alpha = qBound<qreal>(0.0, (f.alphaBase/255.0) * (0.4 + 0.6 * (0.5 * (1.0 + std::sin(f.phase)))), 1.0);
+            if (alpha <= 0.002) continue;
+
+            const qreal w = qMax<qreal>(1.0, f.half * 2.0);
+            const qreal left = f.c - f.half;
+            const QRectF stripe(left, bb.top(), w, bb.height());
+
+            // Horizontal gradient concentrated at center
+            QLinearGradient g(left, 0, left + w, 0);
+            g.setColorAt(0.00, QColor(255,255,255, 0));
+            g.setColorAt(0.50, QColor(255,255,255, int(alpha * 90))); // reduced intensity
+            g.setColorAt(1.00, QColor(255,255,255, 0));
+
+            p.fillRect(stripe, g);
+        }
+        p.restore();
+    }
+private:
+    struct Flicker { qreal c; qreal half; qreal vx; qreal phase; qreal dphase; qreal alphaBase; };
+    QVector<Flicker> m_flickers;
+    QTimer* m_timer = nullptr;
+
+    static qreal rnd01() { return QRandomGenerator::global()->generateDouble(); }
+
+    void initFlickers() {
+        m_flickers.clear();
+        const int w = qMax(1, width());
+        const int count = 2 + (w > 220 ? 1 : 0); // 2..3 bands max
+        for (int i=0; i<count; ++i) {
+            Flicker f;
+            f.c = rnd01() * w;
+            f.half = 3.0 + rnd01() * 6.0;           // 3..9 px half-width
+            f.vx = (rnd01() * 0.6 - 0.3);           // -0.3..+0.3 px/tick
+            f.phase = rnd01() * 6.28318;            // 0..2π
+            f.dphase = 0.04 + rnd01() * 0.05;       // 0.04..0.09 rad/tick
+            f.alphaBase = 0.25 + rnd01() * 0.15;    // 0.25..0.40 in [0..1] scale later
+            m_flickers.push_back(f);
+        }
+    }
+
+    void updateFlickers() {
+        const qreal w = qMax(1, width());
+        if (m_flickers.isEmpty()) { initFlickers(); return; }
+        for (auto& f : m_flickers) {
+            f.c += f.vx;
+            if (f.c < 0.0)  { f.c = 0.0;  f.vx = -f.vx; }
+            if (f.c > w)    { f.c = w;    f.vx = -f.vx; }
+            f.phase += f.dphase;
+            // very light, slow jitter of width to avoid static look
+            f.half += (rnd01() * 0.2 - 0.1); // -0.1..+0.1 px
+            f.half = qBound<qreal>(2.5, f.half, 10.0);
+        }
+    }
+};
+
+// NEW: embers overlay, clipped to the text path of a target label (parent label) - softened
+class EmbersOverlay : public QWidget {
+public:
+    explicit EmbersOverlay(QLabel* target, QWidget* parent = nullptr)
+        : QWidget(parent), m_target(target)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        setAttribute(Qt::WA_TranslucentBackground, true);
+        setVisible(true);
+        if (m_target) m_target->installEventFilter(this);
+        m_timer = new QTimer(this);
+        connect(m_timer, &QTimer::timeout, this, &EmbersOverlay::tick);
+        m_timer->start(40); // ~25 FPS
+        m_pts.reserve(qMax(64, g_EmbersParticleBudget));
+    }
+protected:
+    bool eventFilter(QObject* obj, QEvent* ev) override {
+        if (obj == m_target && ev->type() == QEvent::Resize) {
+            setGeometry(m_target->rect());
+        }
+        return QWidget::eventFilter(obj, ev);
+    }
+    void paintEvent(QPaintEvent*) override {
+        if (!m_target) return;
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        p.setClipPath(textPath());
+        p.setCompositionMode(QPainter::CompositionMode_Plus); // warmer additive glow
+
+        for (const auto& e : m_pts) {
+            const qreal t = e.life / e.maxLife;
+            const int alpha = int(120 * (1.0 - t)); // softened
+            QColor c(255, 180 - int(70*t), 40, alpha); // orange -> dim
+            p.setBrush(c);
+            p.setPen(Qt::NoPen);
+            p.drawEllipse(e.pos, e.size, e.size);
+        }
+    }
+private:
+    struct Ember { QPointF pos; QPointF vel; qreal life=0, maxLife=1.0, size=1.0; };
+    QVector<Ember> m_pts;
+    QTimer* m_timer = nullptr;
+    QLabel* m_target = nullptr;
+
+    static qreal rnd01() { return QRandomGenerator::global()->generateDouble(); }
+
+    QPainterPath textPath() const {
+        QPainterPath path;
+        if (!m_target) return path;
+        const QString txt = m_target->text();
+        QFont f = m_target->font();
+        const QFontMetrics fm(f);
+        const int h = height();
+        const int baseline = (h + fm.ascent() - fm.descent()) / 2;
+        path.addText(0, baseline, f, txt);
+        return path;
+    }
+    void spawn(int n) {
+        if (!m_target) return;
+        const QFontMetrics fm(m_target->font());
+        const int h = height();
+        const int w = width();
+        const int baseline = (h + fm.ascent() - fm.descent()) / 2;
+
+        for (int i=0; i<n; ++i) {
+            Ember e;
+            // Spawn within the letter area (spread across ascender zone)
+            const qreal u = rnd01() * 0.9; // 0..0.9 of ascender
+            e.pos = QPointF(rnd01() * w, baseline - u * fm.ascent());
+            // Gentle upward drift
+            const qreal vx = (rnd01() * 0.24 - 0.12);           // -0.12..+0.12
+            const qreal vy = -(rnd01() * (0.90 - 0.45) + 0.45); // -(0.45..0.90)
+            e.vel = QPointF(vx, vy);
+            e.maxLife = 24.0 + QRandomGenerator::global()->bounded(18); // 24..41 ticks
+            e.life = 0.0;
+            e.size = 0.6 + rnd01() * (1.3 - 0.6); // 0.6..1.3
+            if (m_pts.size() < g_EmbersParticleBudget) m_pts.push_back(e);
+        }
+    }
+    void tick() {
+        for (int i = m_pts.size()-1; i >= 0; --i) {
+            auto& e = m_pts[i];
+            e.pos += e.vel;
+            e.life += 1.0;
+            // much smaller size jitter to avoid twinkling
+            e.size *= (1.0 + (rnd01() * 0.012 - 0.006)); // -0.006..+0.006
+            if (e.life >= e.maxLife) m_pts.remove(i);
+        }
+        // Spawn scaled by budget, without exceeding it
+        const int baseSpawn = qMax(1, g_EmbersParticleBudget / 80); // 80->1, 160->2, 240->3, ...
+        const int room = qMax(0, g_EmbersParticleBudget - m_pts.size());
+        const int toSpawn = qMin(room, baseSpawn);
+        if (toSpawn > 0) spawn(toSpawn);
+        update();
+    }
+};
 
 // pointeurs
 QGraphicsView *Leaderboard::graphPlaceholder = nullptr;
@@ -188,7 +511,8 @@ static int computeFarmStepsTrailing(const QStringList& pointsList) {
 static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 points,
                                       const QString& gapBelowLabel,
                                       bool isAfk, const QString& statusText,
-                                      const QString& gapDeltaLabel, const QString& gapDeltaColor)
+                                      const QString& gapDeltaLabel, const QString& gapDeltaColor,
+                                      bool highlightFlames /* NEW */)
 {
     auto row = new QWidget();
     auto root = new QHBoxLayout(row);
@@ -197,19 +521,29 @@ static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 poin
     root->setSpacing(8);
 
     // Left: Rank
-    auto lblRank = new QLabel(QString("#%1").arg(rank));
+    QLabel* lblRank = nullptr;
+    if (rank == 1 || rank == 2 || rank == 3) {
+        MetallicLabel::Type t = (rank == 1) ? MetallicLabel::Type::Gold
+                                : (rank == 2 ? MetallicLabel::Type::Silver
+                                             : MetallicLabel::Type::Bronze);
+        lblRank = new MetallicLabel(QString("#%1").arg(rank), t, row);
+    } else {
+        lblRank = new QLabel(QString("#%1").arg(rank), row);
+    }
     QFont fRank = lblRank->font();
     fRank.setBold(true);
     fRank.setPointSize(fRank.pointSize() + 3);
     lblRank->setFont(fRank);
     lblRank->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     lblRank->setMinimumWidth(44);
+
     root->addWidget(lblRank, 0);
 
     // Middle: Name + Status
     auto mid = new QVBoxLayout();
     mid->setSpacing(2);
-    auto lblName = new QLabel(name);
+    QLabel* lblName = highlightFlames ? static_cast<QLabel*>(new FlameTextLabel(name, row))
+                                      : static_cast<QLabel*>(new QLabel(name, row));
     QFont fName = lblName->font(); fName.setBold(true); fName.setPointSize(fName.pointSize() + 1);
     lblName->setFont(fName);
     auto lblStatus = new QLabel(statusText);
@@ -219,7 +553,14 @@ static QWidget* createPlayerRowWidget(int rank, const QString& name, qint64 poin
     mid->addWidget(lblStatus);
     root->addLayout(mid, 1);
 
-    // Right: Points + Gap (+ colored delta on the left)
+    // NEW: add embers directly inside the glyphs (only when flaming)
+    if (highlightFlames) {
+        auto embers = new EmbersOverlay(lblName, lblName);
+        embers->setGeometry(lblName->rect());
+        embers->show();
+    }
+
+    // Right: Points + Gap (+ colored delta)
     auto right = new QVBoxLayout();
     right->setSpacing(2);
     right->setContentsMargins(0, 0, 5, 0);
@@ -410,7 +751,7 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
         for (int i = 0; i < rows.size(); ++i) {
             const auto& r = rows[i];
 
-            // trailing status
+            // Compute trailing AFK and FARM
             const int afkStepsTrail = computeAfkStepsTrailing(r.pointsList);
             const int farmStepsTrail = computeFarmStepsTrailing(r.pointsList);
             const bool isAfk = (afkStepsTrail > 0);
@@ -445,9 +786,13 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
                 else if (deltaGap < 0) gapDeltaColor = "#E74C3C"; // red = on perd
             }
 
+            // NEW: trigger flames for current farm >= 24h (96 steps of 15min)
+            const bool heavyFarm = (computeFarmStepsTrailing(r.pointsList) >= 96);
+
             QWidget* widget = createPlayerRowWidget(
                 r.rank, r.name, r.lastPoints, gapBelowLabel, isAfk, statusText,
-                gapDeltaLabel, gapDeltaColor
+                gapDeltaLabel, gapDeltaColor,
+                heavyFarm
             );
 
             auto* item = new QListWidgetItem(playerList);
