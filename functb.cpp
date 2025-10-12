@@ -17,18 +17,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonArray>
-
-
-
-
-
-#include <QCoreApplication>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QList>
-#include <QString>
-#include <QDebug>
+#include "appsettings.h" // NEW
 
 QList<QJsonDocument> parseJsonToList(const QString &jsonString) {
     QList<QJsonDocument> jsonDocumentList;
@@ -436,9 +425,12 @@ void functb::connect(Ui::MainWindow *ui)
 
 QJsonObject functb::pologet()
 {
-
     QNetworkAccessManager manager;
-    QUrl a = "https://dokkan-wt.info/api/get-user?identifier=" + QString::fromStdString(functb::identifier);
+    QString base = "https://dokkan-wt.info/api/get-user?identifier=" + QString::fromStdString(functb::identifier);
+    if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
+        base += "&region=JP";
+    }
+    QUrl a(base);
     /*
     polo's website
     */
@@ -472,11 +464,15 @@ QJsonObject functb::pologet()
     }
     return response_doc.object();
 }
+
 QJsonObject functb::pologettop()
 {
-
     QNetworkAccessManager manager;
-    QUrl a = QString("https://dokkan-wt.info/api/get-top100");
+    QString topUrl = QStringLiteral("https://dokkan-wt.info/api/get-top100");
+    if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
+        topUrl += QStringLiteral("?region=JP");
+    }
+    QUrl a(topUrl);
     /*
     polo's website
     */

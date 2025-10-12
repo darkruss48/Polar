@@ -22,6 +22,9 @@
      <layout class="QHBoxLayout" name="layoutRegion">
       <item>
        <widget class="QRadioButton" name="radioGlo">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
          <string>Glo</string>
         </property>
@@ -30,7 +33,7 @@
       <item>
        <widget class="QRadioButton" name="radioJap">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Jap</string>
