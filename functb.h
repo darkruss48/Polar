@@ -2,6 +2,7 @@
 #define FUNCTB_H
 #include <QNetworkRequest>
 #include "mainwindow.h"
+#include <QTextEdit> // NEW
 
 class functb
 {
@@ -20,6 +21,9 @@ public:
     static std::string wins;
     static std::string seed;
     static std::string hour_missing;
+    static QJsonObject pologetmetadata();
+    // NEW: set the QTextEdit to receive error logs
+    static void setLogBox(QTextEdit* box);
 };
 
 #endif // FUNCTB_H

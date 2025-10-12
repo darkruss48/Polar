@@ -57,6 +57,8 @@
 #include <QSpinBox>
 #include <QClipboard>
 #include <QPen> // NEW
+#include <QProgressBar>  // NEW: for TB progress bar
+#include <algorithm>     // NEW: for std::clamp
 
 // Fonction pour capturer la réponse HTTP
 /*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
@@ -181,13 +183,16 @@ void sendRequest(Ui::MainWindow *ui) {
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow),
-    menu1_action1(nullptr),
-    menu1_action2(nullptr),
-    menu1(nullptr),
-    labelDynamic(nullptr)
+    , ui(new Ui::MainWindow)
+    , menu1_action1(nullptr)
+    , menu1_action2(nullptr)
+    , menu1(nullptr)
+    , labelDynamic(nullptr)
 {
     ui->setupUi(this);
+
+    // NEW: provide the log text box to functb for error reporting
+    functb::setLogBox(ui->boitetext);
 
     // + Charger l'ID sauvegardé et rafraîchir l'affichage
     if (!AppSettings::savedIdentifier.isEmpty()) {
@@ -469,6 +474,26 @@ MainWindow::MainWindow(QWidget *parent)
     autoRefreshTimer->setSingleShot(true);
     connect(autoRefreshTimer, &QTimer::timeout, this, &MainWindow::doAutoRefreshIfClassement);
     scheduleNextAutoRefresh();
+
+    // NEW: TB widgets autodetect + periodic update
+    // 1) Progress bar: pick the first QProgressBar on the main page
+    tbProgressBar = ui->progressBar;
+    if (tbProgressBar) {
+        tbProgressBar->setRange(0, 100);
+        tbProgressBar->setTextVisible(true);
+        tbProgressBar->setFormat(QStringLiteral("%p%"));
+    }
+    tbTitleLabel = ui->label_8;
+
+    // 3) Timer to refresh remaining time/progress
+    if (!tbTimer) {
+        tbTimer = new QTimer(this);
+        tbTimer->setInterval(30000); // 30s
+        connect(tbTimer, &QTimer::timeout, this, &MainWindow::updateTbUiFromTimes);
+        tbTimer->start();
+    }
+    // 4) Fetch metadata now (edition/start/end) and initialize the UI
+    fetchAndInitTbMetadata();
 }
 
 MainWindow::~MainWindow()
@@ -747,6 +772,8 @@ void MainWindow::changeEvent(QEvent* event)
         }
         // Refresh ID label with new translation prefix
         updateIdLabelDisplay();
+        // Rebuild TB localized texts from cached metadata (no network)
+        refreshTbLocalizedTexts();
     } else {
         QMainWindow::changeEvent(event);
     }
@@ -1197,7 +1224,7 @@ void MainWindow::showOptionsDialog()
     }
 
     if (dlg.exec() == QDialog::Accepted) {
-        // Read back and save
+        const QString prevRegion = AppSettings::region;
         if (radioGlo && radioGlo->isChecked()) AppSettings::region = "Glo";
         if (radioJap && radioJap->isChecked()) AppSettings::region = "Jap";
         if (comboTheme) {
@@ -1220,7 +1247,84 @@ void MainWindow::showOptionsDialog()
         this->update();
         // NEW: reschedule auto-refresh with new offset
         scheduleNextAutoRefresh();
+        // NEW: if region changed, refetch TB metadata
+        if (AppSettings::region != prevRegion) {
+            fetchAndInitTbMetadata();
+        }
     }
+}
+
+QString MainWindow::formatDhMin(qint64 secs)
+{
+    if (secs <= 0) {
+        // 0 minute (translatable forms)
+        return QStringLiteral("0 ") + tr("minute");
+    }
+    qint64 days = secs / 86400; secs %= 86400;
+    qint64 hours = secs / 3600; secs %= 3600;
+    qint64 minutes = secs / 60;
+
+    const QString dWord = (days == 1) ? tr("jour") : tr("jours");
+    const QString hWord = (hours == 1) ? tr("heure") : tr("heures");
+    const QString mWord = (minutes == 1) ? tr("minute") : tr("minutes");
+
+    QStringList parts;
+    if (days > 0)    parts << QString("%1 %2").arg(days).arg(dWord);
+    if (hours > 0)   parts << QString("%1 %2").arg(hours).arg(hWord);
+    if (minutes > 0 || parts.isEmpty())
+                     parts << QString("%1 %2").arg(minutes).arg(mWord);
+    return parts.join(", ");
+}
+
+void MainWindow::updateTbUiFromTimes()
+{
+    if (tbStartEpoch <= 0 || tbEndEpoch <= 0) return;
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+
+    // Progress [0..100]
+    int pct = 0;
+    if (now <= tbStartEpoch) {
+        pct = 0;
+    } else if (now >= tbEndEpoch) {
+        pct = 100;
+    } else {
+        const double total = static_cast<double>(tbEndEpoch - tbStartEpoch);
+        const double done  = static_cast<double>(now - tbStartEpoch);
+        pct = static_cast<int>(std::clamp(done / total, 0.0, 1.0) * 100.0);
+    }
+    if (tbProgressBar) tbProgressBar->setValue(pct);
+
+    // Time left (localized with placeholder)
+    const qint64 remain = std::max<qint64>(0, tbEndEpoch - now);
+    if (ui && ui->label_time_left) {
+        ui->label_time_left->setText(tr("Temps restant : %1").arg(formatDhMin(remain)));
+    }
+}
+
+void MainWindow::fetchAndInitTbMetadata()
+{
+    const QJsonObject m = functb::pologetmetadata();
+    if (m.isEmpty()) return;
+
+    // Cache times
+    tbStartEpoch = m.value(QStringLiteral("start")).toVariant().toLongLong();
+    tbEndEpoch   = m.value(QStringLiteral("end")).toVariant().toLongLong();
+    // Cache and show title with edition (localized placeholder)
+    tbEdition = m.value(QStringLiteral("edition")).toInt();
+    if (tbTitleLabel && tbEdition > 0) {
+        tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
+    }
+    // First UI refresh
+    updateTbUiFromTimes();
+}
+
+// NEW: rebuild localized title/time using cached metadata (no refetch)
+void MainWindow::refreshTbLocalizedTexts()
+{
+    if (tbTitleLabel && tbEdition > 0) {
+        tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
+    }
+    updateTbUiFromTimes();
 }
 
 // NEW: apply background from settings (image + dim overlay)
@@ -1256,7 +1360,7 @@ void MainWindow::updateBackgroundPalette()
                 if (AppSettings::backgroundDimPercent > 0) {
                     const int a = qBound(0, AppSettings::backgroundDimPercent, 100) * 255 / 100;
                     p.fillRect(composed.rect(), QColor(0, 0, 0, a));
-                }
+                               }
             }
             QPalette pal = this->palette();
             pal.setBrush(QPalette::Window, QBrush(composed));

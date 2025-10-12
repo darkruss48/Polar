@@ -18,6 +18,18 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include "appsettings.h" // NEW
+#include <QTextEdit>     // NEW
+
+// NEW: error log target
+static QTextEdit* s_logBox = nullptr;
+static void appendErrorToLog(const QString& text) {
+    if (!s_logBox) return;
+    auto prev = s_logBox->textColor();
+    s_logBox->setTextColor(Qt::red);
+    s_logBox->append(text);
+    s_logBox->setTextColor(prev);
+}
+void functb::setLogBox(QTextEdit* box) { s_logBox = box; }
 
 QList<QJsonDocument> parseJsonToList(const QString &jsonString) {
     QList<QJsonDocument> jsonDocumentList;
@@ -441,9 +453,24 @@ QJsonObject functb::pologet()
     loop.exec();
 
     QByteArray response_data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) {
+        // appendErrorToLog(QStringLiteral("Erreur réseau (%1): %2")
+        //     .arg(a.toString(), reply->errorString()));
+    }
     QJsonDocument response_doc = QJsonDocument::fromJson(response_data);
+    if (response_doc.isObject()) {
+        const QJsonObject obj = response_doc.object();
+        if (obj.contains("error")) {
+            const QString err = obj.value("error").toString();
+            const QString msg = obj.value("message").toString();
+            // appendErrorToLog(QStringLiteral("Erreur: %1%2")
+            //     .arg(err, msg.isEmpty() ? QString() : QStringLiteral(" — ") + msg));
+        }
+    } // else if (!response_data.isEmpty()) {
+    //     appendErrorToLog(QStringLiteral("Réponse invalide: ") + QString::fromUtf8(response_data.left(200)));
+    // }
+    // ...existing code...
     if (response_doc.isNull()) {
-        //
         return QJsonObject();
     }
     if (response_doc.object().isEmpty())
@@ -483,9 +510,24 @@ QJsonObject functb::pologettop()
     loop.exec();
 
     QByteArray response_data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) {
+        // appendErrorToLog(QStringLiteral("Erreur réseau (%1): %2")
+        //     .arg(a.toString(), reply->errorString()));
+    }
     QJsonDocument response_doc = QJsonDocument::fromJson(response_data);
+    if (response_doc.isObject()) {
+        const QJsonObject obj = response_doc.object();
+        if (obj.contains("error")) {
+            const QString err = obj.value("error").toString();
+            const QString msg = obj.value("message").toString();
+            // appendErrorToLog(QStringLiteral("Erreur: %1%2")
+            //     .arg(err, msg.isEmpty() ? QString() : QStringLiteral(" — ") + msg));
+        }
+    } // else if (!response_data.isEmpty()) {
+    //     appendErrorToLog(QStringLiteral("Réponse invalide: ") + QString::fromUtf8(response_data.left(200)));
+    // }
+    // ...existing code...
     if (response_doc.isNull()) {
-        //
         return QJsonObject();
     }
     if (response_doc.object().isEmpty())
@@ -505,4 +547,40 @@ QJsonObject functb::pologettop()
         return new_json;
     }
     return response_doc.object();
+}
+
+QJsonObject functb::pologetmetadata()
+{
+    QNetworkAccessManager manager;
+    // NOTE: example path provided by the user; region appended when JP is selected
+    QString urlStr = QStringLiteral("https://dokkan-wt.info/api/0/metadata");
+    if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
+        urlStr += QStringLiteral("?region=JP");
+    }
+    QUrl url(urlStr);
+    QNetworkRequest req(url);
+    QNetworkReply* reply = manager.get(req);
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) {
+        // appendErrorToLog(QStringLiteral("Erreur réseau (%1): %2")
+        //     .arg(url.toString(), reply->errorString()));
+    }
+    const QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (doc.isObject()) {
+        const QJsonObject obj = doc.object();
+        if (obj.contains("error")) {
+            const QString err = obj.value("error").toString();
+            const QString msg = obj.value("message").toString();
+            // appendErrorToLog(QStringLiteral("Erreur: %1%2")
+            //     .arg(err, msg.isEmpty() ? QString() : QStringLiteral(" — ") + msg));
+        }
+    } // else if (!data.isEmpty()) {
+    //     appendErrorToLog(QStringLiteral("Réponse invalide: ") + QString::fromUtf8(data.left(200)));
+    // }
+    if (!doc.isObject()) return QJsonObject();
+    return doc.object();
 }

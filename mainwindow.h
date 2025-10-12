@@ -33,6 +33,8 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class QProgressBar;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -152,5 +154,24 @@ private:
     // NEW: helpers for Graphs page overlay
     void updateGoalOverlayOnGraphs(bool allowAxisAdjust); // NEW
     static QColor goalLineColorForTheme(QChart::ChartTheme t); // NEW
+
+    // TB metadata/progress UI
+    void fetchAndInitTbMetadata();     // NEW: fetch start/end/edition and init UI
+    void updateTbUiFromTimes();        // NEW: recompute progress/time left from cached times
+    static QString formatDhMin(qint64 secs); // NEW: translatable D/H/M string
+    void refreshTbLocalizedTexts();    // NEW: rebuild title/time labels using cached data (no network)
+
+    // Cached widgets (autodetected)
+    QLabel* tbTitleLabel = nullptr;         // “xxème Tenkaichi Budokai”
+    QProgressBar* tbProgressBar = nullptr;  // main progress bar
+    // We keep label_time_left from ui (already used elsewhere)
+
+
+    // Cached times (epoch seconds)
+    qint64 tbStartEpoch = 0;
+    qint64 tbEndEpoch = 0;
+    int    tbEdition   = 0;                 // NEW: cached edition number
+    QTimer* tbTimer = nullptr;              // periodic refresh for progress/time-left
 };
+
 #endif // MAINWINDOW_H

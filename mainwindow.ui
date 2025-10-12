@@ -302,7 +302,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>59ème Tenkaichi Budokai</string>
+     <string>55ème Tenkaichi Budokai</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_tips">
