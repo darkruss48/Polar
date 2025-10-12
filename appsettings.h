@@ -28,6 +28,9 @@ public:
     // NEW: Transparence des widgets (boutons, listes, etc.)
     static bool transparentControls;
 
+    // NEW: Persist the selected TB edition
+    static int selectedEdition; // 0 = current (latest), otherwise explicit TB number
+
     // Load from polar.json (create with defaults if missing)
     static void load();
     // Save to polar.json

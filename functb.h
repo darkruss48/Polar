@@ -10,8 +10,8 @@ public:
     functb();
     static std::string ver_code;
     static std::string identifier; // identifiant qui permet d'avoir
-    static QJsonObject pologet();
-    static QJsonObject pologettop();
+    static QJsonObject pologet(int edition = 0);
+    static QJsonObject pologettop(int edition = 0);       // NEW: edition-aware
     static std::string secret;
     static std::string access_token;
     static void connect(Ui::MainWindow *ui);
@@ -21,7 +21,7 @@ public:
     static std::string wins;
     static std::string seed;
     static std::string hour_missing;
-    static QJsonObject pologetmetadata();
+    static QJsonObject pologetmetadata(int edition = 0);  // NEW: edition-aware
     // NEW: set the QTextEdit to receive error logs
     static void setLogBox(QTextEdit* box);
 };

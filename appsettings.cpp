@@ -17,6 +17,7 @@ int AppSettings::autoRefreshExtraDelayMinutes = 0;
 QString AppSettings::chartThemeName = "";
 int AppSettings::chartThemeIndex = 0;
 bool AppSettings::transparentControls = false;
+int AppSettings::selectedEdition = 0;
 
 static QString settingsFile()
 {
@@ -78,6 +79,8 @@ void AppSettings::load()
     }
     if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
         chartThemeIndex = 0;
+
+    selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(0);
 }
 
 void AppSettings::save()
@@ -100,6 +103,7 @@ void AppSettings::save()
         chartThemeIndex = 0;
     o["chartThemeIndex"] = chartThemeIndex;
     o["chartThemeName"]  = kThemes[chartThemeIndex].first;
+    o.insert(QStringLiteral("selectedEdition"), AppSettings::selectedEdition);
 
     QFile f(settingsFile());
     if (f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {

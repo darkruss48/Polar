@@ -59,12 +59,108 @@
 #include <QPen> // NEW
 #include <QProgressBar>  // NEW: for TB progress bar
 #include <algorithm>     // NEW: for std::clamp
+#include <QSignalBlocker> // NEW
+#include <functional>    // NEW
 
-// Fonction pour capturer la réponse HTTP
-/*static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}*/
+// NEW: lightweight 3-slot edition picker (center = selected, side = neighbors)
+class EditionPickerWidget : public QWidget {
+public:
+    explicit EditionPickerWidget(QWidget* parent=nullptr) : QWidget(parent) {
+        setAttribute(Qt::WA_TransparentForMouseEvents, false);
+        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        setMinimumSize(120, 36); // allow it to shrink; parent/layout decides final size
+    }
+    void setOnChanged(std::function<void(int)> cb) { onChanged = std::move(cb); }
+    void setEditions(const QVector<int>& list, int selectedEdition, int latestEdition) {
+        editions = list;
+        latest = latestEdition;
+        // Map selectedEdition=0 to latest number
+        const int desired = (selectedEdition <= 0 ? latest : selectedEdition);
+        int idx = editions.indexOf(desired);
+        if (idx < 0) idx = qMax(0, editions.size() - 1); // default to smallest
+        if (idx != selIdx) { selIdx = idx; update(); }
+    }
+    QSize sizeHint() const override { return QSize(220, 54); }
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing, true);
+        // Background
+        const QRectF R = rect().adjusted(0.5, 0.5, -0.5, -0.5);
+        QPainterPath bg; bg.addRoundedRect(R, 8, 8);
+        p.fillPath(bg, QColor(30,30,30,180));
+        p.setPen(QPen(QColor(255,255,255,28), 1));
+        p.drawPath(bg);
+
+        // Columns
+        const int w = width(), h = height();
+        const int colW = w/3;
+        const QRect cols[3] = {
+            QRect(0, 0, colW, h),
+            QRect(colW, 0, colW, h),
+            QRect(colW*2, 0, w - colW*2, h)
+        };
+        // Typography scaled to height
+        const int pxSide   = std::max(8,  int(std::round(h * 0.36)));
+        const int pxCenter = std::max(10, int(std::round(h * 0.48)));
+        const int underH   = std::max(2,  h / 12);
+        const int underW   = std::max(10, colW / 3);
+
+        // Values to show
+        const QString leftTxt  = (selIdx > 0)                  ? QString::number(editions.at(selIdx-1)) : QString();
+        const QString midTxt   = (selIdx >=0 && selIdx<editions.size()) ? QString::number(editions.at(selIdx))   : QString();
+        const QString rightTxt = (selIdx+1 < editions.size())  ? QString::number(editions.at(selIdx+1)) : QString();
+        const QString labels[3] = { leftTxt, midTxt, rightTxt };
+
+        // Draw texts
+        for (int i=0;i<3;++i) {
+            const bool center = (i==1);
+            QRect r = cols[i];
+            // subtle column separators
+            if (i!=0) {
+                p.setPen(QPen(QColor(255,255,255,20), 1));
+                p.drawLine(r.topLeft(), r.bottomLeft());
+            }
+            if (labels[i].isEmpty()) continue;
+            QFont f = font();
+            f.setPixelSize(center ? pxCenter : pxSide);
+            f.setBold(center);
+            p.setFont(f);
+            p.setPen(center ? QColor(255,255,255,235) : QColor(220,220,220,160));
+            p.drawText(r, Qt::AlignCenter, labels[i]);
+            if (center) {
+                // highlight under center
+                const int uw = underW;
+                const int ux = r.center().x() - uw/2;
+                p.setPen(Qt::NoPen);
+                p.fillRect(QRect(ux, r.bottom() - (underH + 2), uw, underH), QColor(255,255,255,90));
+            }
+        }
+    }
+    void mousePressEvent(QMouseEvent* e) override {
+        const int x = e->pos().x();
+        const int third = width()/3;
+        if (x < third) {
+            if (selIdx > 0) { selIdx--; changed(); }
+        } else if (x >= 2*third) {
+            if (selIdx+1 < editions.size()) { selIdx++; changed(); }
+        } else {
+            // click on center: no-op
+        }
+    }
+private:
+    QVector<int> editions;
+    int selIdx = -1;
+    int latest = 0;
+    std::function<void(int)> onChanged;
+    void changed() {
+        update();
+        if (!onChanged || selIdx<0 || selIdx>=editions.size()) return;
+        const int edNum = editions.at(selIdx);
+        const int stored = (edNum == latest ? 0 : edNum);
+        onChanged(stored);
+    }
+};
 
 
 QString formatWithCommas(qint64 number) {
@@ -191,7 +287,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // NEW: provide the log text box to functb for error reporting
+    // rendre invisible combo_tb_edition et pushButton
+    // if (ui->combo_tb_edition) {
+    //     ui->combo_tb_edition->setVisible(false);
+    // }
+    // if (ui->pushButton) {
+    //     ui->pushButton->setVisible(false);
+    // }
+
     functb::setLogBox(ui->boitetext);
 
     // + Charger l'ID sauvegardé et rafraîchir l'affichage
@@ -200,7 +303,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
     updateIdLabelDisplay();
 
-    // NEW: apply saved language on startup (default en_US)
+    // langue sauvegardée dans les paramètres
     loadLanguage(AppSettings::savedLanguage.isEmpty() ? QStringLiteral("en_US")
                                                       : AppSettings::savedLanguage);
 
@@ -475,6 +578,38 @@ MainWindow::MainWindow(QWidget *parent)
     connect(autoRefreshTimer, &QTimer::timeout, this, &MainWindow::doAutoRefreshIfClassement);
     scheduleNextAutoRefresh();
 
+    // NEW: TB widgets explicit + timer
+    tbProgressBar = ui->progressBar;
+    if (tbProgressBar) {
+        tbProgressBar->setRange(0, 100);
+        tbProgressBar->setTextVisible(true);
+        tbProgressBar->setFormat(QStringLiteral("%p%"));
+    }
+    tbTitleLabel = ui->label_8;
+    if (!tbTimer) {
+        tbTimer = new QTimer(this);
+        tbTimer->setInterval(30000);
+        connect(tbTimer, &QTimer::timeout, this, &MainWindow::updateTbUiFromTimes);
+        tbTimer->start();
+    }
+    // Fetch metadata for selected edition and initialize the UI
+    fetchAndInitTbMetadata();
+    // Build and wire the custom editions picker
+    tbPickerHost = this->findChild<QWidget*>("tbEditionPicker");
+    if (tbPickerHost) {
+        tbPicker = new EditionPickerWidget(tbPickerHost);
+        tbPicker->setGeometry(tbPickerHost->rect()); // fill host
+        tbPicker->show();
+        // follow host size changes
+        tbPickerHost->installEventFilter(this);
+        tbPicker->setOnChanged([this](int storedEd){
+            AppSettings::selectedEdition = storedEd;
+            AppSettings::save();
+            fetchAndInitTbMetadata();
+        });
+    }
+    buildTbEditionCombo();
+
     // NEW: TB widgets autodetect + periodic update
     // 1) Progress bar: pick the first QProgressBar on the main page
     tbProgressBar = ui->progressBar;
@@ -539,7 +674,7 @@ void MainWindow::on_bouton_graphique_clicked()
     // QString points = "[941080591.9161111, 954992299.3683333, 954796492.6183333, 968928798.7647221, 968725659.4555554, 960828762.8919444, 959794832.3283333, 960103803.0783333, 959108686.1419444, 959816838.5783333, 958587293.3283333, 956769817.4511111, 956525744.1419444, 956807881.5783333, 956607881.6419444, 954295580.0783333, 953043648.4555554, 952890358.5783333, 952651368.3283333, 951927051.7647221, 952229145.1419444, 951996060.5783333, 950832455.0147221, 950720249.0783333, 951320991.1419444, 951432952.5783333, 999542601.7130555, 1029240519.9333333, 1028836966.9333333, 1029277206.9333334, 1028871452.2888889, 1033396316.0525, 1042248248.3208333, 1041652944.5333333, 1041447120.9749999, 1041536954.8791666, 1041856904.3208333, 1044158942.3288889, 1068659988.1666666, 1068507978.1666666, 1068518587.0, 1068313611.1666666, 1068488670.1666666, 1074279603.6647222, 1094199310.4466667, 1093448944.6477778, 1092772835.8488889, 1092913066.6477778, 1092286172.4466667, 1092414331.6477778, 1091613328.6477778, 1091055021.8488889, 1091075003.6477778, 1090396226.05, 1090017511.05, 1089753221.05, 1089435869.6477778, 1089149797.8488889, 1088554280.05, 1088696762.05, 1088051255.8488889, 1087681893.05, 1087377153.8488889, 1086912837.8488889, 1086929223.6477778, 1086215261.05, 1085535512.8488889, 1085552888.05, 1084923028.8488889, 1084573663.05, 1084412709.05, 1084075187.05, 1083810920.6477778, 1083569612.05, 1083667276.05, 1083306044.05, 1083156911.8488889, 1082553161.05, 1081898550.05, 1081948704.05, 1081269297.8488889, 1080898378.251111, 1088646902.05, 1080160016.251111, 1079845008.8488889, 1079678985.05, 1079248541.05, 1078764408.8488889, 1077711226.8488889, 1077691214.05, 1077178608.05, 1077302976.05, 1076692617.8488889, 1076344115.05, 1076849364.05, 1075540656.05, 1075708382.8488889, 1075314150.05, 1075448712.251111, 1074886507.8488889, 1074226499.6477778, 1074225163.6477778, 1073646359.8488889, 1073838703.05, 1073155905.4466666, 1072523148.6477778, 1072528502.8488889, 1071732816.6477778, 1071091218.6477778, 1070861482.8488889, 1078572655.6477778, 1069893097.6477778, 1069479798.4466667, 1069197816.8488889, 1068534096.6477778, 1068137508.6477778, 1067982549.4466666, 1067370693.8488889, 1067339347.6477778, 1066777108.8488889, 1066848864.4466667, 1066117435.8488889, 1066233026.6477778, 1065554841.6477778, 1065159257.4466666, 1064869946.6477778, 1064226527.6477778, 1064371924.05, 1063727203.4466666, 1063005627.8488889, 1062987165.8488889, 1062214311.8488889, 1061664232.6477778, 1061667082.8488889, 1061125821.8488889, 1061129469.8488889, 1060294704.8488889, 1059808699.8488889, 1059962146.8488889, 1059722490.8488889, 1059491993.6477778, 1059192978.8488889, 1058915008.6477778, 1059177199.8488889, 1058558397.05, 1058715774.6477778, 1058202912.6477778, 1058221411.8488889, 1057711417.8488889, 1057703137.251111, 1057935174.6477778, 1057291440.8488889, 1056927797.6477778, 1056746511.8488889, 1056364596.05, 1056493701.6477778, 1055811983.6477778, 1055945840.8488889, 1054670445.8488889, 1054401797.05, 1053867624.8488889, 1053913478.8488889, 1053384024.8488889, 1052871247.6477778, 1052752160.05, 1051981828.8488889, 1051720944.8488889, 1051461135.8488889, 1050703302.8488889, 1064294627.6477778, 1051447135.8488889, 1067296427.6477778, 1071294627.6477778, 1065918447.7812119, 1085135435.5364616, 1095205229.4200351, 1099527280.932805, 1084398605.374169, 1069477042.8786293, 1050572265.6123109, 1065960045.7355093, 1070271428.2372028, 1079179193.6377938, 1058484184.0832614, 1078379869.9415963, 1092719848.0115724, 1080146537.4812322, 1066399511.081863, 1052894820.0457423, 1044650326.9108752, 1045684799.4867858, 1042838237.1053739, 1034129667.68958, 1038756483.5635549, 1023777359.9790686, 1015265455.8598633, 1009838327.6963152, 1008063839.1493576, 1019562862.1283556, 1007314803.7989633, 1007888346.2204752, 1011614088.8995569, 993261402.7992756, 997534208.8178141, 984387670.5137279, 967261356.5467328, 984628941.8946476, 1002967932.9361858, 1015340438.9667206, 1007405097.3116981, 991192810.7860737, 998497228.8416022, 996106926.0754386, 981047312.7929261, 980858045.6179382, 962590095.01009, 978350405.5991534, 968910497.4855431, 975209279.3809793, 967864435.1488886, 968641360.1081613, 970451180.4487257, 958217845.8227893, 976216420.6407113, 986959987.8416057, 1004310702.6425092, 1020171875.9917282, 1024166868.1934583, 1041449652.7556638, 1024307079.1218885, 1011850802.8739507, 993444317.5603093, 986503333.9461744, 982110524.9515643, 973128104.0541553, 985924252.4146553, 980275037.6430349, 971685260.3725352, 973344746.5597557, 959364565.7902483, 970961248.7992171, 954437455.2666767, 973025580.4175401, 983621625.403961, 971767634.5624377, 952546930.4589881, 964566603.0731025, 972547710.4921353, 981456526.3707174, 992106128.4573482, 975202411.9987965, 969681429.4826318]";
 
     // Récupérer les données
-    QJsonObject data = functb::pologet();
+    QJsonObject data = functb::pologet(AppSettings::selectedEdition);
 
     // Check si ya un "error"
     if (data.contains("error")) {
@@ -928,6 +1063,10 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
             break;
         }
     }
+    // Keep the custom picker sized to its host placeholder
+    if (tbPickerHost && watched == tbPickerHost && event->type() == QEvent::Resize) {
+        if (tbPicker) tbPicker->setGeometry(tbPickerHost->rect());
+    }
     return false;
 }
 
@@ -1247,9 +1386,13 @@ void MainWindow::showOptionsDialog()
         this->update();
         // NEW: reschedule auto-refresh with new offset
         scheduleNextAutoRefresh();
-        // NEW: if region changed, refetch TB metadata
+        // NEW: if region changed, refetch TB metadata and rebuild editions
         if (AppSettings::region != prevRegion) {
-            fetchAndInitTbMetadata();
+            // Reset selection to current tournament when region changes
+            AppSettings::selectedEdition = 0;
+            AppSettings::save();
+            buildTbEditionCombo(); // updates custom picker
+             fetchAndInitTbMetadata();
         }
     }
 }
@@ -1303,7 +1446,8 @@ void MainWindow::updateTbUiFromTimes()
 
 void MainWindow::fetchAndInitTbMetadata()
 {
-    const QJsonObject m = functb::pologetmetadata();
+    // Use selected edition (0 = current) to fetch metadata
+    const QJsonObject m = functb::pologetmetadata(AppSettings::selectedEdition);
     if (m.isEmpty()) return;
 
     // Cache times
@@ -1691,3 +1835,21 @@ void MainWindow::on_checkBox_clicked(bool checked)
     updateGoalOverlayOnGraphs(true);
 }
 
+// NEW: populate the TB edition ComboBox based on region + latest edition
+void MainWindow::buildTbEditionCombo()
+{
+    // Fetch latest/current edition number from /api/0/metadata
+    const QJsonObject cur = functb::pologetmetadata(0);
+    const int latest = cur.value(QStringLiteral("edition")).toInt();
+    if (latest <= 0) return;
+    const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
+    const int start = isJP ? 56 : 55;
+
+    // Build list [latest..start] descending
+    QVector<int> list; list.reserve(qMax(0, latest - start + 1));
+    for (int ed = latest; ed >= start; --ed) list.push_back(ed);
+
+    if (tbPicker) {
+        tbPicker->setEditions(list, AppSettings::selectedEdition, latest);
+    }
+}

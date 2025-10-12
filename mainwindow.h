@@ -34,6 +34,7 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class QProgressBar;
+class EditionPickerWidget; // NEW: forward declaration
 
 class MainWindow : public QMainWindow
 {
@@ -160,10 +161,13 @@ private:
     void updateTbUiFromTimes();        // NEW: recompute progress/time left from cached times
     static QString formatDhMin(qint64 secs); // NEW: translatable D/H/M string
     void refreshTbLocalizedTexts();    // NEW: rebuild title/time labels using cached data (no network)
+    void buildTbEditionCombo();        // NEW: populate tbPicker (3-slot) from region and latest edition
 
     // Cached widgets (autodetected)
     QLabel* tbTitleLabel = nullptr;         // “xxème Tenkaichi Budokai”
     QProgressBar* tbProgressBar = nullptr;  // main progress bar
+    EditionPickerWidget* tbPicker = nullptr; // NEW: three-slot editions picker
+    QWidget* tbPickerHost = nullptr;         // NEW: host placeholder to track size
     // We keep label_time_left from ui (already used elsewhere)
 
 

@@ -24,8 +24,9 @@
 #include <QPainterPath>               // NEW
 #include <QTimer>                     // NEW
 #include <QRandomGenerator>           // NEW
+#include "appsettings.h" // NEW: for selectedEdition
 
-static int g_EmbersParticleBudget = 320; // + c'est grand, + de particules
+static int g_EmbersParticleBudget = 400; // + c'est grand, + de particules
 
 // NEW: keep the shine overlay sized with its label
 class LabelResizeFilter : public QObject {
@@ -707,8 +708,8 @@ void Leaderboard::onRefreshClicked(MainWindow * this_, QListWidget *playerList)
     playerList->setStyleSheet("");
     playerList->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    // Récupérer le ladder
-    QJsonObject ladder = functb::pologettop();
+    // Récupérer le ladder (respecte l'édition choisie)
+    QJsonObject ladder = functb::pologettop(AppSettings::selectedEdition);
     if (ladder.contains("error")) {
         QString error = QString::fromStdString(ladder["error"].toString().toStdString());
         return;

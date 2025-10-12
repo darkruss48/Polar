@@ -9,67 +9,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1260</width>
-    <height>736</height>
+    <width>1294</width>
+    <height>755</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string notr="true">Polar</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>650</y>
-      <width>181</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="mouseTracking">
-     <bool>false</bool>
-    </property>
-    <property name="tabletTracking">
-     <bool>false</bool>
-    </property>
-    <property name="acceptDrops">
-     <bool>false</bool>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="text">
-     <string>Vérifier la connexion au serveur</string>
-    </property>
-    <property name="checkable">
-     <bool>false</bool>
-    </property>
-    <property name="autoRepeat">
-     <bool>false</bool>
-    </property>
-    <property name="autoExclusive">
-     <bool>false</bool>
-    </property>
-    <property name="autoDefault">
-     <bool>false</bool>
-    </property>
-    <property name="default">
-     <bool>false</bool>
-    </property>
-    <property name="flat">
-     <bool>false</bool>
-    </property>
-   </widget>
    <widget class="QGraphicsView" name="graphiqueTest">
     <property name="geometry">
      <rect>
       <x>510</x>
       <y>200</y>
-      <width>721</width>
-      <height>471</height>
+      <width>761</width>
+      <height>501</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -271,7 +225,7 @@
      <rect>
       <x>520</x>
       <y>10</y>
-      <width>551</width>
+      <width>591</width>
       <height>16</height>
      </rect>
     </property>
@@ -282,7 +236,7 @@
    <widget class="QLabel" name="label_time_left">
     <property name="geometry">
      <rect>
-      <x>1090</x>
+      <x>1130</x>
       <y>10</y>
       <width>151</width>
       <height>16</height>
@@ -308,7 +262,7 @@
    <widget class="QLabel" name="label_tips">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>880</x>
       <y>40</y>
       <width>321</width>
       <height>61</height>
@@ -326,7 +280,7 @@
      <rect>
       <x>520</x>
       <y>100</y>
-      <width>701</width>
+      <width>741</width>
       <height>81</height>
      </rect>
     </property>
@@ -462,9 +416,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>390</y>
+      <y>470</y>
       <width>441</width>
-      <height>241</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="title">
@@ -476,11 +430,37 @@
        <x>10</x>
        <y>20</y>
        <width>421</width>
-       <height>211</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="readOnly">
       <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>380</y>
+      <width>441</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Édition du tournoi</string>
+    </property>
+    <widget class="QWidget" name="tbEditionPicker" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>421</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Choisir l'édition du Tenkaichi Budokai</string>
      </property>
     </widget>
    </widget>
@@ -491,7 +471,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1260</width>
+     <width>1294</width>
      <height>21</height>
     </rect>
    </property>

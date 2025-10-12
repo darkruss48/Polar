@@ -435,10 +435,10 @@ void functb::connect(Ui::MainWindow *ui)
     */
 }
 
-QJsonObject functb::pologet()
+QJsonObject functb::pologet(int edition)
 {
     QNetworkAccessManager manager;
-    QString base = "https://dokkan-wt.info/api/get-user?identifier=" + QString::fromStdString(functb::identifier);
+    QString base = QStringLiteral("https://dokkan-wt.info/api/%1/get-user?identifier=").arg(edition) + QString::fromStdString(functb::identifier);
     if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
         base += "&region=JP";
     }
@@ -492,10 +492,11 @@ QJsonObject functb::pologet()
     return response_doc.object();
 }
 
-QJsonObject functb::pologettop()
+QJsonObject functb::pologettop(int edition)
 {
     QNetworkAccessManager manager;
-    QString topUrl = QStringLiteral("https://dokkan-wt.info/api/get-top100");
+    // Edition-aware endpoint: /api/{edition}/top100, with region when JP
+    QString topUrl = QStringLiteral("https://dokkan-wt.info/api/%1/get-top100").arg(edition);
     if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
         topUrl += QStringLiteral("?region=JP");
     }
@@ -549,11 +550,11 @@ QJsonObject functb::pologettop()
     return response_doc.object();
 }
 
-QJsonObject functb::pologetmetadata()
+QJsonObject functb::pologetmetadata(int edition)
 {
     QNetworkAccessManager manager;
-    // NOTE: example path provided by the user; region appended when JP is selected
-    QString urlStr = QStringLiteral("https://dokkan-wt.info/api/0/metadata");
+    // Edition-aware metadata: /api/{edition}/metadata (0 = current)
+    QString urlStr = QStringLiteral("https://dokkan-wt.info/api/%1/metadata").arg(edition);
     if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
         urlStr += QStringLiteral("?region=JP");
     }
@@ -576,7 +577,7 @@ QJsonObject functb::pologetmetadata()
             const QString err = obj.value("error").toString();
             const QString msg = obj.value("message").toString();
             // appendErrorToLog(QStringLiteral("Erreur: %1%2")
-            //     .arg(err, msg.isEmpty() ? QString() : QStringLiteral(" — ") + msg));
+            //     .arg(err, msg.isEmpty() ? QStringLiteral("") : QStringLiteral(" — ") + msg));
         }
     } // else if (!data.isEmpty()) {
     //     appendErrorToLog(QStringLiteral("Réponse invalide: ") + QString::fromUtf8(data.left(200)));
