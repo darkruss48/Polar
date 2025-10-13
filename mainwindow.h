@@ -90,6 +90,10 @@ private slots:
 
     void on_checkBox_clicked(bool checked);
 
+    // NEW: rank overlay checkbox
+    void on_checkBox_2_clicked();
+    void on_checkBox_2_clicked(bool checked);
+
 private:
     // loads a language by the given language shortcur (e.g. de, en)
     void loadLanguage(const QString& rLanguage);
@@ -154,6 +158,9 @@ private:
 
     // NEW: helpers for Graphs page overlay
     void updateGoalOverlayOnGraphs(bool allowAxisAdjust); // NEW
+    // NEW: overlay for Rank estimation
+    void updateRankOverlayOnGraphs(bool allowAxisAdjust);
+
     static QColor goalLineColorForTheme(QChart::ChartTheme t); // NEW
 
     // TB metadata/progress UI
@@ -162,6 +169,10 @@ private:
     static QString formatDhMin(qint64 secs); // NEW: translatable D/H/M string
     void refreshTbLocalizedTexts();    // NEW: rebuild title/time labels using cached data (no network)
     void buildTbEditionCombo();        // NEW: populate tbPicker (3-slot) from region and latest edition
+    // NEW: update "Score édition XX : ..." lines for rank estimation
+    void updateRankEstimation();
+    // NEW: 853.3M formatter (no space)
+    static QString formatMillionsCompact(qint64 v);
 
     // Cached widgets (autodetected)
     QLabel* tbTitleLabel = nullptr;         // “xxème Tenkaichi Budokai”
@@ -176,6 +187,10 @@ private:
     qint64 tbEndEpoch = 0;
     int    tbEdition   = 0;                 // NEW: cached edition number
     QTimer* tbTimer = nullptr;              // periodic refresh for progress/time-left
+
+    // NEW: Rank tab computed pace (wins/h) and validity
+    double lastRankWinPace = std::numeric_limits<double>::quiet_NaN();
+    bool   hasRankWinPace  = false;
 };
 
 #endif // MAINWINDOW_H

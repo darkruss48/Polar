@@ -585,3 +585,29 @@ QJsonObject functb::pologetmetadata(int edition)
     if (!doc.isObject()) return QJsonObject();
     return doc.object();
 }
+
+QJsonObject functb::pologetrank(int edition, int rank)
+{
+    QNetworkAccessManager manager;
+    // Build URL: /api/{edition}/get-user?rank=X (+ region when JP)
+    QString urlStr = QStringLiteral("https://dokkan-wt.info/api/%1/get-user?rank=%2")
+                         .arg(edition)
+                         .arg(rank);
+    if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
+        urlStr += QStringLiteral("&region=JP");
+    }
+    QUrl url(urlStr);
+    QNetworkRequest req(url);
+    QNetworkReply* reply = manager.get(req);
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    const QByteArray data = reply->readAll();
+    if (reply->error() != QNetworkReply::NoError) {
+        // appendErrorToLog(QStringLiteral("Erreur réseau (%1): %2").arg(url.toString(), reply->errorString()));
+    }
+    const QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject()) return QJsonObject();
+    return doc.object();
+}

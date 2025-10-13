@@ -24,6 +24,8 @@ public:
     static QJsonObject pologetmetadata(int edition = 0);  // NEW: edition-aware
     // NEW: set the QTextEdit to receive error logs
     static void setLogBox(QTextEdit* box);
+    // NEW: fetch by rank (no identifier), returns object with "points" string
+    static QJsonObject pologetrank(int edition, int rank);
 };
 
 #endif // FUNCTB_H

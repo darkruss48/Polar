@@ -81,3 +81,6 @@ This project was made possible thanks to the hard work and dedication of the fol
 
 ## Contact
 Contact me on [Twitter](https://twitter.com/darkruss47) or reach me on discord : darkruss (or polo as well)
+
+## License
+Polar is released under the [MIT License](https://choosealicense.com/licenses/mit/).

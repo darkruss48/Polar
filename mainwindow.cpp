@@ -312,6 +312,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lineEdit_goal->setMaxLength(13);
     ui->lineEdit_afk->setValidator( new QIntValidator(0, 10000000000, this) );
     ui->lineEdit_afk->setMaxLength(2);
+    // NEW: Rank target validator + live updates
+    if (ui->lineEdit_goal_2) {
+        ui->lineEdit_goal_2->setValidator(new QIntValidator(1, 10000, this));
+        connect(ui->lineEdit_goal_2, &QLineEdit::textChanged, this, [this]() { updateRankEstimation(); });
+    }
 
     // Connecter le signal pour formatter le nombre avec des virgules
     // connect(ui->lineEdit_goal, &QLineEdit::textChanged, this, &MainWindow::formatNumberWithCommas);
@@ -328,10 +333,30 @@ MainWindow::MainWindow(QWidget *parent)
         ui->lineEdit_afk->setText(formattedNumber);
     });
 
+    // pr page rank
+    if (ui->lineEdit_afk_2) {
+        connect(ui->lineEdit_afk_2, &QLineEdit::textChanged, this, [this](){ updateRankEstimation(); });
+    }
+    if (ui->combo_afk_minutes_2) {
+        connect(ui->combo_afk_minutes_2, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int){ updateRankEstimation(); });
+    }
+    // NEW: rank overlay checkbox wiring
+    if (ui->checkBox_2) {
+        connect(ui->checkBox_2, &QCheckBox::clicked, this, QOverload<bool>::of(&MainWindow::on_checkBox_2_clicked));
+    }
+
     // NEW: recalculer quand les minutes AFK changent
     if (ui->combo_afk_minutes) {
         connect(ui->combo_afk_minutes, QOverload<int>::of(&QComboBox::currentIndexChanged),
                 this, [this](int){ on_lineEdit_afk_textEdited(ui->lineEdit_afk->text()); });
+        // Also refresh Rank estimation pace (depends on AFK)
+        connect(ui->combo_afk_minutes, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int){ updateRankEstimation(); });
+    }
+    // Also refresh Rank estimation when AFK hours text changes
+    if (ui->lineEdit_afk) {
+        connect(ui->lineEdit_afk, &QLineEdit::textChanged, this, [this](){ updateRankEstimation(); });
     }
 
     // Mettre en anglais de base
@@ -629,6 +654,8 @@ MainWindow::MainWindow(QWidget *parent)
     }
     // 4) Fetch metadata now (edition/start/end) and initialize the UI
     fetchAndInitTbMetadata();
+    // NEW: run initial estimation once the UI is ready
+    QTimer::singleShot(0, this, [this](){ updateRankEstimation(); });
 }
 
 MainWindow::~MainWindow()
@@ -1444,6 +1471,243 @@ void MainWindow::updateTbUiFromTimes()
     }
 }
 
+// NEW: rank target (1..10000)
+QString MainWindow::formatMillionsCompact(qint64 v)
+{
+    const double m = static_cast<double>(v) / 1'000'000.0;
+    const int decimals = (m >= 10.0 ? 1 : 2);
+    return QString::number(m, 'f', decimals) + QStringLiteral("M");
+}
+
+void MainWindow::updateRankEstimation()
+{
+    if (!ui) return;
+    auto edit = ui->lineEdit_goal_2;
+    auto lbl  = ui->label_estimation_rank;
+    if (!edit || !lbl) return;
+    // reset style when recomputing
+    lbl->setStyleSheet("");
+
+    // Validate input rank
+    bool okRank = false;
+    const int rank = edit->text().toInt(&okRank);
+    if (!okRank || rank < 1 || rank > 10000) {
+        lbl->clear();
+        if (ui->label_win_pace_rank) ui->label_win_pace_rank->clear();
+        hasRankWinPace = false;
+        updateRankOverlayOnGraphs(true);
+        return;
+    }
+
+    // Determine base edition (current selected metadata), and min start per region
+    int baseEd = tbEdition;
+    if (baseEd <= 0) {
+        const QJsonObject m = functb::pologetmetadata(AppSettings::selectedEdition);
+        baseEd = m.value(QStringLiteral("edition")).toInt();
+    }
+    if (baseEd <= 0) {
+        lbl->clear();
+        if (ui->label_win_pace_rank) ui->label_win_pace_rank->clear();
+        hasRankWinPace = false;
+        updateRankOverlayOnGraphs(true);
+        return;
+    }
+
+    const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
+    const int start = isJP ? 56 : 55;
+
+    // Build up to 3 editions: base, base-1, base-2 (bounded)
+    QVector<int> eds;
+    eds.push_back(baseEd);
+    if (baseEd - 1 >= start) eds.push_back(baseEd - 1);
+    if (baseEd - 2 >= start) eds.push_back(baseEd - 2);
+
+    // Query each edition for the rank points and collect last values
+    QStringList lines;
+    QVector<qint64> lastValsNewestFirst; // newest -> older
+    for (int ed : eds) {
+        qint64 lastPts = -1;
+        const QJsonObject obj = functb::pologetrank(ed, rank);
+        if (!obj.isEmpty() && obj.contains(QStringLiteral("points"))) {
+            const QString ptsStr = obj.value(QStringLiteral("points")).toString().remove('[').remove(']');
+            const QStringList vals = ptsStr.split(',', Qt::SkipEmptyParts);
+            if (!vals.isEmpty()) {
+                bool okNum = false;
+                lastPts = vals.last().trimmed().toLongLong(&okNum);
+                if (!okNum) lastPts = -1;
+            }
+        }
+        if (lastPts >= 0) {
+            lines << tr("Score édition %1 : %2").arg(ed).arg(formatMillionsCompact(lastPts));
+            lastValsNewestFirst << lastPts;
+        } else {
+            lines << tr("Score édition %1 : %2").arg(ed).arg(QStringLiteral("—"));
+        }
+    }
+
+    // Compute points estimation using average delta on chronological order
+    qint64 estimatedPoints = -1;
+    if (!lastValsNewestFirst.isEmpty()) {
+        QVector<qint64> valsChrono = lastValsNewestFirst;
+        std::reverse(valsChrono.begin(), valsChrono.end()); // oldest -> newest
+        const int n = valsChrono.size();
+        if (n == 1) {
+            estimatedPoints = valsChrono.last();
+        } else {
+            double sumDelta = 0.0;
+            for (int i = 1; i < n; ++i) sumDelta += static_cast<double>(valsChrono[i] - valsChrono[i-1]);
+            const double avgDelta = sumDelta / static_cast<double>(n - 1);
+            const double est = static_cast<double>(valsChrono.last()) + avgDelta;
+            estimatedPoints = static_cast<qint64>(std::max(0.0, est));
+        }
+        // Append estimation line
+        lines << QString();
+        lines << tr("Estimation points : %1").arg(formatMillionsCompact(estimatedPoints));
+    }
+
+    lbl->setText(lines.join('\n'));
+
+    // Compute wins/hour needed to reach estimated points (same as Points tab logic)
+    if (ui->label_win_pace_rank) {
+        // prerequisites
+        if (estimatedPoints <= 0) {
+            ui->label_win_pace_rank->clear();
+            hasRankWinPace = false;
+            updateRankOverlayOnGraphs(true);
+            return;
+        }
+        // Current variables from functb
+        if (functb::points == "-1") {
+            ui->label_win_pace_rank->clear();
+            hasRankWinPace = false;
+            updateRankOverlayOnGraphs(true);
+            return;
+        }
+        bool okP=true, okS=true, okH=true;
+        const int curPoints = QString::fromStdString(functb::points).toInt(&okP);
+        const int seedValue = QString::fromStdString(functb::seed).toInt(&okS);
+        const double hours_left_total = QString::fromStdString(functb::hour_missing).toDouble(&okH);
+        if (!okP || !okS || !okH || seedValue == 0) {
+            ui->label_win_pace_rank->clear();
+            hasRankWinPace = false;
+            updateRankOverlayOnGraphs(true);
+            return;
+        }
+
+        // AFK total from Rank tab UI (fallback to main if missing)
+        int afkHoursInt = 0;
+        int afkMinutesInt = 0;
+        if (ui->lineEdit_afk_2 && !ui->lineEdit_afk_2->text().isEmpty())
+            afkHoursInt = ui->lineEdit_afk_2->text().remove(',').toInt();
+        else if (ui->lineEdit_afk)
+            afkHoursInt = ui->lineEdit_afk->text().remove(',').toInt();
+        if (ui->combo_afk_minutes_2)
+            afkMinutesInt = ui->combo_afk_minutes_2->currentText().toInt();
+        else if (ui->combo_afk_minutes)
+            afkMinutesInt = ui->combo_afk_minutes->currentText().toInt();
+        const double afkTotalHours = static_cast<double>(afkHoursInt) + (static_cast<double>(afkMinutesInt) / 60.0);
+        const double activeHours = hours_left_total - afkTotalHours;
+        if (activeHours <= 0.0) {
+            // Impossible: show same red text as Points tab
+            lbl->setStyleSheet("color: red;");
+            lbl->setText(tr("Impossible"));
+            ui->label_win_pace_rank->clear();
+            hasRankWinPace = false;
+            updateRankOverlayOnGraphs(true);
+            return;
+        }
+
+        // Target delta
+        const qint64 deltaPts = static_cast<qint64>(estimatedPoints) - static_cast<qint64>(curPoints);
+        if (deltaPts <= 0) {
+            ui->label_win_pace_rank->setText(QStringLiteral("0.00"));
+            ui->label_win_pace_rank->setStyleSheet("color: green; font-size: 47px;");
+            lastRankWinPace = 0.0;
+            hasRankWinPace = true;
+            updateRankOverlayOnGraphs(false);
+            return;
+        }
+
+        const double winsPerHour = static_cast<double>(deltaPts) / (static_cast<double>(seedValue) * activeHours);
+
+        // Color mapping (same thresholds)
+        QString color;
+        if (winsPerHour < 8)        color = "blue";
+        else if (winsPerHour < 10)  color = "green";
+        else if (winsPerHour < 12)  color = "yellow";
+        else if (winsPerHour < 13)  color = "orange";
+        else if (winsPerHour < 14)  color = "red";
+        else                        color = "darkred";
+
+        ui->label_win_pace_rank->setStyleSheet(QString("color: %1; font-size: 47px;").arg(color));
+        ui->label_win_pace_rank->setText(QString::number(winsPerHour, 'f', 2));
+                // Store and update overlay if checkbox_2 is enabled
+        lastRankWinPace = winsPerHour;
+        hasRankWinPace = std::isfinite(lastRankWinPace) && lastRankWinPace >= 0.0;
+        updateRankOverlayOnGraphs(false);
+    }
+}
+
+// NEW: rank overlay checkbox handlers
+void MainWindow::on_checkBox_2_clicked() { /* unused */ }
+
+void MainWindow::on_checkBox_2_clicked(bool checked)
+{
+    if (checked && !hasRankWinPace) {
+        updateRankEstimation();
+    }
+    updateRankOverlayOnGraphs(true);
+}
+
+// NEW: add/remove/update rank overlay on main Graphs chart
+void MainWindow::updateRankOverlayOnGraphs(bool allowAxisAdjust)
+{
+    // Do not resize axes
+    allowAxisAdjust = false;
+    if (!ui || !ui->graphiqueTest) return;
+    QGraphicsView* view = ui->graphiqueTest;
+    QChart* chart = Render::chartFromView(view);
+    if (!chart) return;
+
+    const QString kRankName = tr("Objectif (Rank)");
+    // Remove existing "rank" line if any
+    QAbstractSeries* rankSeries = nullptr;
+    for (auto s : chart->series()) {
+        if (s->name() == kRankName) { rankSeries = s; break; }
+    }
+    if (rankSeries) {
+        chart->removeSeries(rankSeries);
+        delete rankSeries;
+        rankSeries = nullptr;
+    }
+
+    const bool wantOverlay = (ui->checkBox_2 && ui->checkBox_2->isChecked());
+    if (!wantOverlay) return;
+
+    // Only show on wins_pace and if we have a computed pace
+    const bool yIsWinsPace = (ui->ydataBox && ui->ydataBox->currentText() == QStringLiteral("wins_pace"));
+    if (!hasRankWinPace || !yIsWinsPace) return;
+
+    const double minX = 0.0;
+    const double maxX = 71.75;
+
+    auto line = new QLineSeries();
+    line->setName(kRankName);
+    line->append(minX, lastRankWinPace);
+    line->append(maxX, lastRankWinPace);
+
+    QPen pen(goalLineColorForTheme(chart->theme()));
+    pen.setWidth(2);
+    pen.setStyle(Qt::DashLine);
+    line->setPen(pen);
+
+    chart->addSeries(line);
+    if (!chart->axes(Qt::Horizontal).isEmpty())
+        line->attachAxis(chart->axes(Qt::Horizontal).first());
+    if (!chart->axes(Qt::Vertical).isEmpty())
+        line->attachAxis(chart->axes(Qt::Vertical).first());
+}
+
 void MainWindow::fetchAndInitTbMetadata()
 {
     // Use selected edition (0 = current) to fetch metadata
@@ -1460,6 +1724,8 @@ void MainWindow::fetchAndInitTbMetadata()
     }
     // First UI refresh
     updateTbUiFromTimes();
+    // NEW: also refresh rank estimation (depends on edition/region)
+    updateRankEstimation();
 }
 
 // NEW: rebuild localized title/time using cached metadata (no refetch)
@@ -1817,6 +2083,7 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
     if (!chart->axes(Qt::Vertical).isEmpty())
         line->attachAxis(chart->axes(Qt::Vertical).first());
 }
+
 
 void MainWindow::on_checkBox_clicked()
 {
