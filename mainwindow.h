@@ -86,10 +86,6 @@ private slots:
     // NEW: checkbox toggled
     void onGoalOverlayToggled(bool checked); // NEW
 
-    void on_checkBox_clicked();
-
-    void on_checkBox_clicked(bool checked);
-
     // NEW: rank overlay checkbox
     void on_checkBox_2_clicked();
     void on_checkBox_2_clicked(bool checked);
