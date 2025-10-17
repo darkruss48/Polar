@@ -2,6 +2,7 @@
     <qresource prefix="/images">
         <file>en_US.png</file>
         <file>fr_FR.png</file>
+        <file>es_ES.png</file>
         <file>image.png</file>
         <file>settings_icon.png</file>
         <file>medal.png</file>
@@ -10,6 +11,7 @@
     <qresource prefix="/i18n">
         <file>Polar_en_US.qm</file>
         <file>Polar_fr_FR.qm</file>
+	    <file>Polar_es_ES.qm</file>
     </qresource>
     <qresource prefix="/">
         <!-- Other resources -->

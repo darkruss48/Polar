@@ -841,6 +841,7 @@ void MainWindow::createLanguageMenu()
     QList<QPair<QString, QString>> languages;
     languages.append(qMakePair(QString("en_US"), QString("English")));
     languages.append(qMakePair(QString("fr_FR"), QString("Français")));
+    languages.append(qMakePair(QString("es_ES"), QString("Español")));
     for (const auto& lang : languages) {
         QAction* action = new QAction(this);
         action->setCheckable(true);
