@@ -178,28 +178,28 @@
         <translation type="vanished">Web server</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="551"/>
+        <location filename="mainwindow.ui" line="554"/>
         <source>Générer graphique</source>
         <translation>Create graph</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="581"/>
+        <location filename="mainwindow.ui" line="584"/>
         <source>Identification</source>
         <translation>Identification</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="593"/>
+        <location filename="mainwindow.ui" line="596"/>
         <source>Changer l&apos;identifiant</source>
         <translation>Change ID</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="612"/>
-        <location filename="mainwindow.cpp" line="1821"/>
+        <location filename="mainwindow.ui" line="615"/>
+        <location filename="mainwindow.cpp" line="1827"/>
         <source>Identifiant actuel : </source>
         <translation>Current ID : </translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="507"/>
+        <location filename="mainwindow.ui" line="510"/>
         <source>max_points</source>
         <translation></translation>
     </message>
@@ -219,52 +219,52 @@
         <translation>Estimation</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="460"/>
+        <location filename="mainwindow.ui" line="463"/>
         <source>55ème Tenkaichi Budokai</source>
         <translation>WT 55</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="489"/>
+        <location filename="mainwindow.ui" line="492"/>
         <source>Graphique</source>
         <translation>Graph</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="512"/>
+        <location filename="mainwindow.ui" line="515"/>
         <source>max_wins</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="517"/>
+        <location filename="mainwindow.ui" line="520"/>
         <source>points</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="522"/>
+        <location filename="mainwindow.ui" line="525"/>
         <source>points_pace</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="527"/>
+        <location filename="mainwindow.ui" line="530"/>
         <source>points_wins</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="532"/>
+        <location filename="mainwindow.ui" line="535"/>
         <source>ranks</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="537"/>
+        <location filename="mainwindow.ui" line="540"/>
         <source>wins</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="652"/>
+        <location filename="mainwindow.ui" line="655"/>
         <source>Édition du tournoi</source>
         <translation>WT Edition</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="664"/>
+        <location filename="mainwindow.ui" line="667"/>
         <source>Choisir l&apos;édition du Tenkaichi Budokai</source>
         <translation>Select WT edition</translation>
     </message>
@@ -278,7 +278,7 @@
         <location filename="mainwindow.ui" line="55"/>
         <location filename="mainwindow.ui" line="171"/>
         <location filename="mainwindow.ui" line="325"/>
-        <location filename="mainwindow.cpp" line="2013"/>
+        <location filename="mainwindow.cpp" line="2019"/>
         <source>Objectif</source>
         <translation>Goal</translation>
     </message>
@@ -330,7 +330,7 @@
         <translation>Time left : </translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="626"/>
+        <location filename="mainwindow.ui" line="629"/>
         <source>Sortie d&apos;application</source>
         <translation>Console output</translation>
     </message>
@@ -339,12 +339,12 @@
         <translation type="vanished">WT n°59</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="502"/>
+        <location filename="mainwindow.ui" line="505"/>
         <source>wins_pace</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="564"/>
+        <location filename="mainwindow.ui" line="567"/>
         <source>Donnée en ordonnée</source>
         <translation>Y-value</translation>
     </message>
@@ -353,191 +353,191 @@
         <translation type="vanished">Languages</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="933"/>
+        <location filename="mainwindow.cpp" line="934"/>
         <source>Bienvenue sur le leaderboard !</source>
         <translation>Welcome to the leaderboard !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="533"/>
+        <location filename="mainwindow.cpp" line="534"/>
         <source>Navigation</source>
         <translation>Navigation</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="538"/>
+        <location filename="mainwindow.cpp" line="539"/>
         <source>Graphiques</source>
         <translation>Graphs</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="539"/>
+        <location filename="mainwindow.cpp" line="540"/>
         <source>Classement</source>
         <translation>Leaderboard</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="550"/>
-        <location filename="mainwindow.cpp" line="1312"/>
+        <location filename="mainwindow.cpp" line="551"/>
+        <location filename="mainwindow.cpp" line="1313"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="551"/>
+        <location filename="mainwindow.cpp" line="552"/>
         <source>Paramètres</source>
         <oldsource>Paramètres...</oldsource>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="682"/>
+        <location filename="mainwindow.cpp" line="683"/>
         <source>Mise à jour disponible</source>
         <translation>An update is available</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="683"/>
+        <location filename="mainwindow.cpp" line="684"/>
         <source>Une nouvelle version (%1) est disponible.</source>
         <translation>A new version (%1) is available.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="686"/>
+        <location filename="mainwindow.cpp" line="687"/>
         <source>Télécharger</source>
         <translation>Download</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="815"/>
+        <location filename="mainwindow.cpp" line="816"/>
         <source>Nouvel identifiant</source>
         <translation>New id</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="816"/>
+        <location filename="mainwindow.cpp" line="817"/>
         <source>Identifiant:</source>
         <translation>ID:</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="831"/>
+        <location filename="mainwindow.cpp" line="832"/>
         <source>Langue</source>
         <translation>Languages</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="956"/>
+        <location filename="mainwindow.cpp" line="957"/>
         <source>Ne lâche rien !</source>
         <translation>Don&apos;t give up !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="957"/>
+        <location filename="mainwindow.cpp" line="958"/>
         <source>Tu peux accomplir tes objectifs !</source>
         <translation>You can achieve your goals !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="958"/>
+        <location filename="mainwindow.cpp" line="959"/>
         <source>Il est normal d&apos;être fatigué, mais je crois en toi !</source>
         <translation>It&apos;s normal to be tired, but I believe in you !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="959"/>
+        <location filename="mainwindow.cpp" line="960"/>
         <source>Personne ne peut le faire à ta place,
 alors tu vas me le gravir ce classement !</source>
         <translation>No one can do it for you,
 so you’re going to climb that ranking !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="960"/>
+        <location filename="mainwindow.cpp" line="961"/>
         <source>Tu peux le faire !</source>
         <translation>You can do it !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="961"/>
+        <location filename="mainwindow.cpp" line="962"/>
         <source>Prouve-nous que tu es meilleur que ce qu&apos;on peut penser !</source>
         <translation>Prove to us that you&apos;re better than people might think !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="962"/>
+        <location filename="mainwindow.cpp" line="963"/>
         <source>Tout le monde est passé par là, ne te décourage pas !</source>
         <translation>Everyone’s been through this, don’t get discouraged !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="963"/>
+        <location filename="mainwindow.cpp" line="964"/>
         <source>C&apos;est pas le moment de se décourager !</source>
         <translation>This is not the time to give up !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="964"/>
+        <location filename="mainwindow.cpp" line="965"/>
         <source>Pense à ceux qui croient en toi ... Tu ne
 peux PAS les décevoir !</source>
         <translation>Think of those who believe in you... You
 CANNOT let them down !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="966"/>
+        <location filename="mainwindow.cpp" line="967"/>
         <source>Si tu es fatigué, tu peux prendre une pause
 avant la nuit. Ça t&apos;évitera de tomber de fatigue 😉</source>
         <translation>If you&apos;re tired, you can take a break
 before the night. That way you won’t collapse 😉</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="967"/>
+        <location filename="mainwindow.cpp" line="968"/>
         <source>Ne néglige pas la douche.
 L&apos;hygiène avant tout ... non ?</source>
         <translation>Don’t neglect taking a shower.
 Hygiene first... right?</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="968"/>
+        <location filename="mainwindow.cpp" line="969"/>
         <source>Il vaudrait mieux que tu aies préparé de quoi
 manger avant de commencer le tournoi.</source>
         <translation>It’s better if you prepared something to eat
 before starting the tournament.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="969"/>
+        <location filename="mainwindow.cpp" line="970"/>
         <source>Se concentrer sur le tournoi est important, mais
 avoir un autre centre d&apos;attention en a déjà aidé plus d&apos;un.</source>
         <translation>Focusing on the tournament is important, but
 having another point of interest has already helped many.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="970"/>
+        <location filename="mainwindow.cpp" line="971"/>
         <source>Fatigué pendant la nuit ? Marcher, boire de l&apos;eau et se rafraîchir
 aident à lutter temporairement contre la fatigue.</source>
         <translation>Tired at night? Walking, drinking water, and cooling down
 help fight fatigue temporarily.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="971"/>
+        <location filename="mainwindow.cpp" line="972"/>
         <source>La nuit est souvent dure à passer, mais le matin peut te
 surprendre. Fais attention.</source>
         <translation>Night is often tough to get through, but the morning
 can surprise you. Be careful.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="973"/>
+        <location filename="mainwindow.cpp" line="974"/>
         <source>Tu peux regarder le classement en cliquant sur l&apos;onglet
 Navigation, puis sur &quot;Classement&quot;.</source>
         <translation>You can check the top ranking by clicking on the
 Navigation tab, then on &quot;Leaderboard&quot;.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="974"/>
+        <location filename="mainwindow.cpp" line="975"/>
         <source>Un objectif en tête ? Tu peux calculer le nombre de
 victoires/heures à gauche de cette fenêtre.</source>
         <translation>Got a goal in mind? You can calculate the number of
 wins/hours on the left of this window.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="975"/>
+        <location filename="mainwindow.cpp" line="976"/>
         <source>Tu peux générer les graphiques de plusieurs statistiques : 
 Rang, Points, Points/heure, ...</source>
         <translation>You can generate graphs of several statistics:
 Rank, Points, Points/hour, ...</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="976"/>
+        <location filename="mainwindow.cpp" line="977"/>
         <source>La touche &quot;Tab&quot; te permet de rapidement changer de page. Essaye donc !</source>
         <translation>The &quot;Tab&quot; key lets you quickly switch pages. Give it a try !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="978"/>
+        <location filename="mainwindow.cpp" line="979"/>
         <source>Team Café, Team Boisson énergisante ou Team Eau ?</source>
         <translation>Team Coffee, Team Energy Drink, or Team Water ?</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1180"/>
+        <location filename="mainwindow.cpp" line="1181"/>
         <source>Rentrez votre identifiant
 et générer un graphique
 d&apos;abord !</source>
@@ -546,149 +546,155 @@ ID and generate
 the graph first !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1215"/>
+        <location filename="mainwindow.cpp" line="1216"/>
         <source>Vous avez dépassé 
 votre objectif !</source>
         <translation>You&apos;ve already
 reached this score !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1226"/>
+        <location filename="mainwindow.cpp" line="1227"/>
         <source>Le seed est nul !</source>
         <translation>The seed is null !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1240"/>
-        <location filename="mainwindow.cpp" line="1613"/>
+        <location filename="mainwindow.cpp" line="1241"/>
+        <location filename="mainwindow.cpp" line="1619"/>
         <source>Impossible</source>
         <translation>Impossible</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1261"/>
+        <location filename="mainwindow.cpp" line="1262"/>
         <source>Très Facile</source>
         <translation>Very Easy</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1264"/>
+        <location filename="mainwindow.cpp" line="1265"/>
         <source>Facile</source>
         <translation>Easy</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1267"/>
+        <location filename="mainwindow.cpp" line="1268"/>
         <source>Moyen</source>
         <translation>Medium</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1270"/>
+        <location filename="mainwindow.cpp" line="1271"/>
         <source>Difficile</source>
         <translation>Hard</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1273"/>
+        <location filename="mainwindow.cpp" line="1274"/>
         <source>Très difficile</source>
         <translation>Very hard</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1276"/>
+        <location filename="mainwindow.cpp" line="1277"/>
         <source>bonne chance mdr</source>
         <translation>You&apos;re cooked, GL</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1371"/>
+        <location filename="mainwindow.cpp" line="1373"/>
         <source>Choisir une image</source>
         <translation>Choose an image</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1371"/>
+        <location filename="mainwindow.cpp" line="1373"/>
         <source>Images (*.png *.jpg *.jpeg *.bmp)</source>
         <translation>Images (*.png *.jpg *.jpeg *.bmp)</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1431"/>
-        <location filename="mainwindow.cpp" line="1439"/>
+        <location filename="mainwindow.cpp" line="1433"/>
+        <location filename="mainwindow.cpp" line="1441"/>
         <source>minute</source>
         <translation>min</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1437"/>
+        <location filename="mainwindow.cpp" line="1439"/>
         <source>jour</source>
         <translation>day</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1437"/>
+        <location filename="mainwindow.cpp" line="1439"/>
         <source>jours</source>
         <translation>days</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1438"/>
+        <location filename="mainwindow.cpp" line="1440"/>
         <source>heure</source>
         <translation>hour</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1438"/>
+        <location filename="mainwindow.cpp" line="1440"/>
         <source>heures</source>
         <translation>hours</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1439"/>
+        <location filename="mainwindow.cpp" line="1441"/>
         <source>minutes</source>
         <translation>min</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1470"/>
-        <source>Temps restant : %1</source>
-        <translation>Time left : %1</translation>
+        <location filename="mainwindow.cpp" line="1476"/>
+        <source>Temps restant : 
+%1</source>
+        <translation>Temps restant : 
+%1</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1541"/>
-        <location filename="mainwindow.cpp" line="1544"/>
+        <source>Temps restant : %1</source>
+        <translation type="vanished">Time left : %1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1547"/>
+        <location filename="mainwindow.cpp" line="1550"/>
         <source>Score édition %1 : %2</source>
         <translation>Score WT %1 : %2</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1565"/>
+        <location filename="mainwindow.cpp" line="1571"/>
         <source>Estimation points : %1</source>
         <translation>Point estimation : %1</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1672"/>
+        <location filename="mainwindow.cpp" line="1678"/>
         <source>Objectif (Rank)</source>
         <translation>Goal (Rank)</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1723"/>
-        <location filename="mainwindow.cpp" line="1735"/>
+        <location filename="mainwindow.cpp" line="1729"/>
+        <location filename="mainwindow.cpp" line="1741"/>
         <source>%1ème Tenkaichi Budokai</source>
         <translation>WT %1</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1872"/>
+        <location filename="mainwindow.cpp" line="1878"/>
         <source>Une erreur est survenue lors de la copie du graphique.</source>
         <translation>An error occured when copying the graph.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1888"/>
+        <location filename="mainwindow.cpp" line="1894"/>
         <source>Aucun graphique n&apos;a
 été affiché !</source>
         <translation>No graph are displayed !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1907"/>
+        <location filename="mainwindow.cpp" line="1913"/>
         <source>Erreur lors de la copie.</source>
         <translation>Error when copying.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1924"/>
+        <location filename="mainwindow.cpp" line="1930"/>
         <source>Graphique copié !</source>
         <translation>Graph copied !</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1950"/>
+        <location filename="mainwindow.cpp" line="1956"/>
         <source>Erreur : aucun graphique affiché.</source>
         <translation>Error: no chart displayed.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1965"/>
+        <location filename="mainwindow.cpp" line="1971"/>
         <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
         <translation>Error: an error occurred while copying the chart</translation>
     </message>
@@ -865,32 +871,32 @@ reached this score !</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="mainwindow.cpp" line="255"/>
+        <location filename="mainwindow.cpp" line="256"/>
         <source>Erreur lors de la conversion en JSON</source>
         <translation>Error when converting to JSON</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="260"/>
+        <location filename="mainwindow.cpp" line="261"/>
         <source>Erreur réseau : </source>
         <translation>Network error : </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="267"/>
+        <location filename="mainwindow.cpp" line="268"/>
         <source>Code de statut HTTP: </source>
         <translation>HTTP Status : </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="270"/>
+        <location filename="mainwindow.cpp" line="271"/>
         <source>Le serveur a répondu avec un code d&apos;erreur HTTP.</source>
         <translation>The server responded with an HTTP error.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="273"/>
+        <location filename="mainwindow.cpp" line="274"/>
         <source>Impossible de récupérer le code de statut HTTP.</source>
         <translation>Unable to retrieve the HTTP status code.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="907"/>
+        <location filename="mainwindow.cpp" line="908"/>
         <source>Impossible de charger la traduction pour</source>
         <translation>Unable to load locale</translation>
     </message>

@@ -61,6 +61,7 @@
 #include <algorithm>     // NEW: for std::clamp
 #include <QSignalBlocker> // NEW
 #include <functional>    // NEW
+#include <QLocale>      // NEW: for locale-aware % formatting
 
 // NEW: lightweight 3-slot edition picker (center = selected, side = neighbors)
 class EditionPickerWidget : public QWidget {
@@ -606,9 +607,9 @@ MainWindow::MainWindow(QWidget *parent)
     // NEW: TB widgets explicit + timer
     tbProgressBar = ui->progressBar;
     if (tbProgressBar) {
-        tbProgressBar->setRange(0, 100);
+        tbProgressBar->setRange(0, 1000); // tenths of percent
         tbProgressBar->setTextVisible(true);
-        tbProgressBar->setFormat(QStringLiteral("%p%"));
+        tbProgressBar->setFormat(QStringLiteral("0.0%"));
     }
     tbTitleLabel = ui->label_8;
     if (!tbTimer) {
@@ -639,9 +640,9 @@ MainWindow::MainWindow(QWidget *parent)
     // 1) Progress bar: pick the first QProgressBar on the main page
     tbProgressBar = ui->progressBar;
     if (tbProgressBar) {
-        tbProgressBar->setRange(0, 100);
+        tbProgressBar->setRange(0, 1000); // tenths of percent
         tbProgressBar->setTextVisible(true);
-        tbProgressBar->setFormat(QStringLiteral("%p%"));
+        tbProgressBar->setFormat(QStringLiteral("0.0%"));
     }
     tbTitleLabel = ui->label_8;
 
@@ -1322,6 +1323,7 @@ void MainWindow::showOptionsDialog()
     // NEW: privacy
     auto checkCensorId = content->findChild<QCheckBox*>("checkCensorId");
     // NEW: background selectors
+   
     auto checkCustom = content->findChild<QCheckBox*>("checkCustomBackground");
     auto editPath = content->findChild<QLineEdit*>("editBackgroundPath");
     auto btnBrowse = content->findChild<QPushButton*>("buttonBrowseBackground");
@@ -1451,23 +1453,27 @@ void MainWindow::updateTbUiFromTimes()
     if (tbStartEpoch <= 0 || tbEndEpoch <= 0) return;
     const qint64 now = QDateTime::currentSecsSinceEpoch();
 
-    // Progress [0..100]
-    int pct = 0;
+    // Progress as double [0..100] with 1 decimal
+    double pctD = 0.0;
     if (now <= tbStartEpoch) {
-        pct = 0;
+        pctD = 0.0;
     } else if (now >= tbEndEpoch) {
-        pct = 100;
+        pctD = 100.0;
     } else {
         const double total = static_cast<double>(tbEndEpoch - tbStartEpoch);
         const double done  = static_cast<double>(now - tbStartEpoch);
-        pct = static_cast<int>(std::clamp(done / total, 0.0, 1.0) * 100.0);
+        pctD = std::clamp(done / total, 0.0, 1.0) * 100.0;
     }
-    if (tbProgressBar) tbProgressBar->setValue(pct);
+    if (tbProgressBar) {
+        const int scaled = qBound(0, static_cast<int>(qRound(pctD * 10.0)), 1000); // 0..1000
+        tbProgressBar->setValue(scaled);
+        tbProgressBar->setFormat(QLocale().toString(pctD, 'f', 1) + QStringLiteral("%"));
+    }
 
     // Time left (localized with placeholder)
     const qint64 remain = std::max<qint64>(0, tbEndEpoch - now);
     if (ui && ui->label_time_left) {
-        ui->label_time_left->setText(tr("Temps restant : %1").arg(formatDhMin(remain)));
+        ui->label_time_left->setText(tr("Temps restant : \n%1").arg(formatDhMin(remain)));
     }
 }
 
@@ -1503,7 +1509,7 @@ void MainWindow::updateRankEstimation()
     int baseEd = tbEdition;
     if (baseEd <= 0) {
         const QJsonObject m = functb::pologetmetadata(AppSettings::selectedEdition);
-        baseEd = m.value(QStringLiteral("edition")).toInt();
+        baseEd = m.value(QStringLiteral("id")).toInt();
     }
     if (baseEd <= 0) {
         lbl->clear();
@@ -1715,10 +1721,10 @@ void MainWindow::fetchAndInitTbMetadata()
     if (m.isEmpty()) return;
 
     // Cache times
-    tbStartEpoch = m.value(QStringLiteral("start")).toVariant().toLongLong();
-    tbEndEpoch   = m.value(QStringLiteral("end")).toVariant().toLongLong();
+    tbStartEpoch = m.value(QStringLiteral("start_at")).toVariant().toLongLong();
+    tbEndEpoch   = m.value(QStringLiteral("end_at")).toVariant().toLongLong();
     // Cache and show title with edition (localized placeholder)
-    tbEdition = m.value(QStringLiteral("edition")).toInt();
+    tbEdition = m.value(QStringLiteral("id")).toInt();
     if (tbTitleLabel && tbEdition > 0) {
         tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
     }
@@ -2084,7 +2090,6 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
         line->attachAxis(chart->axes(Qt::Vertical).first());
 }
 
-
 void MainWindow::on_checkBox_clicked()
 {
 
@@ -2107,7 +2112,7 @@ void MainWindow::buildTbEditionCombo()
 {
     // Fetch latest/current edition number from /api/0/metadata
     const QJsonObject cur = functb::pologetmetadata(0);
-    const int latest = cur.value(QStringLiteral("edition")).toInt();
+    const int latest = cur.value(QStringLiteral("id")).toInt();
     if (latest <= 0) return;
     const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
     const int start = isJP ? 56 : 55;

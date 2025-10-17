@@ -426,7 +426,7 @@
      <rect>
       <x>520</x>
       <y>10</y>
-      <width>591</width>
+      <width>581</width>
       <height>16</height>
      </rect>
     </property>
@@ -437,14 +437,17 @@
    <widget class="QLabel" name="label_time_left">
     <property name="geometry">
      <rect>
-      <x>1130</x>
-      <y>10</y>
-      <width>151</width>
-      <height>16</height>
+      <x>1120</x>
+      <y>0</y>
+      <width>161</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
      <string>Temps restant : </string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">
