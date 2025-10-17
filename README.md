@@ -14,8 +14,11 @@ A simple, powerful WT Performance Analyser for Dragon Ball Z : Dokkan Battle.
 
 ## Gallery
 
-<img width="1256" height="732" alt="image" src="https://github.com/user-attachments/assets/c9803824-1125-42d7-a333-c6337add7cec" />
+
+<img width="1291" height="785" alt="image" src="https://github.com/user-attachments/assets/af67b7d2-3c4e-4813-8240-0af1b0065fc3" />
 <img width="1251" height="744" alt="image" src="https://github.com/user-attachments/assets/6c12aae4-c82a-4025-acb5-45535609f60a" />
+<img width="1295" height="781" alt="image" src="https://github.com/user-attachments/assets/cd0fcfd0-fb33-41a4-8de8-24de3a5e3cf3" />
+
 
 
 
@@ -50,7 +53,7 @@ mkdir build
 cd build
 ```
 
-Compile the thanslations file by typing this command :
+Compile the translations files by typing this command :
 ```bash
 /usr/lib/qt6/bin/lrelease ../*.ts
 ```
@@ -78,6 +81,8 @@ This project was made possible thanks to the hard work and dedication of the fol
 
 - **Polo** : [GitHub Profile](https://github.com/polowiper)
 - **Darkruss** : [GitHub Profile](https://github.com/darkruss48)
+
+Thanks to Clєтυн26 for translating Polar in Spanish.
 
 ## Contact
 Contact me on [Twitter](https://twitter.com/darkruss47) or reach me on discord : darkruss (or polo as well)
