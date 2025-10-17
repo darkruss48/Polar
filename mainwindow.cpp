@@ -601,6 +601,7 @@ MainWindow::MainWindow(QWidget *parent)
     // NEW: auto-refresh timer
     autoRefreshTimer = new QTimer(this);
     autoRefreshTimer->setSingleShot(true);
+    autoRefreshTimer->setTimerType(Qt::PreciseTimer); // fire as close as possible to scheduled time
     connect(autoRefreshTimer, &QTimer::timeout, this, &MainWindow::doAutoRefreshIfClassement);
     scheduleNextAutoRefresh();
 
@@ -1861,9 +1862,8 @@ void MainWindow::scheduleNextAutoRefresh()
 void MainWindow::doAutoRefreshIfClassement()
 {
     std::cout << "[AutoRefresh] Timer fired" << std::endl;
-    if (stackedWidget && stackedWidget->currentIndex() == 1) {
-        Leaderboard::autoRefresh(this);
-    }
+    // enlever la condition
+    Leaderboard::autoRefresh(this);
     scheduleNextAutoRefresh();
 }
 
@@ -2089,23 +2089,6 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
         line->attachAxis(chart->axes(Qt::Horizontal).first());
     if (!chart->axes(Qt::Vertical).isEmpty())
         line->attachAxis(chart->axes(Qt::Vertical).first());
-}
-
-void MainWindow::on_checkBox_clicked()
-{
-
-}
-
-
-void MainWindow::on_checkBox_clicked(bool checked)
-{
-    // If user enables the overlay but we don't have a computed pace yet, compute it now
-    if (checked && !hasWinPace) {
-        if (ui && ui->lineEdit_afk) {
-            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
-        }
-    }
-    updateGoalOverlayOnGraphs(true);
 }
 
 // NEW: populate the TB edition ComboBox based on region + latest edition
