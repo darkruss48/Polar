@@ -69,7 +69,8 @@ FORMS += \
 TRANSLATIONS += \
     Polar_fr_FR.ts \
     Polar_en_US.ts \
-    Polar_es_ES.ts
+    Polar_es_ES.ts \
+    Polar_it_IT.ts
 
 CONFIG += lrelease
 CONFIG += embed_translations

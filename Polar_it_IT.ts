@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es_ES">
+<TS version="2.1" language="en_it">
 <context>
     <name>ClassementPage</name>
     <message>
         <location filename="classement.ui" line="14"/>
         <source>Classement</source>
-        <translation>Clasificación</translation>
+        <translation>Classifica</translation>
     </message>
     <message>
         <location filename="classement.ui" line="51"/>
         <location filename="mainwindow.cpp" line="978"/>
         <source>Infos</source>
-        <translation>Información</translation>
+        <translation>Info</translation>
     </message>
     <message>
         <location filename="classement.ui" line="122"/>
         <location filename="mainwindow.cpp" line="980"/>
         <source>Infos Moyenne</source>
-        <translation>Información promedio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="classement.ui" line="193"/>
         <location filename="mainwindow.cpp" line="982"/>
         <source>Gap</source>
-        <translation>Diferencia</translation>
+        <translation>Divario</translation>
     </message>
     <message>
         <location filename="classement.ui" line="280"/>
         <location filename="mainwindow.cpp" line="984"/>
         <source>REFRESH</source>
-        <translation>ACTUALIZAR</translation>
+        <translation>AGGIORNA</translation>
     </message>
     <message>
         <location filename="classement.ui" line="293"/>
         <source>Bienvenue sur le leaderboard !</source>
-        <translation>¡Bienvenido a la clasificación!</translation>
+        <translation>Benvenuto nella classifica !</translation>
     </message>
     <message>
         <location filename="classement.ui" line="325"/>
         <location filename="mainwindow.cpp" line="986"/>
         <source>Copier le graphique</source>
-        <translation>Copiar gráfico</translation>
+        <translation>Copia il grafico</translation>
     </message>
 </context>
 <context>
@@ -49,235 +49,206 @@
     <message>
         <location filename="leaderboard.cpp" line="415"/>
         <source>Refreshe</source>
-        <translation>Actualizar</translation>
+        <translation>Aggiorna</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="416"/>
         <source>Data placeholder here</source>
-        <translation>Datos de ejemplo aquí</translation>
+        <translation>Segnaposto per dati qua</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="838"/>
         <source>Rajouter %1 au graphique</source>
-        <translation>Agregar %1 al gráfico</translation>
+        <translation>Aggiungi %1 al grafico</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="878"/>
         <source>Aucun joueur ajouté</source>
-        <translation>Ningún jugador agregado</translation>
+        <translation>Nessun giocatore aggiunto</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="882"/>
         <source>Supprimer %1</source>
-        <translation>Eliminar %1</translation>
+        <translation>Elimina %1</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="890"/>
         <source>Supprimer tout le monde</source>
-        <translation>Eliminar a todos</translation>
+        <translation>Elimina tutti</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1001"/>
         <source>Nom</source>
-        <translation>Nombre</translation>
+        <translation>Nome</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1001"/>
         <source>Rank</source>
-        <translation>Rango</translation>
+        <translation>Posizione</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1001"/>
         <source>Wins</source>
-        <translation>Victorias</translation>
+        <translation>Vittorie</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1001"/>
         <source>Points totaux</source>
-        <translation>Puntos totales</translation>
+        <translation>Punti totali</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1001"/>
         <source>Heures AFK</source>
-        <translation>Horas AFK</translation>
+        <translation>Ore di inattività</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1008"/>
         <source>Non-AFK</source>
-        <translation>No AFK</translation>
+        <translation>Attivo</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1008"/>
         <source>AFK</source>
-        <translation>AFK</translation>
+        <translation>Inattivo</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1008"/>
         <source>Wins/h (actif)</source>
-        <translation>Victorias/hora (activo)</translation>
+        <translation>Vittorie / ora (attive)</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1051"/>
         <location filename="leaderboard.cpp" line="1056"/>
         <source>Au-dessus</source>
-        <translation>Jugador encima</translation>
+        <translation>Sopra</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1051"/>
         <location filename="leaderboard.cpp" line="1073"/>
         <source>Gap</source>
-        <translation>Diferencia</translation>
+        <translation>Divario</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1051"/>
         <source>Rattraper</source>
-        <translation>Alcanzar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1057"/>
         <location filename="leaderboard.cpp" line="1079"/>
         <source>Aucun</source>
-        <translation>Ninguno</translation>
+        <translation>Nessuno</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1073"/>
         <location filename="leaderboard.cpp" line="1078"/>
         <source>En-dessous</source>
-        <translation>Jugador debajo</translation>
+        <translation>Sotto</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="1073"/>
         <source>Se faire rattraper</source>
-        <translation>Siendo alcanzado</translation>
-    </message>
-    <message>
-        <source>Nom : </source>
-        <translation type="vanished">Nombre : </translation>
-    </message>
-    <message>
-        <source>Rank : </source>
-        <translation type="vanished">rango : </translation>
-    </message>
-    <message>
-        <source>Wins : </source>
-        <translation type="vanished">Victorias : </translation>
-    </message>
-    <message>
-        <source>Points totaux : </source>
-        <translation type="vanished">Puntos totales : </translation>
-    </message>
-    <message>
-        <source>Heures AFK : </source>
-        <translation type="vanished">Horas AFK : </translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Vérifier la connexion au serveur</source>
-        <oldsource>Vérifier la connection au serveur</oldsource>
-        <translation type="vanished">Verificar la conexión al servidor</translation>
-    </message>
-    <message>
-        <source>Serveur Web</source>
-        <translation type="vanished">Servidor web</translation>
-    </message>
-    <message>
         <location filename="mainwindow.ui" line="554"/>
         <source>Générer graphique</source>
-        <translation>Generar gráfico</translation>
+        <translation>Genera grafico</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="584"/>
         <source>Identification</source>
-        <translation>Identificación</translation>
+        <translation>Nome utente</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="596"/>
         <source>Changer l&apos;identifiant</source>
-        <translation>Cambiar ID</translation>
+        <translation>Cambia nome utente</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="615"/>
         <location filename="mainwindow.cpp" line="1875"/>
         <source>Identifiant actuel : </source>
-        <translation>ID actual: </translation>
+        <translation>Nome utente attuale :</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="510"/>
         <source>max_points</source>
-        <translation></translation>
+        <translation>punti_massimi</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="71"/>
         <source>Points</source>
-        <translation>Puntos</translation>
+        <translation>Punti</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="241"/>
         <source>Rank</source>
-        <translation>Rango</translation>
+        <translation>Posizione</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="373"/>
         <source>Estimation</source>
-        <translation>Estimación</translation>
+        <translation>Stima</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="463"/>
         <source>55ème Tenkaichi Budokai</source>
-        <translation>WT 55</translation>
+        <translation>55° Torneo Mondiale</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="492"/>
         <source>Graphique</source>
-        <translation>Gráfico</translation>
+        <translation>Grafico</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="515"/>
         <source>max_wins</source>
-        <translation></translation>
+        <translation>vittorie_massime</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="520"/>
         <source>points</source>
-        <translation></translation>
+        <translation>punti</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="525"/>
         <source>points_pace</source>
-        <translation></translation>
+        <translation>ritmo_punti</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="530"/>
         <source>points_wins</source>
-        <translation></translation>
+        <translation>punti_per_vittoria</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="535"/>
         <source>ranks</source>
-        <translation></translation>
+        <translation>posizioni</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="540"/>
         <source>wins</source>
-        <translation></translation>
+        <translation>vittorie</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="655"/>
         <source>Édition du tournoi</source>
-        <translation>Edición del torneo</translation>
+        <translation>Edizione del torneo</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="667"/>
         <source>Choisir l&apos;édition du Tenkaichi Budokai</source>
-        <translation>Seleccionar edición del torneo</translation>
+        <translation>Seleziona l&apos;edizione del Torneo Mondiale</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="203"/>
         <location filename="mainwindow.ui" line="341"/>
         <source>Heures AFK</source>
-        <translation>Horas AFK</translation>
+        <translation>Ore di inattività</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="55"/>
@@ -285,13 +256,13 @@
         <location filename="mainwindow.ui" line="325"/>
         <location filename="mainwindow.cpp" line="2066"/>
         <source>Objectif</source>
-        <translation>Objetivo</translation>
+        <translation>Obiettivo</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="232"/>
         <location filename="mainwindow.ui" line="266"/>
         <source>Minutes AFK</source>
-        <translation>Minutos AFK</translation>
+        <translation>Minuti di inattività</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="84"/>
@@ -321,265 +292,248 @@
         <location filename="mainwindow.ui" line="145"/>
         <location filename="mainwindow.ui" line="360"/>
         <source>Ajouter l&apos;objectif au graphique</source>
-        <translation>Agregar el objetivo al gráfico</translation>
+        <translation>Aggiungi l&apos;obiettivo al grafico</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="126"/>
         <location filename="mainwindow.ui" line="389"/>
         <source>Victoires par heure nécessaire</source>
-        <translation>Victorias por hora necesarias</translation>
+        <translation>Vittorie all&apos;ora necessarie</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="447"/>
         <source>Temps restant : </source>
-        <translation>Tiempo restante : </translation>
+        <translation>Tempo rimanente :</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="629"/>
         <source>Sortie d&apos;application</source>
-        <translation>Salida de la consola</translation>
-    </message>
-    <message>
-        <source>59ème Tenkaichi Budokai</source>
-        <translation type="vanished">WT n°59</translation>
+        <translation>Chiudi app</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="505"/>
         <source>wins_pace</source>
-        <translation></translation>
+        <translation>ritmo_vittorie</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="567"/>
         <source>Donnée en ordonnée</source>
-        <translation>Y-value</translation>
-    </message>
-    <message>
-        <source>Langues</source>
-        <translation type="vanished">Idioma</translation>
+        <translation>Dato sull&apos;asse delle ordinate</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="943"/>
         <source>Bienvenue sur le leaderboard !</source>
-        <translation>¡Bienvenido a la clasificación!</translation>
+        <translation>Benvenuto nella classifica !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="536"/>
         <location filename="mainwindow.cpp" line="953"/>
         <source>Navigation</source>
-        <translation>Navegación</translation>
+        <translation>Navigazione</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="541"/>
         <location filename="mainwindow.cpp" line="955"/>
         <source>Graphiques</source>
-        <translation>Gráficos</translation>
+        <translation>Grafici</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="543"/>
         <location filename="mainwindow.cpp" line="958"/>
         <source>Classement</source>
-        <translation>Categoría</translation>
+        <translation>Classifica</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="554"/>
         <location filename="mainwindow.cpp" line="965"/>
         <location filename="mainwindow.cpp" line="1361"/>
         <source>Options</source>
-        <translation>Opciones</translation>
+        <translation>Opzioni</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="556"/>
         <location filename="mainwindow.cpp" line="967"/>
         <source>Paramètres</source>
-        <oldsource>Paramètres...</oldsource>
-        <translation>Ajustes</translation>
+        <translation>Parametri</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="689"/>
         <source>Mise à jour disponible</source>
-        <translation>Hay una actualización disponible</translation>
+        <translation>Aggiornamento disponibile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="690"/>
         <source>Une nouvelle version (%1) est disponible.</source>
-        <translation>Hay una nueva versión (%1) disponible.</translation>
+        <translation>Una nuova versione (%1) è disponibile.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="693"/>
         <source>Télécharger</source>
-        <translation>Descargar</translation>
+        <translation>Scaricare</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="822"/>
         <source>Nouvel identifiant</source>
-        <translation>Nuevo identificador</translation>
+        <translation>Nuovo utente</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="823"/>
         <source>Identifiant:</source>
-        <translation>ID:</translation>
+        <translation>Nome utente:</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="838"/>
         <location filename="mainwindow.cpp" line="962"/>
         <source>Langue</source>
-        <translation>Idioma</translation>
+        <translation>Lingua</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1005"/>
         <source>Ne lâche rien !</source>
-        <translation>¡No te rindas!</translation>
+        <translation>Non mollare !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1006"/>
         <source>Tu peux accomplir tes objectifs !</source>
-        <translation>¡Puedes lograr tus metas!</translation>
+        <translation>Puoi raggiungere i tuoi obiettivi !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1007"/>
         <source>Il est normal d&apos;être fatigué, mais je crois en toi !</source>
-        <translation>Es normal estar cansado, pero ¡creo en ti!</translation>
+        <translation>È normale essere stanchi, ma io credo in te !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1008"/>
         <source>Personne ne peut le faire à ta place,
 alors tu vas me le gravir ce classement !</source>
-        <translation>Nadie puede hacerlo por ti,
-¡así que vas a ascender en el ranking!</translation>
+        <translation>Nessuno può farlo al tuo posto, quindi forza, conquista la classifica !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1009"/>
         <source>Tu peux le faire !</source>
-        <translation>¡Puedes hacerlo!</translation>
+        <translation>Puoi farcela !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1010"/>
         <source>Prouve-nous que tu es meilleur que ce qu&apos;on peut penser !</source>
-        <translation>¡Demuéstranos que eres mejor de lo que la gente piensa!</translation>
+        <translation>Mostraci che sei migliore di quanto si pensi !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1011"/>
         <source>Tout le monde est passé par là, ne te décourage pas !</source>
-        <translation>Todos hemos pasado por esto, ¡no te desanimes!</translation>
+        <translation>Ci sono passati tutti, non ti abbattere !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1012"/>
         <source>C&apos;est pas le moment de se décourager !</source>
-        <translation>¡No es momento de rendirse!</translation>
+        <translation>Non è il momento di scoraggiarsi !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1013"/>
         <source>Pense à ceux qui croient en toi ... Tu ne
 peux PAS les décevoir !</source>
-        <translation>Piensa en quienes creen en ti...
-        ¡No puedes defraudarlos!</translation>
+        <translation>Pensa a chi crede in te ... NON PUOI deluderli !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1015"/>
         <source>Si tu es fatigué, tu peux prendre une pause
 avant la nuit. Ça t&apos;évitera de tomber de fatigue 😉</source>
-        <translation>Si estás cansado, puedes tomarte un descanso
-        antes de acostarte. Así no te derrumbarás 😉</translation>
+        <translation>Se sei stanco, puoi fare una pausa
+prima di sera. Così non crollerai dalla stanchezza 😉</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1016"/>
         <source>Ne néglige pas la douche.
 L&apos;hygiène avant tout ... non ?</source>
-        <translation>No olvides ducharte.
-La higiene es lo primero... ¿no?</translation>
+        <translation>Non trascurare la doccia. L&apos;igiene prima di tutto ... no ?</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1017"/>
         <source>Il vaudrait mieux que tu aies préparé de quoi
 manger avant de commencer le tournoi.</source>
-        <translation>Es mejor que prepares algo de comer
-        antes de empezar el torneo.</translation>
+        <translation>Meglio se ti sei preparato qualcosa da mangiare prima di iniziare il torneo.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1018"/>
         <source>Se concentrer sur le tournoi est important, mais
 avoir un autre centre d&apos;attention en a déjà aidé plus d&apos;un.</source>
-        <translation>Centrarse en el torneo es importante,
-        pero tener otro punto de interés ya ha ayudado a muchos.</translation>
+        <translation>Concentrarsi sul torneo è importante, ma avere qualche altro interesse porta benefici.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1019"/>
         <source>Fatigué pendant la nuit ? Marcher, boire de l&apos;eau et se rafraîchir
 aident à lutter temporairement contre la fatigue.</source>
-        <translation>¿Cansado por la noche? Caminar, beber agua y refrescarse
-        ayudan a combatir la fatiga temporalmente.</translation>
+        <translation>Se sei stanco di notte, camminare, bere acqua e rinfrescarsi aiuta a combattere la fatica.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1020"/>
         <source>La nuit est souvent dure à passer, mais le matin peut te
 surprendre. Fais attention.</source>
-        <translation>La noche suele ser dura, pero la mañana puede sorprenderte.
-        Ten cuidado.</translation>
+        <translation>La notte spesso è difficile da superare, ma la mattina può riservarti delle sorprese. Fai attenzione.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1022"/>
         <source>Tu peux regarder le classement en cliquant sur l&apos;onglet
 Navigation, puis sur &quot;Classement&quot;.</source>
-        <translation>Puedes consultar la clasificación superior
-        haciendo clic en la pestaña Navegación y luego en &quot;Clasificación&quot;.</translation>
+        <translation>È possibile vedere le classifiche cliccando sulla scheda &quot;Navigazione&quot;, poi su &quot;Classifiche&quot;.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1023"/>
         <source>Un objectif en tête ? Tu peux calculer le nombre de
 victoires/heures à gauche de cette fenêtre.</source>
-        <translation>¿Tienes un objetivo en mente? Puedes calcular
-            el número de victorias por hora a la izquierda de esta ventana.</translation>
+        <translation>Hai un obiettivo in mente ? Puoi calcolare il numero
+di vittorie / ora sul lato sinistro di questa finestra.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1024"/>
         <source>Tu peux générer les graphiques de plusieurs statistiques : 
 Rang, Points, Points/heure, ...</source>
-        <translation>Puedes generar gráficos de varias estadísticas:
-Clasificación, Puntos, Puntos/hora, etc.</translation>
+        <translation>Si possono creare grafici per diverse statistiche:
+Posizione, Punti, Punti/ora, ...</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1025"/>
         <source>La touche &quot;Tab&quot; te permet de rapidement changer de page. Essaye donc !</source>
-        <translation>La tecla &quot;Tab&quot; te permite cambiar de página rápidamente. ¡Pruébalo!</translation>
+        <translation>Il tasto &quot;Tab&quot; ti permette di cambiare pagina velocemente. Provalo !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1027"/>
         <source>Team Café, Team Boisson énergisante ou Team Eau ?</source>
-        <translation>¿Equipo Café, Equipo Bebida Energética o Equipo Agua?</translation>
+        <translation>Team Caffè, Team Bevanda Energetica o Team Acqua ?</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1229"/>
         <source>Rentrez votre identifiant
 et générer un graphique
 d&apos;abord !</source>
-        <translation>Introduce tu ID de Dokkan y genera el gráfico primero.!</translation>
+        <translation>Inserisci il nome utente e poi crea era il grafico !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1264"/>
         <source>Vous avez dépassé 
 votre objectif !</source>
-        <translation>¡Objetivo cumplido!</translation>
+        <translation>Hai superato il tuo obiettivo !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1275"/>
         <source>Le seed est nul !</source>
-        <translation>¡La semilla es nula!</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1289"/>
         <location filename="mainwindow.cpp" line="1667"/>
         <source>Impossible</source>
-        <translation>Imposible</translation>
+        <translation>Impossibile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1310"/>
         <source>Très Facile</source>
-        <translation>Muy fácil</translation>
+        <translation>Molto facile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1313"/>
         <source>Facile</source>
-        <translation>Fácil</translation>
+        <translation>Facile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1316"/>
@@ -589,27 +543,27 @@ votre objectif !</source>
     <message>
         <location filename="mainwindow.cpp" line="1319"/>
         <source>Difficile</source>
-        <translation>Difícil</translation>
+        <translation>Difficile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1322"/>
         <source>Très difficile</source>
-        <translation>Muy difícil</translation>
+        <translation>Molto difficile</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1325"/>
         <source>bonne chance mdr</source>
-        <translation>Estás frito, buena suerte</translation>
+        <translation>Buona fortuna lol</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1421"/>
         <source>Choisir une image</source>
-        <translation>Elige una imagen</translation>
+        <translation>Scegli un&apos;immagine</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1421"/>
         <source>Images (*.png *.jpg *.jpeg *.bmp)</source>
-        <translation>Imágenes (*.png *.jpg *.jpeg *.bmp)</translation>
+        <translation>Immagini (*.png *.jpg *.jpeg *.bmp)</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1481"/>
@@ -620,91 +574,87 @@ votre objectif !</source>
     <message>
         <location filename="mainwindow.cpp" line="1487"/>
         <source>jour</source>
-        <translation>día</translation>
+        <translation>giorno</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1487"/>
         <source>jours</source>
-        <translation>dias</translation>
+        <translation>giorni</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1488"/>
         <source>heure</source>
-        <translation>hora</translation>
+        <translation>ora</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1488"/>
         <source>heures</source>
-        <translation>horas</translation>
+        <translation>ore</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1489"/>
         <source>minutes</source>
-        <translation>min</translation>
+        <translation>minuti</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1524"/>
         <source>Temps restant : 
 %1</source>
-        <translation>Tiempo restante : 
+        <translation>Tempo rimanente : 
 %1</translation>
-    </message>
-    <message>
-        <source>Temps restant : %1</source>
-        <translation type="vanished">Tiempo restante : %1</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1595"/>
         <location filename="mainwindow.cpp" line="1598"/>
         <source>Score édition %1 : %2</source>
-        <translation>Puntuación WT %1 : %2</translation>
+        <translation>Punteggio nell&apos;edizione %1 : %2</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1619"/>
         <source>Estimation points : %1</source>
-        <translation>Estimación de puntos: %1</translation>
+        <translation>Stima punti : %1</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1726"/>
         <source>Objectif (Rank)</source>
-        <translation>Objetivo (Rango)</translation>
+        <translation>Obiettivo (Posizione)</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1777"/>
         <location filename="mainwindow.cpp" line="1789"/>
         <source>%1ème Tenkaichi Budokai</source>
-        <translation>Torneo mundial nº %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1925"/>
         <source>Une erreur est survenue lors de la copie du graphique.</source>
-        <translation>Ha ocurrido un error al copiar el gráfico.</translation>
+        <translation>Si è verificato un errore durante la copia del grafico.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1941"/>
         <source>Aucun graphique n&apos;a
 été affiché !</source>
-        <translation>¡No se muestran gráficos!</translation>
+        <translation>Nessun grafico disponibile !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1960"/>
         <source>Erreur lors de la copie.</source>
-        <translation>Error al copiar.</translation>
+        <translation>Errore durante la copia.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1977"/>
         <source>Graphique copié !</source>
-        <translation>¡Gráfico copiado!</translation>
+        <translation>Grafico copiato !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="2003"/>
         <source>Erreur : aucun graphique affiché.</source>
-        <translation>Error: no se muestra ningún gráfico.</translation>
+        <translation>Errore : nessun grafico visualizzato.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="2018"/>
         <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
-        <translation>Error: se produjo un error al copiar el gráfico</translation>
+        <translation>Errore : si è verificato un errore durante la copia del grafico</translation>
     </message>
 </context>
 <context>
@@ -712,12 +662,12 @@ votre objectif !</source>
     <message>
         <location filename="options.ui" line="14"/>
         <source>Options</source>
-        <translation>Opciones</translation>
+        <translation>Opzioni</translation>
     </message>
     <message>
         <location filename="options.ui" line="20"/>
         <source>Région</source>
-        <translation>Región</translation>
+        <translation>Versione</translation>
     </message>
     <message>
         <location filename="options.ui" line="29"/>
@@ -727,87 +677,87 @@ votre objectif !</source>
     <message>
         <location filename="options.ui" line="39"/>
         <source>Jap</source>
-        <translation>Japón</translation>
+        <translation>Jap</translation>
     </message>
     <message>
         <location filename="options.ui" line="49"/>
         <source>Thème des graphiques</source>
-        <translation>Tema</translation>
+        <translation>Stile dei grafici</translation>
     </message>
     <message>
         <location filename="options.ui" line="56"/>
         <source>Bleu Céruléen</source>
-        <translation>Blue Cerulean</translation>
+        <translation>Blu Ceruleo</translation>
     </message>
     <message>
         <location filename="options.ui" line="61"/>
         <source>Clair - Bleu 1</source>
-        <translation>Theme Light</translation>
+        <translation>Chiaro - Blu 1</translation>
     </message>
     <message>
         <location filename="options.ui" line="66"/>
         <source>Clair - Bleu 2</source>
-        <translation>Blue Ncs</translation>
+        <translation>Chiaro - Blu 2</translation>
     </message>
     <message>
         <location filename="options.ui" line="71"/>
         <source>Clair - Bleu 3</source>
-        <translation>Blue Icy</translation>
+        <translation>Chiaro - Blu 3</translation>
     </message>
     <message>
         <location filename="options.ui" line="76"/>
         <source>Clair - Noir</source>
-        <translation>Theme High Contrast</translation>
+        <translation>Chiaro - Nero</translation>
     </message>
     <message>
         <location filename="options.ui" line="81"/>
         <source>Clair - Vert</source>
-        <translation>Theme Qt</translation>
+        <translation>Chiaro - Verde</translation>
     </message>
     <message>
         <location filename="options.ui" line="86"/>
         <source>Sable</source>
-        <translation>Brown sand</translation>
+        <translation>Sabbia</translation>
     </message>
     <message>
         <location filename="options.ui" line="91"/>
         <source>Thème sombre</source>
-        <translation>Theme dark</translation>
+        <translation>Tema scuro</translation>
     </message>
     <message>
         <location filename="options.ui" line="102"/>
         <source>Fond d&apos;écran</source>
-        <translation>Fondo de pantalla</translation>
+        <translation>Carta da parati</translation>
     </message>
     <message>
         <location filename="options.ui" line="108"/>
         <source>Utiliser un fond d&apos;écran personnalisé</source>
-        <translation>Usar fondo personalizado</translation>
+        <translation>Usa uno sfondo personalizzato</translation>
     </message>
     <message>
         <location filename="options.ui" line="120"/>
         <source>Chemin de l&apos;image...</source>
-        <translation>Ruta de la imagen...</translation>
+        <translation>Percorso dell&apos;immagine...</translation>
     </message>
     <message>
         <location filename="options.ui" line="127"/>
         <source>Parcourir...</source>
-        <translation>Examinar...</translation>
+        <translation>Sfoglia...</translation>
     </message>
     <message>
         <location filename="options.ui" line="136"/>
         <source>Rendre les éléments transparents (boutons, listes, ...)</source>
-        <translation>Hacer elementos transparentes (botones, listas, ...)</translation>
+        <translation>Rendi gli elementi trasparenti (pulsanti, liste, ...)</translation>
     </message>
     <message>
         <location filename="options.ui" line="139"/>
         <source>Quand coché: boutons/listes/etc. sont transparents. Sinon, ils sont opaques. La barre de menu et la barre d&apos;état restent transparentes.</source>
-        <translation>Al marcar esta opción, los botones, listas, etc. se vuelven transparentes. De lo contrario, son opacos. La barra de menú y la barra de estado permanecen transparentes.</translation>
+        <translation>Se selezionata: pulsanti/liste/ecc. saranno trasparenti. Altrimenti, saranno opachi. La barra dei menù e la barra di stato rimangono trasparenti.</translation>
     </message>
     <message>
         <location filename="options.ui" line="149"/>
         <source>Opacité du fond</source>
-        <translation>Opacidad del fondo</translation>
+        <translation>Opacità dello sfondo</translation>
     </message>
     <message>
         <location filename="options.ui" line="168"/>
@@ -817,63 +767,32 @@ votre objectif !</source>
     <message>
         <location filename="options.ui" line="181"/>
         <source>Confidentialité</source>
-        <translation>Privacidad</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="options.ui" line="187"/>
         <source>Censurer l&apos;identifiant affiché</source>
-        <translation>Censurar el ID mostrado</translation>
+        <translation>Censura il nome utente mostrato</translation>
     </message>
     <message>
         <location filename="options.ui" line="197"/>
         <source>Auto-refresh</source>
-        <translation>Actualización automática</translation>
+        <translation>Aggiornamento automatico</translation>
     </message>
     <message>
         <location filename="options.ui" line="203"/>
         <source>Délai additionnel (min)</source>
-        <translation>Retraso adicional (min)</translation>
+        <translation>Ritardo aggiuntivo (minuti)</translation>
     </message>
     <message>
         <location filename="options.ui" line="213"/>
         <source> min</source>
-        <translation> minuto</translation>
+        <translation>minuti</translation>
     </message>
     <message>
         <location filename="options.ui" line="210"/>
         <source>Ajoute 0 à 15 minutes aux quarts d&apos;heure (00, 15, 30, 45)</source>
-        <translation>Agregar minutos después de cada reinicio (0, 15, 30 y 45 minutos)</translation>
-    </message>
-</context>
-<context>
-    <name>Polar</name>
-    <message>
-        <source>Vérifier la connection au serveur</source>
-        <translation type="vanished">Verificar la conexión al servidor</translation>
-    </message>
-    <message>
-        <source>Serveur Web</source>
-        <translation type="vanished">Servidor web</translation>
-    </message>
-    <message>
-        <source>Générer graphique</source>
-        <translation type="vanished">Crear gráfico</translation>
-    </message>
-    <message>
-        <source>Changer l&apos;identifiant</source>
-        <translation type="vanished">Cambiar ID</translation>
-    </message>
-    <message>
-        <source>Identifiant actuel : </source>
-        <translation type="vanished">ID actual : </translation>
-    </message>
-    <message>
-        <source>Donnée en ordonnée</source>
-        <translation type="vanished">Y-value</translation>
-    </message>
-    <message>
-        <source>Langues</source>
-        <translation type="vanished">Idioma</translation>
+        <translation>Aggiungi da 0 a 15 minuti ai quarti d’ora (00, 15, 30, 45)</translation>
     </message>
 </context>
 <context>
@@ -881,98 +800,90 @@ votre objectif !</source>
     <message>
         <location filename="mainwindow.cpp" line="258"/>
         <source>Erreur lors de la conversion en JSON</source>
-        <translation>Error al convertir a JSON</translation>
+        <translation>Errore durante la conversione in JSON</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="263"/>
         <source>Erreur réseau : </source>
-        <translation>Error de red: </translation>
+        <translation>Errore di rete :</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="270"/>
         <source>Code de statut HTTP: </source>
-        <translation>Código de estado HTTP: </translation>
+        <translation>Codice di stato HTTP:</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="273"/>
         <source>Le serveur a répondu avec un code d&apos;erreur HTTP.</source>
-        <translation>El servidor respondió con un error HTTP.</translation>
+        <translation>Il server ha risposto con un codice di errore HTTP.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="276"/>
         <source>Impossible de récupérer le code de statut HTTP.</source>
-        <translation>No se pudo recuperar el código de estado HTTP.</translation>
+        <translation>Impossibile recuperare il codice di stato HTTP.</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="917"/>
         <source>Impossible de charger la traduction pour</source>
-        <translation>No se pudo cargar la traducción para</translation>
+        <translation>Impossibile caricare la traduzione per</translation>
     </message>
     <message>
         <location filename="render.cpp" line="410"/>
         <location filename="render.cpp" line="525"/>
         <source>&quot; en fonction des heures</source>
-        <translation>&quot; basado en horas</translation>
+        <translation>&quot; a seconda delle ore</translation>
     </message>
     <message>
         <location filename="render.cpp" line="412"/>
         <location filename="render.cpp" line="527"/>
         <source>Heures</source>
-        <translation>Horas</translation>
+        <translation>Ore</translation>
     </message>
     <message>
         <location filename="render.cpp" line="413"/>
         <location filename="render.cpp" line="528"/>
         <source>Points</source>
-        <translation></translation>
+        <translation>Punti</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="678"/>
         <source>Nom</source>
-        <translation>Nombre</translation>
+        <translation>Nome</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="679"/>
         <source>Rank</source>
-        <translation>Rango</translation>
+        <translation>Posizione</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="680"/>
         <source>Wins</source>
-        <translation>Victorias</translation>
+        <translation>Vittorie</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="681"/>
         <source>Points totaux</source>
-        <translation>Puntos</translation>
+        <translation>Punti totali</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="682"/>
         <source>Heures AFK</source>
-        <translation>Horas AFK</translation>
+        <translation>Ore di inattività</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="690"/>
         <source>Non-AFK</source>
-        <translation>No AFK</translation>
+        <translation>Attivo</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="691"/>
         <source>AFK</source>
-        <translation>AFK</translation>
+        <translation>Inattivo</translation>
     </message>
     <message>
         <location filename="leaderboard.cpp" line="692"/>
         <source>Wins/h (actif)</source>
-        <translation>Victorias/hora (no afk)</translation>
-    </message>
-    <message>
-        <source>Erreur : aucun graphique affiché.</source>
-        <translation type="vanished">Error: no se muestra ningún gráfico.</translation>
-    </message>
-    <message>
-        <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
-        <translation type="vanished">Error: se produjo un error al copiar el gráfico</translation>
+        <translation>Vittorie / ora (attive)</translation>
     </message>
 </context>
 </TS>

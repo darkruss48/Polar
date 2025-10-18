@@ -62,6 +62,8 @@
 #include <QSignalBlocker> // NEW
 #include <functional>    // NEW
 #include <QLocale>      // NEW: for locale-aware % formatting
+#include <QGroupBox>    // NEW: for groupbox titles retranslation
+#include <QCoreApplication> // NEW: for QCoreApplication::translate (UI loaded via QUiLoader)
 
 // NEW: lightweight 3-slot edition picker (center = selected, side = neighbors)
 class EditionPickerWidget : public QWidget {
@@ -537,8 +539,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Ajouter des actions pour changer de page
     QAction *actionPagePrincipale = new QAction(tr("Graphiques"), this);
+    actionPagePrincipale->setObjectName("actionGraphiques"); // NEW
     QAction *actionPageSecondaire = new QAction(tr("Classement"), this);
-    actionPageSecondaire->setObjectName("pageSecondaire");
+    actionPageSecondaire->setObjectName("pageSecondaire");   // keep
 
     menuNavigation->addAction(actionPagePrincipale);
     menuNavigation->addAction(actionPageSecondaire);
@@ -549,7 +552,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // + Menu Options
     QMenu *menuOptions = menuBar->addMenu(tr("Options"));
+    menuOptions->setObjectName("menuOptions");              // NEW
     QAction *actionOptions = new QAction(tr("Paramètres"), this);
+    actionOptions->setObjectName("actionOptions");          // NEW
     menuOptions->addAction(actionOptions);
     connect(actionOptions, &QAction::triggered, this, &MainWindow::showOptionsDialog);
 
@@ -831,6 +836,7 @@ void MainWindow::on_idButton_clicked()
 void MainWindow::createLanguageMenu()
 {
     QMenu* languageMenu = menuBar()->addMenu(tr("Langue"));
+    languageMenu->setObjectName("menuLangue"); // NEW: for retranslation
 
     QActionGroup* langGroup = new QActionGroup(this);
     langGroup->setExclusive(true);
@@ -842,6 +848,7 @@ void MainWindow::createLanguageMenu()
     languages.append(qMakePair(QString("en_US"), QString("English")));
     languages.append(qMakePair(QString("fr_FR"), QString("Français")));
     languages.append(qMakePair(QString("es_ES"), QString("Español")));
+    languages.append(qMakePair(QString("it_IT"), QString("Italiano")));
     for (const auto& lang : languages) {
         QAction* action = new QAction(this);
         action->setCheckable(true);
@@ -939,6 +946,45 @@ void MainWindow::changeEvent(QEvent* event)
         updateIdLabelDisplay();
         // Rebuild TB localized texts from cached metadata (no network)
         refreshTbLocalizedTexts();
+
+        // NEW: Retraduire les menus et actions existants
+        if (menuBar()) {
+            if (auto nav = menuBar()->findChild<QMenu*>("menuNavigation")) {
+                nav->setTitle(tr("Navigation"));
+                if (auto actGraphs = nav->findChild<QAction*>("actionGraphiques")) {
+                    actGraphs->setText(tr("Graphiques"));
+                }
+                if (auto actClassement = nav->findChild<QAction*>("pageSecondaire")) {
+                    actClassement->setText(tr("Classement"));
+                }
+            }
+            if (auto lang = menuBar()->findChild<QMenu*>("menuLangue")) {
+                lang->setTitle(tr("Langue"));
+            }
+            if (auto opts = menuBar()->findChild<QMenu*>("menuOptions")) {
+                opts->setTitle(tr("Options"));
+                if (auto actOpts = opts->findChild<QAction*>("actionOptions")) {
+                    actOpts->setText(tr("Paramètres"));
+                }
+            }
+        }
+
+        // NEW: Retraduire les widgets de la page Classement (chargée via QUiLoader)
+        QWidget* pageClassement = (stackedWidget && stackedWidget->count() > 1)
+                                  ? stackedWidget->widget(1) : nullptr;
+        if (pageClassement) {
+            // Use the ClassementPage context so translations from classement.ui are applied
+            if (auto g = pageClassement->findChild<QGroupBox*>("group_infos"))
+                g->setTitle(QCoreApplication::translate("ClassementPage", "Infos"));
+            if (auto g = pageClassement->findChild<QGroupBox*>("group_avg"))
+                g->setTitle(QCoreApplication::translate("ClassementPage", "Infos Moyenne"));
+            if (auto g = pageClassement->findChild<QGroupBox*>("group_gap"))
+                g->setTitle(QCoreApplication::translate("ClassementPage", "Gap"));
+            if (auto b = pageClassement->findChild<QPushButton*>("button_refresh"))
+                b->setText(QCoreApplication::translate("ClassementPage", "REFRESH"));
+            if (auto b = pageClassement->findChild<QPushButton*>("copy_graph"))
+                b->setText(QCoreApplication::translate("ClassementPage", "Copier le graphique"));
+        }
     } else {
         QMainWindow::changeEvent(event);
     }
@@ -978,7 +1024,9 @@ void MainWindow::setupTipsRotation()
         tr("Tu peux générer les graphiques de plusieurs statistiques : \nRang, Points, Points/heure, ..."),
         tr("La touche \"Tab\" te permet de rapidement changer de page. Essaye donc !"),
         // Questions
-        tr("Team Café, Team Boisson énergisante ou Team Eau ?")
+        tr("Team Café, Team Boisson énergisante ou Team Eau ?"),
+        // Bref...
+        QStringLiteral("\nYou can't fall asleep if you have to piss\" - Lotad")
     };
 
     // Opacity effect
