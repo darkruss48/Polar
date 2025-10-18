@@ -356,6 +356,28 @@ void adjustChartAxes(QChart *chart, const QList<double> &points) {
     if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
 
+// Even-ticks Y axis for wins_pace: 0, 2, 4, ..., topEven
+static void adjustChartAxesEvenWinsPace(QChart* chart, const QList<double>& points) {
+    if (points.isEmpty()) return;
+    double maxY = *std::max_element(points.begin(), points.end());
+    if (maxY < 0.0) maxY = 0.0;
+    int topEven = static_cast<int>(std::ceil(maxY));
+    if (topEven < 2) topEven = 2;
+    if (topEven % 2 != 0) ++topEven; // ensure even
+
+    auto axisY = new QCategoryAxis();
+    axisY->setRange(0.0, static_cast<double>(topEven));
+    axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    for (int v = 0; v <= topEven; v += 2) {
+        axisY->append(QString::number(v), static_cast<double>(v));
+    }
+
+    const auto vAxes = chart->axes(Qt::Vertical);
+    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
+    chart->addAxis(axisY, Qt::AlignLeft);
+    if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
+}
+
 void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
     if (points.isEmpty()) return;
 
@@ -385,7 +407,7 @@ void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
 
 
 // Fonction pour créer et afficher un graphique dans un QGraphicsView
-void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &hoursStr, const QString &pointsStr) {
+void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &hoursStr, const QString &pointsStr, const QString& elementKey) {
     // Conversion des chaînes JSON en listes de valeurs
     QList<double> hours = parseJsonArray(hoursStr);
     QList<double> points = parseJsonArray(pointsStr);
@@ -419,8 +441,12 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     // NEW: keep theme background and rounded corners, but remove the border pen (black contour)
     chart->setBackgroundPen(Qt::NoPen);
 
-    // Ajuster l’axe Y
-    adjustChartAxes(chart, points);
+    // Ajuster l’axe Y: even ticks for wins_pace, else numeric auto
+    if (elementKey == QStringLiteral("wins_pace")) {
+        adjustChartAxesEvenWinsPace(chart, points);
+    } else {
+        adjustChartAxes(chart, points);
+    }
 
     // NEW: Axe X personnalisé en heures (catégories à 6h ou 12h)
     if (!hours.isEmpty()) {

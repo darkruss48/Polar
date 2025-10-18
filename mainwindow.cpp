@@ -862,7 +862,7 @@ void MainWindow::on_bouton_graphique_clicked()
     QString hours = QString::fromStdString(data["hour"].toString().toStdString());
     QString points = QString::fromStdString(data[ydata].toString().toStdString());
 
-    Render::createLineChartInGraphicsView(ui, hours, points);
+    Render::createLineChartInGraphicsView(ui, hours, points, ydata);
 
     // Variables
     functb::points = points.toStdString();
@@ -1861,6 +1861,17 @@ void MainWindow::updateRankEstimation()
         hasRankWinPace = std::isfinite(lastRankWinPace) && lastRankWinPace >= 0.0;
         updateRankOverlayOnGraphs(false);
     }
+}
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    // If user enables the overlay but we don't have a computed pace yet, compute it now
+    if (checked && !hasWinPace) {
+        if (ui && ui->lineEdit_afk) {
+            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+        }
+    }
+    updateGoalOverlayOnGraphs(true);
 }
 
 // NEW: rank overlay checkbox handlers

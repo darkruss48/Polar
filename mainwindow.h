@@ -90,6 +90,8 @@ private slots:
     void on_checkBox_2_clicked();
     void on_checkBox_2_clicked(bool checked);
 
+    void on_checkBox_clicked(bool checked);
+
 private:
     // loads a language by the given language shortcur (e.g. de, en)
     void loadLanguage(const QString& rLanguage);
