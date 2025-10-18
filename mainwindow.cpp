@@ -985,6 +985,50 @@ void MainWindow::changeEvent(QEvent* event)
             if (auto b = pageClassement->findChild<QPushButton*>("copy_graph"))
                 b->setText(QCoreApplication::translate("ClassementPage", "Copier le graphique"));
         }
+
+        // NEW: Retraduire les "tips" SANS redémarrer le cycle ni réinitialiser le timing
+        if (ui->label_tips) {
+            // Mémoriser l'index courant (sélection active) et le texte actuel
+            const int curIdx = lastTipIndex;
+            // Reconstituer la liste localisée (mêmes entrées que dans setupTipsRotation)
+            QStringList newTips = {
+                tr("Ne lâche rien !"),
+                tr("Tu peux accomplir tes objectifs !"),
+                tr("Il est normal d'être fatigué, mais je crois en toi !"),
+                tr("Personne ne peut le faire à ta place,\nalors tu vas me le gravir ce classement !"),
+                tr("Tu peux le faire !"),
+                tr("Prouve-nous que tu es meilleur que ce qu'on peut penser !"),
+                tr("Tout le monde est passé par là, ne te décourage pas !"),
+                tr("C'est pas le moment de se décourager !"),
+                tr("Pense à ceux qui croient en toi ... Tu ne\npeux PAS les décevoir !"),
+                // Conseils
+                tr("Si tu es fatigué, tu peux prendre une pause\navant la nuit. Ça t'évitera de tomber de fatigue 😉"),
+                tr("Ne néglige pas la douche.\nL'hygiène avant tout ... non ?"),
+                tr("Il vaudrait mieux que tu aies préparé de quoi\nmanger avant de commencer le tournoi."),
+                tr("Se concentrer sur le tournoi est important, mais\navoir un autre centre d'attention en a déjà aidé plus d'un."),
+                tr("Fatigué pendant la nuit ? Marcher, boire de l'eau et se rafraîchir\naident à lutter temporairement contre la fatigue."),
+                tr("La nuit est souvent dure à passer, mais le matin peut te\nsurprendre. Fais attention."),
+                // Applications
+                tr("Tu peux regarder le classement en cliquant sur l'onglet\nNavigation, puis sur \"Classement\"."),
+                tr("Un objectif en tête ? Tu peux calculer le nombre de\nvictoires/heures à gauche de cette fenêtre."),
+                tr("Tu peux générer les graphiques de plusieurs statistiques : \nRang, Points, Points/heure, ..."),
+                tr("La touche \"Tab\" te permet de rapidement changer de page. Essaye donc !"),
+                // Questions
+                tr("Team Café, Team Boisson énergisante ou Team Eau ?"),
+                // Bref...
+                QStringLiteral("\nYou can't fall asleep if you have to piss\" - Lotad")
+            };
+            tipsPhrases = newTips;
+            // Appliquer la traduction du tip affiché actuellement (même index), sans toucher aux animations
+            if (curIdx >= 0 && curIdx < tipsPhrases.size()) {
+                ui->label_tips->setText(tipsPhrases.at(curIdx));
+            } else if (!tipsPhrases.isEmpty()) {
+                ui->label_tips->setText(tipsPhrases.first());
+                lastTipIndex = 0;
+            }
+            // Ne pas appeler restartTipsCycle() ni modifier tipsGroup/tipsEffect => le timing reste identique
+        }
+            
     } else {
         QMainWindow::changeEvent(event);
     }
