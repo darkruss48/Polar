@@ -310,6 +310,49 @@ MainWindow::MainWindow(QWidget *parent)
     loadLanguage(AppSettings::savedLanguage.isEmpty() ? QStringLiteral("en_US")
                                                       : AppSettings::savedLanguage);
 
+    // Stabiliser ydataBox: affecter des clés internes (UserRole) indépendantes de la traduction
+    if (ui->ydataBox) {
+        auto assignYKeys = [this]() {
+            const QString prevKey = ui->ydataBox->currentData(Qt::UserRole).toString();
+            const QStringList rawKeys = { "points","wins","ranks","wins_pace","points_wins","points_pace" };
+            for (int i = 0; i < ui->ydataBox->count(); ++i) {
+                const QString t = ui->ydataBox->itemText(i).trimmed();
+                QString l = t.toLower();
+                QString key;
+                // 1) Si déjà une clé brute
+                if (rawKeys.contains(t)) key = t;
+                // 2) Heuristiques multilingues
+                else if (l.contains("wins_pace") || (l.contains("win") && (l.contains("pace") || l.contains("heure") || l.contains("hour") || l.contains("h/"))))
+                    key = "wins_pace";
+                else if (l.contains("points_wins") || (l.contains("point") && l.contains("win")))
+                    key = "points_wins";
+                else if (l.contains("points_pace") || (l.contains("point") && (l.contains("pace") || l.contains("heure") || l.contains("hour"))))
+                    key = "points_pace";
+                else if (l == "ranks" || l.contains("rank") || l.contains("rang"))
+                    key = "ranks";
+                else if (l == "wins" || l.contains("victoire"))
+                    key = "wins";
+                else if (l == "points" || l.contains("points"))
+                    key = "points";
+                // Affecter
+                if (!key.isEmpty())
+                    ui->ydataBox->setItemData(i, key, Qt::UserRole);
+                else
+                    ui->ydataBox->setItemData(i, QVariant(), Qt::UserRole);
+            }
+            // Restaurer sélection précédente si possible
+            if (!prevKey.isEmpty()) {
+                for (int i = 0; i < ui->ydataBox->count(); ++i) {
+                    if (ui->ydataBox->itemData(i, Qt::UserRole).toString() == prevKey) {
+                        ui->ydataBox->setCurrentIndex(i);
+                        break;
+                    }
+                }
+            }
+        };
+        assignYKeys();
+    }
+
     // Que des chiffres dans les goals, et mettre des virgules tous les 3 chiffres
     ui->lineEdit_goal->setValidator( new QIntValidator(0, 10000000000, this) );
     ui->lineEdit_goal->setMaxLength(13);
@@ -771,14 +814,53 @@ void MainWindow::on_bouton_graphique_clicked()
         dialog.exec();
     }
 
-    QString ydata = "wins_pace";
-    // récupérer depuis le champ de texte
-    ydata = ui->ydataBox->currentText();
+    // Clé interne stable (résolue via traductions)
+    QString ydata;
+    if (ui->ydataBox) {
+        // Table canonique -> texte localisé (contexte "MainWindow")
+        const QStringList keys = { "wins_pace","points","points_pace","points_wins","ranks","wins" };
+        QStringList locs; locs.reserve(keys.size());
+        for (const QString& k : keys) {
+            locs << QCoreApplication::translate("MainWindow", k.toUtf8().constData());
+        }
+        auto resolveKey = [&](const QString& txt)->QString {
+            const QString tl = txt.trimmed().toLower();
+            for (int i = 0; i < keys.size(); ++i) {
+                const QString loc = locs.at(i).trimmed();
+                if (tl == loc.toLower() || tl == keys.at(i)) return keys.at(i);
+            }
+            return QString();
+        };
+        // (1) Ré-attacher UserRole à tous les items selon la table de traduction
+        for (int i = 0; i < ui->ydataBox->count(); ++i) {
+            const QString itemTxt = ui->ydataBox->itemText(i);
+            const QString k = resolveKey(itemTxt);
+            if (!k.isEmpty()) ui->ydataBox->setItemData(i, k, Qt::UserRole);
+        }
+        // (2) Obtenir la clé sélectionnée (UserRole ou via texte localisé)
+        ydata = ui->ydataBox->currentData(Qt::UserRole).toString();
+        if (ydata.isEmpty()) ydata = resolveKey(ui->ydataBox->currentText());
+        // (3) Valider contre le JSON et corriger si besoin
+        auto isValidKey = [&data](const QString& k)->bool {
+            if (k.isEmpty() || !data.contains(k)) return false;
+            return !data.value(k).toString().isEmpty();
+        };
+        if (!isValidKey(ydata)) {
+            // ordre de préférence sur clés existantes
+            const QStringList prefer = { "points","wins","wins_pace","points_pace","points_wins","ranks" };
+            for (const QString& k : prefer) { if (isValidKey(k)) { ydata = k; break; } }
+            if (!isValidKey(ydata)) {
+                for (const QString& k : data.keys()) { if (isValidKey(k)) { ydata = k; break; } }
+            }
+        }
+        if (ydata.isEmpty()) ydata = QStringLiteral("wins_pace");
+    } else {
+        ydata = QStringLiteral("wins_pace");
+    }
 
     // Transformer les données QJsonValueRef en std::string
     QString hours = QString::fromStdString(data["hour"].toString().toStdString());
     QString points = QString::fromStdString(data[ydata].toString().toStdString());
-
 
     Render::createLineChartInGraphicsView(ui, hours, points);
 
@@ -938,6 +1020,14 @@ void MainWindow::slotLanguageChanged(QAction* action)
 void MainWindow::changeEvent(QEvent* event)
 {
     if (event->type() == QEvent::LanguageChange) {
+        // Sauver la clé interne sélectionnée AVANT la retraduction (retranslateUi remplace les items)
+        QString prevYKey;
+        if (ui->ydataBox) {
+            prevYKey = ui->ydataBox->currentData(Qt::UserRole).toString();
+            // Si vide, essayer d'utiliser le texte brut (utile si items = clés brutes)
+            if (prevYKey.isEmpty()) prevYKey = ui->ydataBox->currentText().trimmed().toLower();
+        }
+
         ui->retranslateUi(this);
         if (labelDynamic) {
             labelDynamic->setText(tr("Bienvenue sur le leaderboard !"));
@@ -946,7 +1036,6 @@ void MainWindow::changeEvent(QEvent* event)
         updateIdLabelDisplay();
         // Rebuild TB localized texts from cached metadata (no network)
         refreshTbLocalizedTexts();
-
         // NEW: Retraduire les menus et actions existants
         if (menuBar()) {
             if (auto nav = menuBar()->findChild<QMenu*>("menuNavigation")) {
@@ -1029,6 +1118,32 @@ void MainWindow::changeEvent(QEvent* event)
             // Ne pas appeler restartTipsCycle() ni modifier tipsGroup/tipsEffect => le timing reste identique
         }
             
+        // Ré-appliquer les clés stables via traductions et restaurer la sélection
+        if (ui->ydataBox) {
+            const QStringList keys = { "wins_pace","points","points_pace","points_wins","ranks","wins" };
+            QStringList locs; locs.reserve(keys.size());
+            for (const QString& k : keys) locs << QCoreApplication::translate("MainWindow", k.toUtf8().constData());
+            auto resolveKey = [&](const QString& txt)->QString {
+                const QString tl = txt.trimmed().toLower();
+                for (int i = 0; i < keys.size(); ++i) {
+                    const QString loc = locs.at(i).trimmed();
+                    if (tl == loc.toLower() || tl == keys.at(i)) return keys.at(i);
+                }
+                return QString();
+            };
+            for (int i = 0; i < ui->ydataBox->count(); ++i) {
+                const QString k = resolveKey(ui->ydataBox->itemText(i));
+                if (!k.isEmpty()) ui->ydataBox->setItemData(i, k, Qt::UserRole);
+            }
+            if (!prevYKey.isEmpty()) {
+                for (int i = 0; i < ui->ydataBox->count(); ++i) {
+                    if (ui->ydataBox->itemData(i, Qt::UserRole).toString() == prevYKey) {
+                        ui->ydataBox->setCurrentIndex(i);
+                        break;
+                    }
+                }
+            }
+        }
     } else {
         QMainWindow::changeEvent(event);
     }
@@ -1785,7 +1900,9 @@ void MainWindow::updateRankOverlayOnGraphs(bool allowAxisAdjust)
     if (!wantOverlay) return;
 
     // Only show on wins_pace and if we have a computed pace
-    const bool yIsWinsPace = (ui->ydataBox && ui->ydataBox->currentText() == QStringLiteral("wins_pace"));
+    const bool yIsWinsPace = (ui->ydataBox &&
+                              (ui->ydataBox->currentData(Qt::UserRole).toString() == QStringLiteral("wins_pace") ||
+                               ui->ydataBox->currentText() == QStringLiteral("wins_pace"))); // fallback
     if (!hasRankWinPace || !yIsWinsPace) return;
 
     const double minX = 0.0;
@@ -2144,7 +2261,10 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
     }
 
     // Need overlay: require valid pace and ydata == wins_pace
-    const bool yIsWinsPace = (ui->ydataBox && ui->ydataBox->currentText() == QStringLiteral("wins_pace"));
+    //const bool yIsWinsPace = (ui->ydataBox && ui->ydataBox->currentText() == QStringLiteral("wins_pace"));
+    const bool yIsWinsPace = (ui->ydataBox &&
+                              (ui->ydataBox->currentData(Qt::UserRole).toString() == QStringLiteral("wins_pace") ||
+                               ui->ydataBox->currentText() == QStringLiteral("wins_pace"))); // fallback
     if (!hasWinPace || !yIsWinsPace) {
         // Clamp X anyway if requested and checkbox is checked
         if (allowAxisAdjust) {
