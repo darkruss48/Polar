@@ -26,6 +26,7 @@
 #include <QEvent>
 #include <QTimer>
 #include <QtCharts/QChart>
+#include <QProgressDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,6 +36,7 @@ QT_END_NAMESPACE
 
 class QProgressBar;
 class EditionPickerWidget; // NEW: forward declaration
+class QProgressDialog;     // NEW
 
 class MainWindow : public QMainWindow
 {
@@ -53,6 +55,10 @@ protected:
 
 protected slots:
     void slotLanguageChanged(QAction* action);
+    // Update download progress UI (Updater)
+    void onUpdateDownloadStarted(qint64 totalBytes);
+    void onUpdateDownloadProgress(qint64 receivedBytes, qint64 totalBytes, double speedBytesPerSec, qint64 etaSecs);
+    void onUpdateDownloadFinished(const QString& filePath, bool ok, const QString& errorString);
 
 private slots:
 
@@ -189,6 +195,11 @@ private:
     // NEW: Rank tab computed pace (wins/h) and validity
     double lastRankWinPace = std::numeric_limits<double>::quiet_NaN();
     bool   hasRankWinPace  = false;
+
+    // NEW: updater progress dialog
+    QProgressDialog* updateDlg = nullptr;
+
+
 };
 
 #endif // MAINWINDOW_H

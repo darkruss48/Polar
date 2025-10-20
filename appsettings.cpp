@@ -1,120 +1,97 @@
 #include "appsettings.h"
+#include <QCoreApplication>
+#include <QDir>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QtCharts/QChart>
 #include <QStandardPaths>
-#include <QDir>
 
-// Défauts
-QString AppSettings::savedIdentifier = "";
-QString AppSettings::savedLanguage = "en_US";
-QString AppSettings::region = "Glo";
-bool AppSettings::censorIdDisplay = false;
-bool AppSettings::useCustomBackground = false;
-QString AppSettings::backgroundPath = "";
-int AppSettings::backgroundDimPercent = 0;
-int AppSettings::autoRefreshExtraDelayMinutes = 0;
-QString AppSettings::chartThemeName = "";
-int AppSettings::chartThemeIndex = 0;
-bool AppSettings::transparentControls = false;
-int AppSettings::selectedEdition = 0;
+// Statics (valeurs par défaut)
+QString AppSettings::savedIdentifier = QString();
+QString AppSettings::savedLanguage   = QStringLiteral("en_US");
+int     AppSettings::chartThemeIndex = 0;
+QString AppSettings::region          = QStringLiteral("Glo");
+bool    AppSettings::useCustomBackground = false;
+QString AppSettings::backgroundPath  = QString();
+int     AppSettings::backgroundDimPercent = 40;
+int     AppSettings::autoRefreshExtraDelayMinutes = 0;
+bool    AppSettings::transparentControls = false;
+int     AppSettings::selectedEdition = 0;      // 0 = édition courante
+bool    AppSettings::censorIdDisplay = false;
 
-static QString settingsFile()
+// Chemin absolu: <applicationDirPath>/polar.json
+QString AppSettings::configPath()
 {
-    return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
-           .filePath("polar.json");
+    return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("polar.json"));
 }
-
-// Ordre FIXE (NE PAS CHANGER L’ORDRE)
-static const QVector<QPair<QString,QChart::ChartTheme>> kThemes = {
-    { QStringLiteral("Bleu Céruléen"),       QChart::ChartThemeBlueCerulean },
-    { QStringLiteral("Clair - Bleu 1"),      QChart::ChartThemeLight       },
-    { QStringLiteral("Clair - Bleu 2"),      QChart::ChartThemeBlueNcs     },
-    { QStringLiteral("Clair - Bleu 3"),      QChart::ChartThemeBlueIcy     },
-    { QStringLiteral("Clair - Noir"),        QChart::ChartThemeHighContrast},
-    { QStringLiteral("Clair - Vert"),        QChart::ChartThemeQt          },
-    { QStringLiteral("Sable"),               QChart::ChartThemeBrownSand   },
-    { QStringLiteral("Thème sombre"),        QChart::ChartThemeDark        }
-};
 
 void AppSettings::load()
 {
-    QFile f(settingsFile());
-    if (!f.open(QIODevice::ReadOnly)) {
-        save(); // créer fichier par défaut
+    const QString path = configPath();
+    QFile f(path);
+    if (!f.exists()) {
+        save(); // crée un fichier avec les valeurs par défaut
         return;
     }
-    QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+    if (!f.open(QIODevice::ReadOnly)) {
+        // Fichier illisible: garder les défauts
+        return;
+    }
+    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
     f.close();
     if (!doc.isObject()) return;
-    QJsonObject o = doc.object();
+    const QJsonObject o = doc.object();
 
-    savedIdentifier = o.value("savedIdentifier").toString(savedIdentifier);
-    savedLanguage   = o.value("savedLanguage").toString(savedLanguage);
-    region          = o.value("region").toString(region);
-    censorIdDisplay = o.value("censorIdDisplay").toBool(censorIdDisplay);
-    useCustomBackground = o.value("useCustomBackground").toBool(useCustomBackground);
-    backgroundPath  = o.value("backgroundPath").toString(backgroundPath);
-    backgroundDimPercent = o.value("backgroundDimPercent").toInt(backgroundDimPercent);
-    autoRefreshExtraDelayMinutes = o.value("autoRefreshExtraDelayMinutes").toInt(autoRefreshExtraDelayMinutes);
-    // NEW: transparence des widgets
-    transparentControls = o.value("transparentControls").toBool(transparentControls);
-
-    // Legacy name
-    chartThemeName  = o.value("chartThemeName").toString(chartThemeName);
-
-    // NEW: index prioritaire
-    if (o.contains("chartThemeIndex")) {
-        chartThemeIndex = o.value("chartThemeIndex").toInt(chartThemeIndex);
-    } else {
-        // Rétro-compatibilité: dériver index depuis l’ancien nom si possible
-        if (!chartThemeName.isEmpty()) {
-            for (int i = 0; i < kThemes.size(); ++i) {
-                if (kThemes[i].first == chartThemeName) {
-                    chartThemeIndex = i;
-                    break;
-                }
-            }
-        }
-    }
-    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
-        chartThemeIndex = 0;
-
-    selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(0);
+    savedIdentifier = o.value(QStringLiteral("identifier")).toString(savedIdentifier);
+    savedLanguage   = o.value(QStringLiteral("language")).toString(savedLanguage);
+    chartThemeIndex = o.value(QStringLiteral("chartThemeIndex")).toInt(chartThemeIndex);
+    region          = o.value(QStringLiteral("region")).toString(region);
+    useCustomBackground = o.value(QStringLiteral("useCustomBackground")).toBool(useCustomBackground);
+    backgroundPath  = o.value(QStringLiteral("backgroundPath")).toString(backgroundPath);
+    backgroundDimPercent = qBound(0, o.value(QStringLiteral("backgroundDimPercent")).toInt(backgroundDimPercent), 100);
+    autoRefreshExtraDelayMinutes = qBound(0, o.value(QStringLiteral("autoRefreshExtraDelayMinutes")).toInt(autoRefreshExtraDelayMinutes), 15);
+    transparentControls = o.value(QStringLiteral("transparentControls")).toBool(transparentControls);
+    selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(selectedEdition);
+    censorIdDisplay = o.value(QStringLiteral("censorIdDisplay")).toBool(censorIdDisplay);
 }
 
 void AppSettings::save()
 {
-    QDir().mkpath(QFileInfo(settingsFile()).path());
     QJsonObject o;
-    o["savedIdentifier"] = savedIdentifier;
-    o["savedLanguage"] = savedLanguage;
-    o["region"] = region;
-    o["censorIdDisplay"] = censorIdDisplay;
-    o["useCustomBackground"] = useCustomBackground;
-    o["backgroundPath"] = backgroundPath;
-    o["backgroundDimPercent"] = backgroundDimPercent;
-    o["autoRefreshExtraDelayMinutes"] = autoRefreshExtraDelayMinutes;
-    // NEW: transparence des widgets
-    o["transparentControls"] = transparentControls;
+    o.insert(QStringLiteral("identifier"), savedIdentifier);
+    o.insert(QStringLiteral("language"), savedLanguage);
+    o.insert(QStringLiteral("chartThemeIndex"), chartThemeIndex);
+    o.insert(QStringLiteral("region"), region);
+    o.insert(QStringLiteral("useCustomBackground"), useCustomBackground);
+    o.insert(QStringLiteral("backgroundPath"), backgroundPath);
+    o.insert(QStringLiteral("backgroundDimPercent"), backgroundDimPercent);
+    o.insert(QStringLiteral("autoRefreshExtraDelayMinutes"), autoRefreshExtraDelayMinutes);
+    o.insert(QStringLiteral("transparentControls"), transparentControls);
+    o.insert(QStringLiteral("selectedEdition"), selectedEdition);
+    o.insert(QStringLiteral("censorIdDisplay"), censorIdDisplay);
 
-    // Conserver aussi le nom (lecture humaine) mais index source de vérité
-    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
-        chartThemeIndex = 0;
-    o["chartThemeIndex"] = chartThemeIndex;
-    o["chartThemeName"]  = kThemes[chartThemeIndex].first;
-    o.insert(QStringLiteral("selectedEdition"), AppSettings::selectedEdition);
-
-    QFile f(settingsFile());
-    if (f.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
-        f.write(QJsonDocument(o).toJson(QJsonDocument::Indented));
-        f.close();
+    const QJsonDocument doc(o);
+    QFile f(configPath());
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return;
     }
+    f.write(doc.toJson(QJsonDocument::Indented));
+    f.close();
 }
 
 QChart::ChartTheme AppSettings::chartThemeEnum()
 {
-    if (chartThemeIndex < 0 || chartThemeIndex >= kThemes.size())
-        chartThemeIndex = 0;
-    return kThemes[chartThemeIndex].second;
+    // Mappe un index simple vers un thème QtCharts existant
+    switch (chartThemeIndex) {
+    case 0:  return QChart::ChartThemeBlueCerulean;
+    case 1:  return QChart::ChartThemeLight;
+    case 2:  return QChart::ChartThemeBlueNcs;
+    case 3:  return QChart::ChartThemeBlueIcy;
+    case 4:  return QChart::ChartThemeQt;
+    case 5:  return QChart::ChartThemeBrownSand;
+    case 6:  return QChart::ChartThemeDark;
+    case 7:  return QChart::ChartThemeHighContrast;
+    default: return QChart::ChartThemeLight;
+    }
 }

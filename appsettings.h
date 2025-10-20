@@ -7,44 +7,28 @@
 
 class AppSettings {
 public:
-    static QString region;              // "Glo" or "Jap"
-    static QString chartThemeName;      // e.g. "ChartThemeBrownSand"
-    // NEW: Background settings
-    static bool useCustomBackground;
-    static QString backgroundPath;
-    static int backgroundDimPercent;    // 0..100
+    // Chemin absolu du fichier de config ("polar.json" à côté de l'exécutable)
+    static QString configPath();
 
-    // NEW: Privacy + persisted identifier
-    static bool censorIdDisplay;      // false by default
-    static QString savedIdentifier;   // persisted user ID
-
-    // NEW: Language + auto-refresh delay
-    static QString savedLanguage;               // "en_US" or "fr_FR"
-    static int autoRefreshExtraDelayMinutes;    // 0..15
-
-    // NOUVEAU: stockage stable par indice (ordre fixe du combo)
-    static int chartThemeIndex;
-
-    // NEW: Transparence des widgets (boutons, listes, etc.)
-    static bool transparentControls;
-
-    // NEW: Persist the selected TB edition
-    static int selectedEdition; // 0 = current (latest), otherwise explicit TB number
-
-    // Load from polar.json (create with defaults if missing)
+    // (Dé)sérialisation
     static void load();
-    // Save to polar.json
     static void save();
 
-    // Helper: mapping to enum
+    // Mappage de l'index de thème -> QChart::ChartTheme
     static QChart::ChartTheme chartThemeEnum();
 
-private:
-    static QString settingsFilePath();
-    static QJsonObject toJson();
-    static void fromJson(const QJsonObject& obj);
-    static QChart::ChartTheme themeFromName(const QString& name);
-    static QString nameFromTheme(QChart::ChartTheme theme);
+    // Données persistées
+    static QString savedIdentifier;
+    static QString savedLanguage;
+    static int     chartThemeIndex;
+    static QString region; // "Glo" ou "Jap"
+    static bool    useCustomBackground;
+    static QString backgroundPath;
+    static int     backgroundDimPercent;          // 0..100
+    static int     autoRefreshExtraDelayMinutes;  // 0..15
+    static bool    transparentControls;
+    static int     selectedEdition;               // 0 = courant
+    static bool    censorIdDisplay;
 };
 
 #endif // APPSETTINGS_H

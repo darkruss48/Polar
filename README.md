@@ -83,6 +83,7 @@ This project was made possible thanks to the hard work and dedication of the fol
 - **Darkruss** : [GitHub Profile](https://github.com/darkruss48)
 
 Thanks to Clєтυн26 for translating Polar in Spanish.
+Thanks to LuCaPigeon for translating Polar in Italian.
 
 ## Contact
 Contact me on [Twitter](https://twitter.com/darkruss47) or reach me on discord : darkruss (or polo as well)

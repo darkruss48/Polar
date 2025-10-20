@@ -635,6 +635,10 @@ MainWindow::MainWindow(QWidget *parent)
     // mise a jour
     updater = new Updater(this);
     connect(updater, &Updater::updateAvailable, this, &MainWindow::onUpdateAvailable);
+    // Progress UI for updater
+    connect(updater, &Updater::downloadStarted,  this, &MainWindow::onUpdateDownloadStarted);
+    connect(updater, &Updater::downloadProgress, this, &MainWindow::onUpdateDownloadProgress);
+    connect(updater, &Updater::downloadFinished, this, &MainWindow::onUpdateDownloadFinished);
     updater->checkForUpdate();
 
     // Initialiser l'easter-egg (détection sur label_time_left)
@@ -734,14 +738,26 @@ void MainWindow::onUpdateAvailable(const QString &latestVersion, const QString &
     msgBox.setInformativeText(changelog);
     msgBox.setStandardButtons(QMessageBox::Ok);
     QPushButton *downloadButton = msgBox.addButton(tr("Télécharger"), QMessageBox::AcceptRole);
+    #ifdef Q_OS_WIN
+        QPushButton *directLinkButton = msgBox.addButton("🔗 GitHub", QMessageBox::AcceptRole);
+    #endif
 
     msgBox.exec();
-    if (msgBox.clickedButton() == downloadButton) {
+    if (msgBox.clickedButton() == directLinkButton) {
         // Ouvrir le lien de téléchargement
         QDesktopServices::openUrl(QUrl(downloadUrl));
         // quitter
         QApplication::quit();
     }
+    #ifdef Q_OS_WIN
+        // Si "Télécharger", alors on télécharge le fichier
+        if (msgBox.clickedButton() == downloadButton) {
+            if (updater) {
+                // ligne 747: initier la MAJ (télécharger + lancer + fermer l'appli courante)
+                updater->startDownloadLatestAsset();
+            }
+        }
+    #endif
 }
 
 void MainWindow::on_bouton_graphique_clicked()
@@ -2331,4 +2347,80 @@ void MainWindow::buildTbEditionCombo()
     if (tbPicker) {
         tbPicker->setEditions(list, AppSettings::selectedEdition, latest);
     }
+}
+
+// Progress UI slots
+void MainWindow::onUpdateDownloadStarted(qint64 totalBytes)
+{
+    if (!updateDlg) {
+        updateDlg = new QProgressDialog(tr("Préparation du téléchargement..."), QString(), 0, 100, this);
+        updateDlg->setWindowTitle(tr("Téléchargement de la mise à jour"));
+        updateDlg->setCancelButton(nullptr);
+        updateDlg->setWindowModality(Qt::ApplicationModal);
+        updateDlg->setMinimumDuration(0);
+        updateDlg->setAutoClose(false);
+        updateDlg->setAutoReset(false);
+    }
+    const auto human = [](qint64 b)->QString {
+        const double db = static_cast<double>(b);
+        if (b < 1024) return QString::number(b) + " B";
+        if (b < 1024*1024) return QString::number(db/1024.0, 'f', 1) + " KB";
+        if (b < 1024ll*1024ll*1024ll) return QString::number(db/1048576.0, 'f', 1) + " MB";
+        return QString::number(db/1073741824.0, 'f', 2) + " GB";
+    };
+    const int maxKiB = totalBytes > 0 ? static_cast<int>(qMin<qint64>(totalBytes / 1024, INT_MAX)) : 0;
+    updateDlg->setRange(0, qMax(1, maxKiB));
+    updateDlg->setValue(0);
+    updateDlg->setLabelText(tr("Téléchargement... 0 / %1").arg(human(totalBytes)));
+    updateDlg->show();
+}
+
+void MainWindow::onUpdateDownloadProgress(qint64 receivedBytes, qint64 totalBytes, double speedBytesPerSec, qint64 etaSecs)
+{
+    if (!updateDlg) {
+        onUpdateDownloadStarted(totalBytes);
+        if (!updateDlg) return;
+    }
+    const auto human = [](qint64 b)->QString {
+        const double db = static_cast<double>(b);
+        if (b < 1024) return QString::number(b) + " B";
+        if (b < 1024*1024) return QString::number(db/1024.0, 'f', 1) + " KB";
+        return QString::number(db/1048576.0, 'f', 1) + " MB";
+    };
+    const auto humanSpeed = [](double bps)->QString {
+        if (bps < 1024.0) return QString::number(bps, 'f', 0) + " B/s";
+        if (bps < 1024.0*1024.0) return QString::number(bps/1024.0, 'f', 1) + " KB/s";
+        return QString::number(bps/1048576.0, 'f', 1) + " MB/s";
+    };
+    const auto humanEta = [](qint64 s)->QString {
+        qint64 h = s / 3600; s %= 3600;
+        qint64 m = s / 60;   qint64 sec = s % 60;
+        if (h > 0) return QString("%1:%2:%3").arg(h).arg(m,2,10,QLatin1Char('0')).arg(sec,2,10,QLatin1Char('0'));
+        return QString("%1:%2").arg(m).arg(sec,2,10,QLatin1Char('0'));
+    };
+
+    const int maxKiB = totalBytes > 0 ? static_cast<int>(qMin<qint64>(totalBytes / 1024, INT_MAX)) : 0;
+    const int valKiB = static_cast<int>(qMin<qint64>(receivedBytes / 1024, maxKiB));
+    if (updateDlg->maximum() != qMax(1, maxKiB)) updateDlg->setRange(0, qMax(1, maxKiB));
+    updateDlg->setValue(qBound(0, valKiB, updateDlg->maximum()));
+    updateDlg->setLabelText(tr("Téléchargement... %1 / %2 — %3 — ETA %4")
+                            .arg(human(receivedBytes),
+                                 human(totalBytes),
+                                 humanSpeed(speedBytesPerSec),
+                                 humanEta(etaSecs)));
+}
+
+void MainWindow::onUpdateDownloadFinished(const QString& filePath, bool ok, const QString& errorString)
+{
+    if (!updateDlg) return;
+    if (ok) {
+        updateDlg->setValue(updateDlg->maximum());
+        updateDlg->setLabelText(tr("Téléchargement terminé."));
+    } else {
+        updateDlg->setLabelText(tr("Erreur de téléchargement: %1").arg(errorString));
+    }
+    // Let the dialog close; the app will quit right after (updater starts the new exe)
+    QTimer::singleShot(300, updateDlg, [this](){
+        if (updateDlg) { updateDlg->hide(); updateDlg->deleteLater(); updateDlg = nullptr; }
+    });
 }
