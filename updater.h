@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QElapsedTimer>
+#include <QString> // NEW
 
 class Updater : public QObject
 {
@@ -11,6 +12,9 @@ public:
     explicit Updater(QObject *parent = nullptr);
     void checkForUpdate();
     static std::string polar_version;
+    // NEW: état de version (rempli après checkForUpdate)
+    static bool isCurrentLatest;
+    static QString latestReleaseName;
     // Download the latest .exe asset, launch it, then quit current app
     void startDownloadLatestAsset();
 

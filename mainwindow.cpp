@@ -64,6 +64,19 @@
 #include <QLocale>      // NEW: for locale-aware % formatting
 #include <QGroupBox>    // NEW: for groupbox titles retranslation
 #include <QCoreApplication> // NEW: for QCoreApplication::translate (UI loaded via QUiLoader)
+#include <QStandardPaths> // NEW
+#include <cmath> // FIX: for std::round/std::clamp usage with cmath
+
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX 1 // FIX: prevent windows.h from defining min/max macros
+#endif
+#include <windows.h>
+#include <shobjidl.h>
+#include <objbase.h>
+// faire le prototype
+static bool createStartMenuShortcut(const QString& displayName);
+#endif
 
 // NEW: lightweight 3-slot edition picker (center = selected, side = neighbors)
 class EditionPickerWidget : public QWidget {
@@ -104,8 +117,8 @@ protected:
             QRect(colW*2, 0, w - colW*2, h)
         };
         // Typography scaled to height
-        const int pxSide   = std::max(8,  int(std::round(h * 0.36)));
-        const int pxCenter = std::max(10, int(std::round(h * 0.48)));
+        const int pxSide   = std::max(8,  static_cast<int>(std::round(h * 0.36)));
+        const int pxCenter = std::max(10, static_cast<int>(std::round(h * 0.48)));
         const int underH   = std::max(2,  h / 12);
         const int underW   = std::max(10, colW / 3);
 
@@ -1558,6 +1571,12 @@ void MainWindow::showOptionsDialog()
     auto spinExtraDelay = content->findChild<QSpinBox*>("spinExtraDelay"); // NEW
     // NEW: transparent controls
     auto checkTransparent = content->findChild<QCheckBox*>("checkTransparentControls"); // NEW
+    // NEW: Start Menu UI
+    auto lblStartTitle = content->findChild<QLabel*>("labelAddStartMenuTitle");
+    auto btnAddStart   = content->findChild<QPushButton*>("buttonAddStartMenu");
+    auto lblStartHint  = content->findChild<QLabel*>("labelAddStartMenuHint");
+    // NEW: checkbox to update shortcut after updates (optional in UI)
+    auto checkUpdateShortcut = content->findChild<QCheckBox*>("checkUpdateStartShortcut");
 
     // Initialize from settings
     if (radioGlo && radioJap) {
@@ -1611,6 +1630,41 @@ void MainWindow::showOptionsDialog()
         checkTransparent->setChecked(AppSettings::transparentControls);
     }
 
+    // État: activer seulement si la version est à jour
+    if (btnAddStart && lblStartHint) {
+        const bool haveLatestInfo = !Updater::latestReleaseName.isEmpty();
+        const bool isLatest = Updater::isCurrentLatest;
+        btnAddStart->setEnabled(isLatest);
+        if (!isLatest) {
+            lblStartHint->setText(tr("Vous devez installer la dernière version pour ajouter Polar au menu Démarrer."));
+            lblStartHint->setStyleSheet("color:#9aa0a6; font-size:11px;");
+        } else {
+            lblStartHint->clear();
+        }
+    }
+    // Action "Ajouter"
+    if (btnAddStart && lblStartHint) {
+        QObject::connect(btnAddStart, &QPushButton::clicked, &dlg, [this, lblStartHint]() {
+        #ifdef Q_OS_WIN
+            const bool ok = createStartMenuShortcut(QStringLiteral("Polar"));
+        #else
+            const bool ok = false;
+        #endif
+            if (ok) {
+                lblStartHint->setText(QString::fromUtf8("✔ ") + tr("Ajouté au menu Démarrer."));
+                lblStartHint->setStyleSheet("color:#2ECC71; font-size:11px;");
+            } else {
+                lblStartHint->setText(QString::fromUtf8("✖ ") + tr("Erreur lors de l'ajout au menu Démarrer."));
+                lblStartHint->setStyleSheet("color:#E74C3C; font-size:11px;");
+            }
+        });
+    }
+
+    // Initialize from settings (checkbox)
+    if (checkUpdateShortcut) {
+        checkUpdateShortcut->setChecked(AppSettings::updateStartShortcutOnUpgrade);
+    }
+
     if (buttonBox) {
         connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
         connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
@@ -1634,6 +1688,8 @@ void MainWindow::showOptionsDialog()
         if (spinExtraDelay) AppSettings::autoRefreshExtraDelayMinutes = qBound(0, spinExtraDelay->value(), 15);
         // NEW: save transparent controls setting
         if (checkTransparent) AppSettings::transparentControls = checkTransparent->isChecked();
+        // NEW: save shortcut-update preference
+        if (checkUpdateShortcut) AppSettings::updateStartShortcutOnUpgrade = checkUpdateShortcut->isChecked();
         AppSettings::save();
         updateBackgroundPalette();
         updateIdLabelDisplay();
@@ -2424,3 +2480,35 @@ void MainWindow::onUpdateDownloadFinished(const QString& filePath, bool ok, cons
         if (updateDlg) { updateDlg->hide(); updateDlg->deleteLater(); updateDlg = nullptr; }
     });
 }
+
+// NEW (Windows): créer un .lnk dans le Start Menu (par-utilisateur)
+#ifdef Q_OS_WIN
+static bool createStartMenuShortcut(const QString& displayName)
+{
+    const QString target = QCoreApplication::applicationFilePath();
+    const QString startMenuDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    if (target.isEmpty() || startMenuDir.isEmpty()) return false;
+    const QString linkPath = QDir(startMenuDir).filePath(displayName + QStringLiteral(".lnk"));
+
+    HRESULT hr = CoInitialize(nullptr);
+    const bool didCoInit = SUCCEEDED(hr);
+    IShellLinkW* psl = nullptr;
+    hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, reinterpret_cast<void**>(&psl));
+    if (FAILED(hr) || !psl) { if (didCoInit) CoUninitialize(); return false; }
+
+    psl->SetPath(reinterpret_cast<LPCWSTR>(target.utf16()));
+    psl->SetDescription(reinterpret_cast<LPCWSTR>(QStringLiteral("Polar").utf16()));
+    psl->SetIconLocation(reinterpret_cast<LPCWSTR>(target.utf16()), 0);
+
+    IPersistFile* ppf = nullptr;
+    hr = psl->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&ppf));
+    if (FAILED(hr) || !ppf) { psl->Release(); if (didCoInit) CoUninitialize(); return false; }
+
+    // Save the shortcut
+    hr = ppf->Save(reinterpret_cast<LPCWSTR>(QString(linkPath).replace('/', '\\').utf16()), TRUE);
+    ppf->Release();
+    psl->Release();
+    if (didCoInit) CoUninitialize();
+    return SUCCEEDED(hr);
+}
+#endif

@@ -19,6 +19,7 @@ int     AppSettings::autoRefreshExtraDelayMinutes = 0;
 bool    AppSettings::transparentControls = false;
 int     AppSettings::selectedEdition = 0;      // 0 = édition courante
 bool    AppSettings::censorIdDisplay = false;
+bool    AppSettings::updateStartShortcutOnUpgrade = true;
 
 // Chemin absolu: <applicationDirPath>/polar.json
 QString AppSettings::configPath()
@@ -54,6 +55,7 @@ void AppSettings::load()
     transparentControls = o.value(QStringLiteral("transparentControls")).toBool(transparentControls);
     selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(selectedEdition);
     censorIdDisplay = o.value(QStringLiteral("censorIdDisplay")).toBool(censorIdDisplay);
+    updateStartShortcutOnUpgrade = o.value(QStringLiteral("updateStartShortcutOnUpgrade")).toBool(updateStartShortcutOnUpgrade);
 }
 
 void AppSettings::save()
@@ -70,6 +72,7 @@ void AppSettings::save()
     o.insert(QStringLiteral("transparentControls"), transparentControls);
     o.insert(QStringLiteral("selectedEdition"), selectedEdition);
     o.insert(QStringLiteral("censorIdDisplay"), censorIdDisplay);
+    o.insert(QStringLiteral("updateStartShortcutOnUpgrade"), updateStartShortcutOnUpgrade);
 
     const QJsonDocument doc(o);
     QFile f(configPath());

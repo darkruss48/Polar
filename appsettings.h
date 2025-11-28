@@ -29,6 +29,7 @@ public:
     static bool    transparentControls;
     static int     selectedEdition;               // 0 = courant
     static bool    censorIdDisplay;
+    static bool    updateStartShortcutOnUpgrade; // NEW: update Start Menu shortcut after auto-update
 };
 
 #endif // APPSETTINGS_H

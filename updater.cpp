@@ -13,10 +13,23 @@
 #include <QProcess>
 #include <QCoreApplication>
 #include <QFileInfo>
+#include "appsettings.h" // NEW
+
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX 1
+#endif
+#include <windows.h>
+#include <shobjidl.h>
+#include <objbase.h>
+#endif
 
 Updater::Updater(QObject *parent) : QObject(parent) {}
 
 std::string Updater::polar_version = "v1.4.4";
+// NEW: defaults (assume up-to-date until proven otherwise)
+bool Updater::isCurrentLatest = true;
+QString Updater::latestReleaseName = QString();
 
 void Updater::checkForUpdate()
 {
@@ -39,6 +52,9 @@ void Updater::checkForUpdate()
                 QString title = jsonObj["name"].toString();
                 std::cout << "titre : " << title.toStdString() << std::endl;
                 std::cout << "polar_version : " << polar_version << std::endl;
+                // NEW: record latest
+                Updater::latestReleaseName = title;
+                Updater::isCurrentLatest = (title.toStdString() == polar_version);
                 m_latestAssetUrl.clear();
                 m_latestAssetName.clear();
                 if (jsonObj.contains("assets") && jsonObj["assets"].isArray()) {
@@ -56,8 +72,7 @@ void Updater::checkForUpdate()
                         }
                     }
                 }
-
-                if (title.toStdString() != polar_version) {
+                if (!Updater::isCurrentLatest) {
                     emit updateAvailable(title, changelog, downloadUrl);
                 }
             }
@@ -65,6 +80,37 @@ void Updater::checkForUpdate()
         reply->deleteLater();
     });
 }
+
+#ifdef Q_OS_WIN
+// NEW: update existing Start Menu shortcut (per-user) to point to new target
+static bool updateStartMenuShortcutIfExists(const QString& displayName, const QString& newTarget)
+{
+    const QString startMenuDir = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+    if (startMenuDir.isEmpty() || newTarget.isEmpty()) return false;
+    const QString linkPath = QDir(startMenuDir).filePath(displayName + QStringLiteral(".lnk"));
+    if (!QFile::exists(linkPath)) return false;
+
+    HRESULT hr = CoInitialize(nullptr);
+    const bool didCoInit = SUCCEEDED(hr);
+    IShellLinkW* psl = nullptr;
+    hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, reinterpret_cast<void**>(&psl));
+    if (FAILED(hr) || !psl) { if (didCoInit) CoUninitialize(); return false; }
+
+    psl->SetPath(reinterpret_cast<LPCWSTR>(newTarget.utf16()));
+    psl->SetDescription(reinterpret_cast<LPCWSTR>(QStringLiteral("Polar").utf16()));
+    psl->SetIconLocation(reinterpret_cast<LPCWSTR>(newTarget.utf16()), 0);
+
+    IPersistFile* ppf = nullptr;
+    hr = psl->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&ppf));
+    if (FAILED(hr) || !ppf) { psl->Release(); if (didCoInit) CoUninitialize(); return false; }
+
+    hr = ppf->Save(reinterpret_cast<LPCWSTR>(QString(linkPath).replace('/', '\\').utf16()), TRUE);
+    ppf->Release();
+    psl->Release();
+    if (didCoInit) CoUninitialize();
+    return SUCCEEDED(hr);
+}
+#endif
 
 void Updater::startDownloadLatestAsset()
 {
@@ -139,6 +185,13 @@ void Updater::startDownloadLatestAsset()
         }
         f.write(bin);
         f.close();
+
+        // NEW: update Start Menu shortcut if requested
+        #ifdef Q_OS_WIN
+        if (AppSettings::updateStartShortcutOnUpgrade) {
+            updateStartMenuShortcutIfExists(QStringLiteral("Polar"), fullPath);
+        }
+        #endif
 
         emit downloadFinished(fullPath, true, QString());
 
