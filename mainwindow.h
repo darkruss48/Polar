@@ -37,6 +37,9 @@ QT_END_NAMESPACE
 class QProgressBar;
 class EditionPickerWidget; // NEW: forward declaration
 class QProgressDialog;     // NEW
+class QGraphicsView;
+class QListWidget;
+class QComboBox;
 
 class MainWindow : public QMainWindow
 {
@@ -97,6 +100,15 @@ private slots:
     void on_checkBox_2_clicked(bool checked);
 
     void on_checkBox_clicked(bool checked);
+
+    // NEW: Joueur page slots
+    void onJoueurGenerateClicked();
+    void onJoueurCopyClicked();
+    void onJoueurUseCurrentId();
+    void onJoueurAddPlayer();
+    void onJoueurRemovePlayer();
+    void onJoueurClearAll();
+    void onJoueurPlayerSelectionChanged();
 
 private:
     // loads a language by the given language shortcur (e.g. de, en)
@@ -200,6 +212,36 @@ private:
     QProgressDialog* updateDlg = nullptr;
 
 
+    // NEW: Joueur page widgets
+    QWidget* pageJoueur = nullptr;
+    QGraphicsView* joueurGraphView = nullptr;
+    QLineEdit* joueurIdEdit = nullptr;
+    QListWidget* joueurPlayersList = nullptr;
+    QComboBox* joueurYDataCombo = nullptr;
+    QComboBox* joueurEditionStartCombo = nullptr;
+    QComboBox* joueurEditionEndCombo = nullptr;
+    QLabel* joueurStatusLabel = nullptr;
+    QLabel* joueurCopyConfirmLabel = nullptr;
+    QPushButton* joueurGenerateBtn = nullptr;
+    QPushButton* joueurCopyBtn = nullptr;
+    QPushButton* joueurAddPlayerBtn = nullptr;
+    QPushButton* joueurRemovePlayerBtn = nullptr;
+    QPushButton* joueurClearBtn = nullptr;
+
+    // Structure pour stocker les joueurs ajoutés
+    struct JoueurEntry {
+        QString playerId;
+        QString displayName;
+        int editionStart;
+        int editionEnd;
+    };
+    QVector<JoueurEntry> joueurEntries;
+    int joueurLatestEdition = 0; // NEW: numéro de l'édition la plus récente (pour savoir quand utiliser 0)
+
+    void setupJoueurPage();
+    void populateJoueurEditionCombos();
+    void refreshJoueurPlayersList();
+    void populateJoueurEditions(); // NEW: wrapper for populateJoueurEditionCombos
 };
 
 #endif // MAINWINDOW_H

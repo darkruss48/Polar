@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>JoueurPage</class>
+ <widget class="QWidget" name="JoueurPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Joueur</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_main">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="leftPanel" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>220</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>280</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="leftPanelLayout">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="group_player">
+        <property name="title">
+         <string>Joueur</string>
+        </property>
+        <layout class="QVBoxLayout" name="layoutPlayer">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_identifier">
+           <property name="text">
+            <string>Identifiant :</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_playerId">
+           <property name="placeholderText">
+            <string>Entrez l'identifiant...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="button_useCurrentId">
+           <property name="text">
+            <string>Mon ID</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="group_editions">
+        <property name="title">
+         <string>Éditions</string>
+        </property>
+        <layout class="QVBoxLayout" name="layoutEditions">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="layoutEditionRange">
+           <item>
+            <widget class="QLabel" name="label_from">
+             <property name="text">
+              <string>De :</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="combo_editionStart">
+             <property name="minimumWidth">
+              <number>55</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_to">
+             <property name="text">
+              <string>À :</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="combo_editionEnd">
+             <property name="minimumWidth">
+              <number>55</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPushButton" name="button_addPlayer">
+           <property name="text">
+            <string>Ajouter</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="group_list">
+        <property name="title">
+         <string>Joueurs ajoutés</string>
+        </property>
+        <layout class="QVBoxLayout" name="layoutList">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QListWidget" name="list_players">
+           <property name="minimumHeight">
+            <number>80</number>
+           </property>
+           <property name="maximumHeight">
+            <number>140</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="layoutListButtons">
+           <item>
+            <widget class="QPushButton" name="button_removePlayer">
+             <property name="text">
+              <string>Suppr.</string>
+             </property>
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_clear">
+             <property name="text">
+              <string>Effacer</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="group_yaxis">
+        <property name="title">
+         <string>Ordonnée</string>
+        </property>
+        <layout class="QVBoxLayout" name="layoutYAxis">
+         <item>
+          <widget class="QComboBox" name="combo_ydata">
+           <item>
+            <property name="text">
+             <string>wins_pace</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>points</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>wins</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>ranks</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>points_pace</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>points_wins</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="button_generate">
+        <property name="text">
+         <string>Générer</string>
+        </property>
+        <property name="minimumHeight">
+         <number>32</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_status">
+        <property name="text">
+         <string></string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="rightPanel">
+     <property name="spacing">
+      <number>8</number>
+     </property>
+     <item>
+      <widget class="QGraphicsView" name="view_graph">
+       <property name="minimumSize">
+        <size>
+         <width>480</width>
+         <height>380</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="layoutCopy">
+       <item>
+        <widget class="QPushButton" name="button_copy">
+         <property name="text">
+          <string>Copier</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_copy_confirm">
+         <property name="text">
+          <string></string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

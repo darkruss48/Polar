@@ -67,6 +67,12 @@
 #include <QStandardPaths> // NEW
 #include <cmath> // FIX: for std::round/std::clamp usage with cmath
 
+// NEW: Qt Charts includes for Joueur page
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QCategoryAxis>
+
 #ifdef Q_OS_WIN
 #ifndef NOMINMAX
 #define NOMINMAX 1 // FIX: prevent windows.h from defining min/max macros
@@ -445,6 +451,19 @@ MainWindow::MainWindow(QWidget *parent)
     }
     stackedWidget->addWidget(pageClassement);
 
+    // NEW: Charger la page Joueur depuis joueur.ui
+    QFile joueurUi(":/joueur.ui");
+    if (joueurUi.open(QFile::ReadOnly)) {
+        QUiLoader loader;
+        pageJoueur = loader.load(&joueurUi, this);
+        joueurUi.close();
+    }
+    if (!pageJoueur) {
+        pageJoueur = new QWidget(this);
+    }
+    stackedWidget->addWidget(pageJoueur);
+    setupJoueurPage();
+
     // Récupérer les widgets de la page Classement
     auto playerList_   = pageClassement->findChild<QListWidget*>("list_players");
     auto refreshButton = pageClassement->findChild<QPushButton*>("button_refresh");
@@ -595,12 +614,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Ajouter des actions pour changer de page
     QAction *actionPagePrincipale = new QAction(tr("Graphiques"), this);
-    actionPagePrincipale->setObjectName("actionGraphiques"); // NEW
+    actionPagePrincipale->setObjectName("actionGraphiques");
     QAction *actionPageSecondaire = new QAction(tr("Classement"), this);
-    actionPageSecondaire->setObjectName("pageSecondaire");   // keep
+    actionPageSecondaire->setObjectName("pageSecondaire");
+    // NEW: action Joueur
+    QAction *actionPageJoueur = new QAction(tr("Joueur"), this);
+    actionPageJoueur->setObjectName("actionJoueur");
+    actionPageJoueur->setIcon(QIcon(":/images/guy.png")); // CHANGED: utiliser guy.png
 
     menuNavigation->addAction(actionPagePrincipale);
     menuNavigation->addAction(actionPageSecondaire);
+    menuNavigation->addAction(actionPageJoueur); // NEW
 
     // Ajouter des icônes
     actionPagePrincipale->setIcon(QIcon(":/images/chart.png"));
@@ -624,6 +648,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(actionPageSecondaire, &QAction::triggered, this, [this]() {
         stackedWidget->setCurrentIndex(1); // classement.ui
+    });
+
+    // NEW: connect Joueur
+    connect(actionPageJoueur, &QAction::triggered, this, [this]() {
+        stackedWidget->setCurrentIndex(2);
+        populateJoueurEditions(); // refresh editions list
     });
 
     // Menu principal
@@ -1170,6 +1200,36 @@ void MainWindow::changeEvent(QEvent* event)
                         ui->ydataBox->setCurrentIndex(i);
                         break;
                     }
+                }
+            }
+        }
+        // NEW: Retraduire la page Joueur
+        if (pageJoueur) {
+            if (auto g = pageJoueur->findChild<QGroupBox*>("group_player"))
+                g->setTitle(tr("Joueur"));
+            if (auto g = pageJoueur->findChild<QGroupBox*>("group_editions"))
+                g->setTitle(tr("Éditions à comparer"));
+            if (auto g = pageJoueur->findChild<QGroupBox*>("group_yaxis"))
+                g->setTitle(tr("Donnée en ordonnée"));
+            if (auto l = pageJoueur->findChild<QLabel*>("label_identifier"))
+                l->setText(tr("Identifiant du joueur :"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_useCurrentId"))
+                b->setText(tr("Utiliser mon identifiant"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_selectAll"))
+                b->setText(tr("Tout sélectionner"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_deselectAll"))
+                b->setText(tr("Tout désélectionner"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_generate"))
+                b->setText(tr("Générer le graphique"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_copy"))
+                b->setText(tr("Copier le graphique"));
+        }
+
+        // NEW: Retraduire l'action Joueur dans le menu
+        if (menuBar()) {
+            if (auto nav = menuBar()->findChild<QMenu*>("menuNavigation")) {
+                if (auto actJoueur = nav->findChild<QAction*>("actionJoueur")) {
+                    actJoueur->setText(tr("Joueur"));
                 }
             }
         }
@@ -2230,7 +2290,7 @@ void MainWindow::copyClassementGraphToClipboard()
     }
 }
 
-// NEW: copy context-aware (Graphs or Classement)
+// NEW: copy context-aware (Graphs or Classement or Joueur)
 void MainWindow::copyAnyGraphToClipboard()
 {
     if (!stackedWidget) return;
@@ -2238,6 +2298,11 @@ void MainWindow::copyAnyGraphToClipboard()
     if (idx == 1) {
         // Classement page
         copyClassementGraphToClipboard();
+        return;
+    }
+    if (idx == 2) {
+        // Joueur page
+        onJoueurCopyClicked();
         return;
     }
     if (!ui || !ui->graphiqueTest) return;
@@ -2512,3 +2577,579 @@ static bool createStartMenuShortcut(const QString& displayName)
     return SUCCEEDED(hr);
 }
 #endif
+
+// ============================================================================
+// NEW: Joueur page implementation (multi-player comparison)
+// ============================================================================
+
+void MainWindow::setupJoueurPage()
+{
+    if (!pageJoueur) return;
+
+    joueurGraphView = pageJoueur->findChild<QGraphicsView*>("view_graph");
+    joueurIdEdit = pageJoueur->findChild<QLineEdit*>("lineEdit_playerId");
+    joueurPlayersList = pageJoueur->findChild<QListWidget*>("list_players");
+    joueurYDataCombo = pageJoueur->findChild<QComboBox*>("combo_ydata");
+    joueurEditionStartCombo = pageJoueur->findChild<QComboBox*>("combo_editionStart");
+    joueurEditionEndCombo = pageJoueur->findChild<QComboBox*>("combo_editionEnd");
+    joueurStatusLabel = pageJoueur->findChild<QLabel*>("label_status");
+    joueurCopyConfirmLabel = pageJoueur->findChild<QLabel*>("label_copy_confirm");
+    joueurGenerateBtn = pageJoueur->findChild<QPushButton*>("button_generate");
+    joueurCopyBtn = pageJoueur->findChild<QPushButton*>("button_copy");
+    joueurAddPlayerBtn = pageJoueur->findChild<QPushButton*>("button_addPlayer");
+    joueurRemovePlayerBtn = pageJoueur->findChild<QPushButton*>("button_removePlayer");
+    joueurClearBtn = pageJoueur->findChild<QPushButton*>("button_clear");
+
+    auto btnUseCurrentId = pageJoueur->findChild<QPushButton*>("button_useCurrentId");
+
+    if (joueurGenerateBtn) {
+        connect(joueurGenerateBtn, &QPushButton::clicked, this, &MainWindow::onJoueurGenerateClicked);
+    }
+    if (joueurCopyBtn) {
+        connect(joueurCopyBtn, &QPushButton::clicked, this, &MainWindow::onJoueurCopyClicked);
+    }
+    if (btnUseCurrentId) {
+        connect(btnUseCurrentId, &QPushButton::clicked, this, &MainWindow::onJoueurUseCurrentId);
+    }
+    if (joueurAddPlayerBtn) {
+        connect(joueurAddPlayerBtn, &QPushButton::clicked, this, &MainWindow::onJoueurAddPlayer);
+    }
+    if (joueurRemovePlayerBtn) {
+        connect(joueurRemovePlayerBtn, &QPushButton::clicked, this, &MainWindow::onJoueurRemovePlayer);
+    }
+    if (joueurClearBtn) {
+        connect(joueurClearBtn, &QPushButton::clicked, this, &MainWindow::onJoueurClearAll);
+    }
+    if (joueurPlayersList) {
+        connect(joueurPlayersList, &QListWidget::itemSelectionChanged, this, &MainWindow::onJoueurPlayerSelectionChanged);
+    }
+
+    populateJoueurEditionCombos();
+}
+
+void MainWindow::populateJoueurEditionCombos()
+{
+    if (!joueurEditionStartCombo || !joueurEditionEndCombo) return;
+
+    joueurEditionStartCombo->clear();
+    joueurEditionEndCombo->clear();
+
+    const QJsonObject cur = functb::pologetmetadata(0);
+    const int latest = cur.value(QStringLiteral("id")).toInt();
+    if (latest <= 0) return;
+
+    const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
+    const int start = isJP ? 56 : 55;
+
+    // Stocker le numéro de la dernière édition pour référence
+    joueurLatestEdition = latest;
+
+    for (int ed = latest; ed >= start; --ed) {
+        QString txt = QString::number(ed);
+        joueurEditionStartCombo->addItem(txt, ed);
+        joueurEditionEndCombo->addItem(txt, ed);
+    }
+
+    // Par défaut: édition actuelle
+    if (joueurEditionStartCombo->count() > 0) {
+        joueurEditionStartCombo->setCurrentIndex(0);
+        joueurEditionEndCombo->setCurrentIndex(0);
+    }
+}
+
+void MainWindow::populateJoueurEditions()
+{
+    populateJoueurEditionCombos();
+}
+
+void MainWindow::refreshJoueurPlayersList()
+{
+    if (!joueurPlayersList) return;
+    joueurPlayersList->clear();
+
+    for (const auto& entry : joueurEntries) {
+        QString text;
+        if (entry.editionStart == entry.editionEnd) {
+            text = QString("%1 [%2]").arg(entry.displayName).arg(entry.editionStart);
+        } else {
+            text = QString("%1 [%2-%3]").arg(entry.displayName).arg(entry.editionStart).arg(entry.editionEnd);
+        }
+        auto item = new QListWidgetItem(text, joueurPlayersList);
+        item->setData(Qt::UserRole, entry.playerId);
+    }
+
+    if (joueurRemovePlayerBtn) {
+        joueurRemovePlayerBtn->setEnabled(joueurPlayersList->count() > 0);
+    }
+}
+
+void MainWindow::onJoueurUseCurrentId()
+{
+    if (joueurIdEdit && !AppSettings::savedIdentifier.isEmpty()) {
+        joueurIdEdit->setText(AppSettings::savedIdentifier);
+    }
+}
+
+void MainWindow::onJoueurAddPlayer()
+{
+    if (!joueurIdEdit || !joueurEditionStartCombo || !joueurEditionEndCombo) return;
+
+    const QString playerId = joueurIdEdit->text().trimmed();
+    if (playerId.isEmpty()) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Veuillez entrer un identifiant."));
+        }
+        return;
+    }
+
+    const int edStart = joueurEditionStartCombo->currentData().toInt();
+    const int edEnd = joueurEditionEndCombo->currentData().toInt();
+
+    // Valider les éditions (start <= end en valeur, mais les combos sont décroissants)
+    const int edMin = qMin(edStart, edEnd);
+    const int edMax = qMax(edStart, edEnd);
+
+    // Vérifier si on n'a pas déjà trop d'entrées
+    if (joueurEntries.size() >= 10) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: orange;");
+            joueurStatusLabel->setText(tr("Maximum 10 joueurs/séries."));
+        }
+        return;
+    }
+
+    // Récupérer le nom du joueur depuis la première édition
+    // IMPORTANT: si edMax == édition la plus récente, utiliser 0 pour l'API (tournoi en cours)
+    const int edForApi = (edMax == joueurLatestEdition) ? 0 : edMax;
+    
+    const std::string prevId = functb::identifier;
+    functb::identifier = playerId.toStdString();
+    QJsonObject data = functb::pologet(edForApi);
+    functb::identifier = prevId;
+
+    // Vérifier si l'ID existe
+    if (data.isEmpty() || data.contains("error")) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            QString errorMsg = data.contains("error") 
+                ? data["error"].toString() 
+                : tr("Identifiant introuvable.");
+            joueurStatusLabel->setText(tr("Erreur : %1").arg(errorMsg));
+        }
+        return;
+    }
+
+    QString displayName = playerId;
+    
+    // Gérer le cas de plusieurs utilisateurs avec le même nom
+    if (data.contains("users") && data["users"].isArray()) {
+        QJsonArray jsonArray = data["users"].toArray();
+        if (jsonArray.isEmpty()) {
+            if (joueurStatusLabel) {
+                joueurStatusLabel->setStyleSheet("color: red;");
+                joueurStatusLabel->setText(tr("Aucun joueur trouvé avec cet identifiant."));
+            }
+            return;
+        }
+
+        // Helper : récupérer le dernier point (numérique) d'un objet
+        auto lastPointsValue = [](const QJsonObject &obj)->double {
+            QString ptsStr = obj.value("points").toString().remove("[").remove("]");
+            QStringList ptsVals = ptsStr.split(',', Qt::SkipEmptyParts);
+            if (ptsVals.isEmpty()) return 0.0;
+            return ptsVals.last().trimmed().toDouble();
+        };
+
+        // Helper : formater le dernier point avec séparateur d'espaces tous les 3 chiffres
+        auto formatThousands = [](const QString &s)->QString {
+            QString str = s.trimmed();
+            // Séparer partie entière et décimale (si présente)
+            QString intPart = str;
+            QString fracPart;
+            int dot = str.indexOf('.');
+            if (dot >= 0) {
+                intPart = str.left(dot);
+                fracPart = str.mid(dot);
+            }
+            // Gérer signe
+            bool neg = false;
+            if (intPart.startsWith('-')) { neg = true; intPart.remove(0, 1); }
+
+            // Retirer espaces éventuels
+            intPart.remove(' ');
+
+            QString out;
+            int cnt = 0;
+            for (int i = intPart.length() - 1; i >= 0; --i) {
+                out.prepend(intPart[i]);
+                ++cnt;
+                if (cnt == 3 && i != 0) {
+                    out.prepend(' ');
+                    cnt = 0;
+                }
+            }
+            if (neg) out.prepend('-');
+            out += fracPart;
+            return out;
+        };
+
+        // Convertir en liste d'objets et trier par points décroissant
+        QList<QJsonObject> objs;
+        objs.reserve(jsonArray.size());
+        for (const QJsonValue &v : jsonArray) {
+            if (v.isObject()) objs.append(v.toObject());
+        }
+        std::sort(objs.begin(), objs.end(), [&](const QJsonObject &a, const QJsonObject &b){
+            return lastPointsValue(a) > lastPointsValue(b);
+        });
+
+        if (objs.size() == 1) {
+            data = objs.first();
+        } else {
+            // Plusieurs utilisateurs : afficher une boîte de dialogue triée pour choisir
+            QDialog dialog(this);
+            dialog.setWindowTitle(tr("Choisir un joueur"));
+            QVBoxLayout layout(&dialog);
+
+            QLabel* infoLabel = new QLabel(tr("Plusieurs joueurs trouvés (triés par points). Sélectionnez-en un :"), &dialog);
+            layout.addWidget(infoLabel);
+
+            QListWidget listWidget(&dialog);
+            for (const QJsonObject &obj : objs) {
+                QString ranksStr = obj.value("ranks").toString().remove("[").remove("]");
+                QStringList ranksVals = ranksStr.split(",", Qt::SkipEmptyParts);
+                QString lastRank = ranksVals.isEmpty() ? QStringLiteral("?") : ranksVals.last().trimmed();
+
+                QString ptsStr = obj.value("points").toString().remove("[").remove("]");
+                QStringList ptsVals = ptsStr.split(",", Qt::SkipEmptyParts);
+                QString lastPtsRaw = ptsVals.isEmpty() ? QStringLiteral("0") : ptsVals.last().trimmed();
+
+                QString lastPtsFmt = formatThousands(lastPtsRaw);
+
+                QString itemText = QString("%1 - %2 %3 - %4 %5")
+                    .arg(obj.value("name").toString())
+                    .arg(tr("Rank #"))
+                    .arg(lastRank)
+                    .arg(lastPtsFmt)
+                    .arg(tr("pts"));
+
+                QListWidgetItem* item = new QListWidgetItem(itemText, &listWidget);
+                item->setData(Qt::UserRole, obj);
+            }
+            layout.addWidget(&listWidget);
+
+            QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+            connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+            connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+            layout.addWidget(&buttonBox);
+
+            // Double-clic pour sélectionner directement
+            connect(&listWidget, &QListWidget::itemDoubleClicked, &dialog, &QDialog::accept);
+
+            if (listWidget.count() > 0) listWidget.setCurrentRow(0);
+
+            if (dialog.exec() != QDialog::Accepted || !listWidget.currentItem()) {
+                return; // Annulé
+            }
+
+            data = listWidget.currentItem()->data(Qt::UserRole).toJsonObject();
+        }
+    }
+    
+    if (data.contains("name")) {
+        displayName = data["name"].toString();
+    }
+
+    JoueurEntry entry;
+    entry.playerId = playerId;
+    entry.displayName = displayName;
+    entry.editionStart = edMin;
+    entry.editionEnd = edMax;
+    joueurEntries.append(entry);
+
+    refreshJoueurPlayersList();
+    joueurIdEdit->clear();
+
+    if (joueurStatusLabel) {
+        joueurStatusLabel->setStyleSheet("color: green;");
+        joueurStatusLabel->setText(tr("%1 ajouté.").arg(displayName));
+    }
+}
+
+void MainWindow::onJoueurRemovePlayer()
+{
+    if (!joueurPlayersList) return;
+
+    const int row = joueurPlayersList->currentRow();
+    if (row >= 0 && row < joueurEntries.size()) {
+        joueurEntries.remove(row);
+        refreshJoueurPlayersList();
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("");
+            joueurStatusLabel->setText(tr("Joueur supprimé."));
+        }
+    }
+}
+
+void MainWindow::onJoueurClearAll()
+{
+    joueurEntries.clear();
+    refreshJoueurPlayersList();
+
+    if (joueurGraphView && joueurGraphView->scene()) {
+        joueurGraphView->scene()->clear();
+    }
+
+    if (joueurStatusLabel) {
+        joueurStatusLabel->setStyleSheet("");
+        joueurStatusLabel->setText(tr("Liste effacée."));
+    }
+}
+
+void MainWindow::onJoueurPlayerSelectionChanged()
+{
+    if (joueurRemovePlayerBtn && joueurPlayersList) {
+        joueurRemovePlayerBtn->setEnabled(joueurPlayersList->currentRow() >= 0);
+    }
+}
+
+void MainWindow::onJoueurGenerateClicked()
+{
+    if (!joueurGraphView || !joueurYDataCombo) return;
+
+    if (joueurEntries.isEmpty()) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Ajoutez au moins un joueur."));
+        }
+        return;
+    }
+
+    const QString ydata = joueurYDataCombo->currentText();
+    const bool isWinsPace = (ydata == QStringLiteral("wins_pace"));
+
+    // Créer le graphique
+    QChart* chart = new QChart();
+    chart->setTitle(tr("Comparaison de %1 joueur(s)").arg(joueurEntries.size()));
+    chart->setTheme(AppSettings::chartThemeEnum());
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setMargins(QMargins(12, 8, 8, 14));
+    chart->setBackgroundPen(Qt::NoPen);
+
+    double globalMinX = std::numeric_limits<double>::max();
+    double globalMaxX = std::numeric_limits<double>::lowest();
+    double globalMinY = std::numeric_limits<double>::max();
+    double globalMaxY = std::numeric_limits<double>::lowest();
+    int validSeries = 0;
+    QList<double> allYValues; // Pour ajuster l'axe Y
+
+    const std::string prevId = functb::identifier;
+
+    for (const auto& entry : joueurEntries) {
+        functb::identifier = entry.playerId.toStdString();
+
+        for (int ed = entry.editionStart; ed <= entry.editionEnd; ++ed) {
+            // IMPORTANT: si ed == édition la plus récente, utiliser 0 pour l'API
+            const int edForApi = (ed == joueurLatestEdition) ? 0 : ed;
+            
+            QJsonObject data = functb::pologet(edForApi);
+            if (data.isEmpty() || data.contains("error")) continue;
+
+            if (data.contains("users") && data["users"].isArray()) {
+                QJsonArray users = data["users"].toArray();
+                if (users.isEmpty()) continue;
+                data = users.first().toObject();
+            }
+
+            if (!data.contains("hour") || !data.contains(ydata)) continue;
+
+            QString hoursStr = data["hour"].toString().remove("[").remove("]");
+            QString valuesStr = data[ydata].toString().remove("[").remove("]");
+
+            QStringList hourList = hoursStr.split(",", Qt::SkipEmptyParts);
+            QStringList valueList = valuesStr.split(",", Qt::SkipEmptyParts);
+
+            if (hourList.size() != valueList.size() || hourList.isEmpty()) continue;
+
+            QLineSeries* series = new QLineSeries();
+            QString seriesName;
+            if (entry.editionStart == entry.editionEnd) {
+                seriesName = QString("%1 [%2]").arg(entry.displayName).arg(ed);
+            } else {
+                seriesName = QString("%1 #%2").arg(entry.displayName).arg(ed);
+            }
+            series->setName(seriesName);
+
+            for (int i = 0; i < hourList.size(); ++i) {
+                bool okX, okY;
+                double x = hourList[i].trimmed().toDouble(&okX);
+                double y = valueList[i].trimmed().toDouble(&okY);
+                if (okX && okY) {
+                    series->append(x, y);
+                    globalMinX = std::min(globalMinX, x);
+                    globalMaxX = std::max(globalMaxX, x);
+                    globalMinY = std::min(globalMinY, y);
+                    globalMaxY = std::max(globalMaxY, y);
+                    allYValues.append(y);
+                }
+            }
+
+            if (series->count() > 0) {
+                chart->addSeries(series);
+                validSeries++;
+            } else {
+                delete series;
+            }
+        }
+    }
+
+    functb::identifier = prevId;
+
+    if (validSeries == 0) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Aucune donnée trouvée."));
+        }
+        delete chart;
+        return;
+    }
+
+    // Créer l'axe X avec des catégories tous les 6h ou 12h (comme dans render.cpp)
+    QCategoryAxis* axisX = new QCategoryAxis();
+    axisX->setTitleText(tr("Heures"));
+    axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    
+    const double xRange = globalMaxX - globalMinX;
+    const int step = (xRange > 48.0) ? 12 : 6;
+    const int startH = static_cast<int>(std::floor(globalMinX / step)) * step;
+    const int endH = static_cast<int>(std::ceil(globalMaxX / step)) * step;
+    for (int h = startH; h <= endH; h += step) {
+        if (h >= 0) {
+            axisX->append(QString::number(h) + "h", static_cast<double>(h));
+        }
+    }
+    axisX->setRange(globalMinX, globalMaxX);
+    chart->addAxis(axisX, Qt::AlignBottom);
+
+    // Créer l'axe Y avec des ticks pairs pour wins_pace, sinon numérique
+    if (isWinsPace && !allYValues.isEmpty()) {
+        // Axe avec ticks pairs (0, 2, 4, ...) comme dans render.cpp
+        double maxY = *std::max_element(allYValues.begin(), allYValues.end());
+        if (maxY < 0.0) maxY = 0.0;
+        int topEven = static_cast<int>(std::ceil(maxY));
+        if (topEven < 2) topEven = 2;
+        if (topEven % 2 != 0) topEven++;
+
+        QCategoryAxis* axisY = new QCategoryAxis();
+        axisY->setTitleText(ydata);
+        axisY->setRange(0.0, static_cast<double>(topEven));
+        axisY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+        for (int v = 0; v <= topEven; v += 2) {
+            axisY->append(QString::number(v), static_cast<double>(v));
+        }
+        chart->addAxis(axisY, Qt::AlignLeft);
+    } else {
+        // Axe numérique classique avec marge
+        QValueAxis* axisY = new QValueAxis();
+        axisY->setTitleText(ydata);
+        double margin = (globalMaxY - globalMinY) * 0.06;
+        if (margin < 0.1) margin = 0.1;
+        double minY = (globalMinY < 0) ? globalMinY : 0.0;
+        axisY->setRange(minY, globalMaxY + margin);
+        axisY->setTickCount(7);
+        axisY->setLabelFormat("%.0f");
+        chart->addAxis(axisY, Qt::AlignLeft);
+    }
+
+    // Attacher toutes les séries aux axes
+    for (auto s : chart->series()) {
+        s->attachAxis(chart->axes(Qt::Horizontal).first());
+        s->attachAxis(chart->axes(Qt::Vertical).first());
+    }
+
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+
+    // Afficher dans la vue (mêmes dimensions que classement.ui)
+    if (!joueurGraphView->scene()) {
+        joueurGraphView->setScene(new QGraphicsScene(joueurGraphView));
+    }
+    QGraphicsScene* scene = joueurGraphView->scene();
+    scene->clear();
+    scene->setBackgroundBrush(Qt::NoBrush);
+
+    joueurGraphView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    joueurGraphView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    joueurGraphView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    joueurGraphView->setFrameShape(QFrame::NoFrame);
+    joueurGraphView->setBackgroundBrush(Qt::NoBrush);
+    joueurGraphView->setStyleSheet("border: 0;");
+    if (joueurGraphView->viewport()) {
+        joueurGraphView->viewport()->setAutoFillBackground(false);
+        joueurGraphView->viewport()->setStyleSheet("background: transparent;");
+    }
+
+    QRectF vpRect(0, 0, joueurGraphView->viewport()->width(), joueurGraphView->viewport()->height());
+    scene->setSceneRect(vpRect);
+
+    auto chartView = new QChartView(chart);
+    chartView->setFrameShape(QFrame::NoFrame);
+    chartView->setLineWidth(0);
+    chartView->setContentsMargins(0, 0, 0, 0);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setStyleSheet("border: 0;");
+    chartView->setAutoFillBackground(false);
+    chartView->setBackgroundBrush(Qt::NoBrush);
+    chartView->setAttribute(Qt::WA_TranslucentBackground);
+    if (chartView->viewport()) {
+        chartView->viewport()->setAutoFillBackground(false);
+        chartView->viewport()->setAttribute(Qt::WA_TranslucentBackground);
+    }
+
+    QGraphicsProxyWidget* proxy = scene->addWidget(chartView);
+    proxy->setPos(0, 0);
+    proxy->setGeometry(vpRect);
+
+    joueurGraphView->setRenderHint(QPainter::Antialiasing);
+
+    if (joueurStatusLabel) {
+        joueurStatusLabel->setStyleSheet("color: green;");
+        joueurStatusLabel->setText(tr("Graphique généré avec %1 série(s).").arg(validSeries));
+    }
+}
+
+
+void MainWindow::onJoueurCopyClicked()
+{
+    if (!joueurGraphView || !joueurGraphView->scene()) {
+        if (joueurCopyConfirmLabel) {
+            joueurCopyConfirmLabel->setStyleSheet("color: red;");
+            joueurCopyConfirmLabel->setText(tr("Aucun graphique à copier."));
+        }
+        return;
+    }
+
+    QImage img = Render::grabChartOnly(joueurGraphView);
+    if (img.isNull()) {
+        img = Render::grabChartImage(joueurGraphView);
+    }
+    if (img.isNull()) {
+        if (joueurCopyConfirmLabel) {
+            joueurCopyConfirmLabel->setStyleSheet("color: red;");
+            joueurCopyConfirmLabel->setText(tr("Erreur lors de la copie."));
+        }
+        return;
+    }
+
+    QClipboard* cb = QApplication::clipboard();
+    cb->setImage(img);
+
+    if (joueurCopyConfirmLabel) {
+        joueurCopyConfirmLabel->setStyleSheet("color: green;");
+        joueurCopyConfirmLabel->setText(tr("Graphique copié !"));
+        QTimer::singleShot(3000, this, [this]() {
+            if (joueurCopyConfirmLabel) joueurCopyConfirmLabel->clear();
+        });
+    }
+}
