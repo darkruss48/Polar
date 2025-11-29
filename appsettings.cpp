@@ -20,6 +20,7 @@ bool    AppSettings::transparentControls = false;
 int     AppSettings::selectedEdition = 0;      // 0 = édition courante
 bool    AppSettings::censorIdDisplay = false;
 bool    AppSettings::updateStartShortcutOnUpgrade = true;
+int     AppSettings::dateFormatIndex = 0; // NEW: default = locale
 
 // Chemin absolu: <applicationDirPath>/polar.json
 QString AppSettings::configPath()

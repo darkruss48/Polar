@@ -184,6 +184,7 @@ private:
     void updateTbUiFromTimes();        // NEW: recompute progress/time left from cached times
     static QString formatDhMin(qint64 secs); // NEW: translatable D/H/M string
     void refreshTbLocalizedTexts();    // NEW: rebuild title/time labels using cached data (no network)
+    void updateTbDatesDisplay();       // NEW: format and display start/end dates
     void buildTbEditionCombo();        // NEW: populate tbPicker (3-slot) from region and latest edition
     // NEW: update "Score édition XX : ..." lines for rank estimation
     void updateRankEstimation();

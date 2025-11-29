@@ -257,6 +257,49 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupDateFormat">
+     <property name="title">
+      <string>Format de date</string>
+     </property>
+     <layout class="QVBoxLayout" name="layoutDateFormat">
+      <item>
+       <widget class="QComboBox" name="comboDateFormat">
+        <item>
+         <property name="text">
+          <string>Locale système</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>dd/MM/yyyy HH:mm</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>MM/dd/yyyy HH:mm</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>yyyy-MM-dd HH:mm</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelDatePreview">
+        <property name="text">
+         <string>Aperçu : </string>
+        </property>
+        <property name="styleSheet">
+         <string>color: #888888; font-style: italic;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>

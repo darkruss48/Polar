@@ -1637,6 +1637,9 @@ void MainWindow::showOptionsDialog()
     auto lblStartHint  = content->findChild<QLabel*>("labelAddStartMenuHint");
     // NEW: checkbox to update shortcut after updates (optional in UI)
     auto checkUpdateShortcut = content->findChild<QCheckBox*>("checkUpdateStartShortcut");
+    // NEW: date format
+    auto comboDateFormat = content->findChild<QComboBox*>("comboDateFormat");
+    auto labelDatePreview = content->findChild<QLabel*>("labelDatePreview");
 
     // Initialize from settings
     if (radioGlo && radioJap) {
@@ -1725,6 +1728,29 @@ void MainWindow::showOptionsDialog()
         checkUpdateShortcut->setChecked(AppSettings::updateStartShortcutOnUpgrade);
     }
 
+    // NEW: init date format
+    if (comboDateFormat) {
+        comboDateFormat->setCurrentIndex(qBound(0, AppSettings::dateFormatIndex, comboDateFormat->count() - 1));
+    }
+    // NEW: update preview on change
+    auto updateDatePreview = [labelDatePreview, comboDateFormat]() {
+        if (!labelDatePreview || !comboDateFormat) return;
+        const QDateTime now = QDateTime::currentDateTime();
+        QString formatted;
+        switch (comboDateFormat->currentIndex()) {
+            case 1: formatted = now.toString("dd/MM/yyyy HH:mm"); break;
+            case 2: formatted = now.toString("MM/dd/yyyy HH:mm"); break;
+            case 3: formatted = now.toString("yyyy-MM-dd HH:mm"); break;
+            default: formatted = QLocale().toString(now, QLocale::ShortFormat); break;
+        }
+        labelDatePreview->setText(QObject::tr("Aperçu : %1").arg(formatted));
+    };
+    if (comboDateFormat && labelDatePreview) {
+        updateDatePreview();
+        QObject::connect(comboDateFormat, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                         labelDatePreview, updateDatePreview);
+    }
+
     if (buttonBox) {
         connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
         connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
@@ -1750,6 +1776,8 @@ void MainWindow::showOptionsDialog()
         if (checkTransparent) AppSettings::transparentControls = checkTransparent->isChecked();
         // NEW: save shortcut-update preference
         if (checkUpdateShortcut) AppSettings::updateStartShortcutOnUpgrade = checkUpdateShortcut->isChecked();
+        // NEW: save date format
+        if (comboDateFormat) AppSettings::dateFormatIndex = comboDateFormat->currentIndex();
         AppSettings::save();
         updateBackgroundPalette();
         updateIdLabelDisplay();
@@ -2084,8 +2112,47 @@ void MainWindow::fetchAndInitTbMetadata()
     }
     // First UI refresh
     updateTbUiFromTimes();
+    // NEW: update dates display
+    updateTbDatesDisplay();
     // NEW: also refresh rank estimation (depends on edition/region)
     updateRankEstimation();
+}
+
+void MainWindow::updateTbDatesDisplay()
+{
+    if (!ui || !ui->wt_date) return;
+    if (tbStartEpoch <= 0 || tbEndEpoch <= 0) {
+        ui->wt_date->clear();
+        return;
+    }
+
+    const QDateTime startDt = QDateTime::fromSecsSinceEpoch(tbStartEpoch, Qt::LocalTime);
+    const QDateTime endDt = QDateTime::fromSecsSinceEpoch(tbEndEpoch, Qt::LocalTime);
+
+    // NEW: format according to setting
+    QString startStr, endStr;
+    switch (AppSettings::dateFormatIndex) {
+        case 1:
+            startStr = startDt.toString("dd/MM/yyyy HH:mm");
+            endStr = endDt.toString("dd/MM/yyyy HH:mm");
+            break;
+        case 2:
+            startStr = startDt.toString("MM/dd/yyyy HH:mm");
+            endStr = endDt.toString("MM/dd/yyyy HH:mm");
+            break;
+        case 3:
+            startStr = startDt.toString("yyyy-MM-dd HH:mm");
+            endStr = endDt.toString("yyyy-MM-dd HH:mm");
+            break;
+        default: {
+            const QLocale locale;
+            startStr = locale.toString(startDt, QLocale::ShortFormat);
+            endStr = locale.toString(endDt, QLocale::ShortFormat);
+            break;
+        }
+    }
+
+    ui->wt_date->setText(tr("Du %1 au %2").arg(startStr, endStr));
 }
 
 // NEW: rebuild localized title/time using cached metadata (no refetch)
@@ -2095,6 +2162,7 @@ void MainWindow::refreshTbLocalizedTexts()
         tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
     }
     updateTbUiFromTimes();
+    updateTbDatesDisplay();
 }
 
 // NEW: apply background from settings (image + dim overlay)

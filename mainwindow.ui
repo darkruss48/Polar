@@ -462,6 +462,9 @@
     <property name="text">
      <string>55ème Tenkaichi Budokai</string>
     </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
+    </property>
    </widget>
    <widget class="QLabel" name="label_tips">
     <property name="geometry">
@@ -679,6 +682,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
   </widget>
