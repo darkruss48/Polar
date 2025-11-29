@@ -2668,6 +2668,13 @@ void MainWindow::setupJoueurPage()
     joueurRemovePlayerBtn = pageJoueur->findChild<QPushButton*>("button_removePlayer");
     joueurClearBtn = pageJoueur->findChild<QPushButton*>("button_clear");
 
+    // NEW: top 100 widgets
+    joueurTop100RegionCombo = pageJoueur->findChild<QComboBox*>("combo_top100_region");
+    joueurTop100EditionCombo = pageJoueur->findChild<QComboBox*>("combo_top100_edition");
+    joueurLoadTop100Btn = pageJoueur->findChild<QPushButton*>("button_loadTop100");
+    joueurTop100PlayersCombo = pageJoueur->findChild<QComboBox*>("combo_top100_players");
+    joueurAddFromTop100Btn = pageJoueur->findChild<QPushButton*>("button_addFromTop100");
+
     auto btnUseCurrentId = pageJoueur->findChild<QPushButton*>("button_useCurrentId");
 
     if (joueurGenerateBtn) {
@@ -2692,7 +2699,37 @@ void MainWindow::setupJoueurPage()
         connect(joueurPlayersList, &QListWidget::itemSelectionChanged, this, &MainWindow::onJoueurPlayerSelectionChanged);
     }
 
+    // NEW: top 100 connections
+    if (joueurTop100RegionCombo) {
+        connect(joueurTop100RegionCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, &MainWindow::populateJoueurTop100Editions);
+    }
+    if (joueurLoadTop100Btn) {
+        connect(joueurLoadTop100Btn, &QPushButton::clicked, this, &MainWindow::onJoueurLoadTop100);
+    }
+    if (joueurTop100PlayersCombo) {
+        connect(joueurTop100PlayersCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int idx) {
+            if (joueurAddFromTop100Btn) {
+                joueurAddFromTop100Btn->setEnabled(idx >= 0 && joueurTop100PlayersCombo->count() > 0);
+            }
+        });
+    }
+    if (joueurAddFromTop100Btn) {
+        connect(joueurAddFromTop100Btn, &QPushButton::clicked, this, &MainWindow::onJoueurAddFromTop100);
+    }
+
+    // NEW: activer le bouton Ajouter quand du texte est saisi
+    if (joueurIdEdit && joueurAddPlayerBtn) {
+        connect(joueurIdEdit, &QLineEdit::textChanged, this, [this](const QString& text) {
+            joueurAddPlayerBtn->setEnabled(!text.trimmed().isEmpty());
+        });
+        // État initial
+        joueurAddPlayerBtn->setEnabled(!joueurIdEdit->text().trimmed().isEmpty());
+    }
+
     populateJoueurEditionCombos();
+    populateJoueurTop100Editions();
 }
 
 void MainWindow::populateJoueurEditionCombos()
@@ -2729,6 +2766,199 @@ void MainWindow::populateJoueurEditions()
 {
     populateJoueurEditionCombos();
 }
+
+void MainWindow::populateJoueurTop100Editions()
+{
+    if (!joueurTop100EditionCombo || !joueurTop100RegionCombo) return;
+
+    joueurTop100EditionCombo->clear();
+    if (joueurTop100PlayersCombo) {
+        joueurTop100PlayersCombo->clear();
+        joueurTop100PlayersCombo->setEnabled(false);
+    }
+    if (joueurAddFromTop100Btn) {
+        joueurAddFromTop100Btn->setEnabled(false);
+    }
+
+    // Determine region from combo
+    const QString region = joueurTop100RegionCombo->currentText();
+    const bool isJP = (region == "Jap" || region == "JP");
+
+    // Temporarily switch region to fetch correct metadata
+    const QString prevRegion = AppSettings::region;
+    AppSettings::region = isJP ? "Jap" : "Glo";
+
+    const QJsonObject cur = functb::pologetmetadata(0);
+    const int latest = cur.value(QStringLiteral("id")).toInt();
+
+    // Restore region
+    AppSettings::region = prevRegion;
+
+    if (latest <= 0) return;
+
+    const int start = isJP ? 56 : 55;
+
+    for (int ed = latest; ed >= start; --ed) {
+        joueurTop100EditionCombo->addItem(QString::number(ed), ed);
+    }
+}
+
+void MainWindow::onJoueurLoadTop100()
+{
+    if (!joueurTop100RegionCombo || !joueurTop100EditionCombo || !joueurTop100PlayersCombo) return;
+
+    joueurTop100PlayersCombo->clear();
+    joueurTop100PlayersCombo->setEnabled(false);
+    if (joueurAddFromTop100Btn) joueurAddFromTop100Btn->setEnabled(false);
+
+    const QString region = joueurTop100RegionCombo->currentText();
+    const int edition = joueurTop100EditionCombo->currentData().toInt();
+
+    if (edition <= 0) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Édition invalide."));
+        }
+        return;
+    }
+
+    // Temporarily switch region
+    const QString prevRegion = AppSettings::region;
+    AppSettings::region = (region == "Jap" || region == "JP") ? "Jap" : "Glo";
+
+    // Fetch top 100 (use 0 if it's the current edition for that region)
+    const QJsonObject curMeta = functb::pologetmetadata(0);
+    const int latestForRegion = curMeta.value(QStringLiteral("id")).toInt();
+    const int edForApi = (edition == latestForRegion) ? 0 : edition;
+    
+    QJsonObject ladder = functb::pologettop(edForApi);
+
+    // Restore region
+    AppSettings::region = prevRegion;
+
+    if (ladder.contains("error")) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Erreur lors du chargement du classement."));
+        }
+        return;
+    }
+
+    if (!ladder.contains("top") || !ladder["top"].isArray()) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Aucun joueur trouvé."));
+        }
+        return;
+    }
+
+    QJsonArray topArray = ladder["top"].toArray();
+
+    // Sort by rank
+    QList<QJsonObject> players;
+    for (const QJsonValue& v : topArray) {
+        if (v.isObject()) players.append(v.toObject());
+    }
+    std::sort(players.begin(), players.end(), [](const QJsonObject& a, const QJsonObject& b) {
+        auto getRank = [](const QJsonObject& obj) -> int {
+            QString ranksStr = obj.value("ranks").toString().remove("[").remove("]");
+            QStringList vals = ranksStr.split(",", Qt::SkipEmptyParts);
+            return vals.isEmpty() ? 9999 : vals.last().trimmed().toInt();
+        };
+        return getRank(a) < getRank(b);
+    });
+
+    // Populate combo
+    for (const QJsonObject& player : players) {
+        QString ranksStr = player.value("ranks").toString().remove("[").remove("]");
+        QStringList ranksVals = ranksStr.split(",", Qt::SkipEmptyParts);
+        int rank = ranksVals.isEmpty() ? 0 : ranksVals.last().trimmed().toInt();
+
+        QString name = player.value("name").toString();
+        // FIX: essayer d'abord "id", sinon fallback sur "name"
+        QString id = player.value("id").toString();
+        if (id.isEmpty()) {
+            id = name; // fallback si pas d'ID dans le JSON
+        }
+
+        QString displayText = QString("#%1 - %2").arg(rank).arg(name);
+
+        // Store both id and the region/edition info
+        QVariantMap data;
+        data["id"] = id;
+        data["name"] = name;
+        data["region"] = region;
+        data["edition"] = edition;
+
+        joueurTop100PlayersCombo->addItem(displayText, QVariant::fromValue(data));
+    }
+
+    joueurTop100PlayersCombo->setEnabled(joueurTop100PlayersCombo->count() > 0);
+    if (joueurAddFromTop100Btn) {
+        joueurAddFromTop100Btn->setEnabled(joueurTop100PlayersCombo->count() > 0);
+    }
+
+    if (joueurStatusLabel) {
+        joueurStatusLabel->setStyleSheet("color: green;");
+        joueurStatusLabel->setText(tr("%1 joueurs chargés.").arg(players.size()));
+    }
+}
+
+void MainWindow::onJoueurAddFromTop100()
+{
+    if (!joueurTop100PlayersCombo) return;
+
+    const int idx = joueurTop100PlayersCombo->currentIndex();
+    if (idx < 0) return;
+
+    QVariant dataVar = joueurTop100PlayersCombo->currentData();
+    if (!dataVar.isValid() || !dataVar.canConvert<QVariantMap>()) return;
+
+    QVariantMap dataMap = dataVar.toMap();
+    if (!dataMap.contains("id") || !dataMap.contains("name") ||
+        !dataMap.contains("region") || !dataMap.contains("edition")) {
+        return;
+    }
+
+    QString playerId = dataMap["id"].toString();
+    const QString playerName = dataMap["name"].toString();
+    const QString region = dataMap["region"].toString();
+    const int edition = dataMap["edition"].toInt();
+
+    if (playerId.isEmpty()) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: red;");
+            joueurStatusLabel->setText(tr("Joueur invalide."));
+        }
+        return;
+    }
+
+    // Vérifier si on n'a pas déjà trop d'entrées
+    if (joueurEntries.size() >= 10) {
+        if (joueurStatusLabel) {
+            joueurStatusLabel->setStyleSheet("color: orange;");
+            joueurStatusLabel->setText(tr("Maximum 10 joueurs/séries."));
+        }
+        return;
+    }
+
+    // Ajouter directement le joueur avec l'édition sélectionnée
+    JoueurEntry entry;
+    entry.playerId = playerId;
+    entry.displayName = playerName + QString(" [%1]").arg(region);
+    entry.editionStart = edition;
+    entry.editionEnd = edition;
+    entry.region = (region == "Jap" || region == "JP") ? "Jap" : "Glo"; // NEW: store region
+    joueurEntries.append(entry);
+
+    refreshJoueurPlayersList();
+
+    if (joueurStatusLabel) {
+        joueurStatusLabel->setStyleSheet("color: green;");
+        joueurStatusLabel->setText(tr("%1 ajouté.").arg(playerName));
+    }
+}
+
 
 void MainWindow::refreshJoueurPlayersList()
 {
@@ -2852,6 +3082,7 @@ void MainWindow::onJoueurAddPlayer()
             for (int i = intPart.length() - 1; i >= 0; --i) {
                 out.prepend(intPart[i]);
                 ++cnt;
+                // Ajouter une virgule après chaque 3 chiffres sauf si c'est le dernier groupe
                 if (cnt == 3 && i != 0) {
                     out.prepend(' ');
                     cnt = 0;
@@ -2997,6 +3228,32 @@ void MainWindow::onJoueurGenerateClicked()
     const QString ydata = joueurYDataCombo->currentText();
     const bool isWinsPace = (ydata == QStringLiteral("wins_pace"));
 
+    // NEW: Extended color palette for multiple series (works with all themes)
+    // These colors are chosen to be distinguishable and visually pleasing
+    static const QVector<QColor> extendedColors = {
+        QColor("#E6194B"), // Red
+        QColor("#3CB44B"), // Green
+        QColor("#FFE119"), // Yellow
+        QColor("#4363D8"), // Blue
+        QColor("#F58231"), // Orange
+        QColor("#911EB4"), // Purple
+        QColor("#42D4F4"), // Cyan
+        QColor("#F032E6"), // Magenta
+        QColor("#BFEF45"), // Lime
+        QColor("#FABED4"), // Pink
+        QColor("#469990"), // Teal
+        QColor("#DCBEFF"), // Lavender
+        QColor("#9A6324"), // Brown
+        QColor("#FFFAC8"), // Beige
+        QColor("#800000"), // Maroon
+        QColor("#AAFFC3"), // Mint
+        QColor("#808000"), // Olive
+        QColor("#FFD8B1"), // Apricot
+        QColor("#000075"), // Navy
+        QColor("#A9A9A9"), // Grey
+    };
+    int colorIndex = 0;
+
     // Créer le graphique
     QChart* chart = new QChart();
     chart->setTitle(tr("Comparaison de %1 joueur(s)").arg(joueurEntries.size()));
@@ -3017,9 +3274,19 @@ void MainWindow::onJoueurGenerateClicked()
     for (const auto& entry : joueurEntries) {
         functb::identifier = entry.playerId.toStdString();
 
+        // NEW: temporarily switch region if the entry has a specific region
+        const QString prevRegion = AppSettings::region;
+        if (!entry.region.isEmpty()) {
+            AppSettings::region = entry.region;
+        }
+
+        // NEW: get the latest edition for this region (may differ from joueurLatestEdition)
+        const QJsonObject curMeta = functb::pologetmetadata(0);
+        const int latestForThisRegion = curMeta.value(QStringLiteral("id")).toInt();
+
         for (int ed = entry.editionStart; ed <= entry.editionEnd; ++ed) {
-            // IMPORTANT: si ed == édition la plus récente, utiliser 0 pour l'API
-            const int edForApi = (ed == joueurLatestEdition) ? 0 : ed;
+            // IMPORTANT: si ed == édition la plus récente pour cette région, utiliser 0 pour l'API
+            const int edForApi = (ed == latestForThisRegion) ? 0 : ed;
             
             QJsonObject data = functb::pologet(edForApi);
             if (data.isEmpty() || data.contains("error")) continue;
@@ -3049,6 +3316,13 @@ void MainWindow::onJoueurGenerateClicked()
             }
             series->setName(seriesName);
 
+            // NEW: Apply custom color from extended palette
+            QPen pen = series->pen();
+            pen.setColor(extendedColors[colorIndex % extendedColors.size()]);
+            pen.setWidth(2);
+            series->setPen(pen);
+            colorIndex++;
+
             for (int i = 0; i < hourList.size(); ++i) {
                 bool okX, okY;
                 double x = hourList[i].trimmed().toDouble(&okX);
@@ -3068,8 +3342,12 @@ void MainWindow::onJoueurGenerateClicked()
                 validSeries++;
             } else {
                 delete series;
+                colorIndex--; // NEW: Don't waste color if series was deleted
             }
         }
+
+        // NEW: restore region after processing this entry
+        AppSettings::region = prevRegion;
     }
 
     functb::identifier = prevId;

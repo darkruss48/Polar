@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>600</height>
+    <height>674</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -89,6 +89,61 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QLabel" name="label_top100">
+           <property name="text">
+            <string>Ou choisir dans le top 100 :</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="layout_top100_selectors">
+           <item>
+            <widget class="QComboBox" name="combo_top100_region">
+             <item>
+              <property name="text">
+               <string>Glo</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Jap</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="combo_top100_edition"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_loadTop100">
+             <property name="text">
+              <string>Charger</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QComboBox" name="combo_top100_players">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="placeholderText">
+            <string>Sélectionner un joueur...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="button_addFromTop100">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Ajouter ce joueur</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -111,11 +166,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="combo_editionStart">
-             <property name="minimumWidth">
-              <number>55</number>
-             </property>
-            </widget>
+            <widget class="QComboBox" name="combo_editionStart"/>
            </item>
            <item>
             <widget class="QLabel" name="label_to">
@@ -125,11 +176,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="combo_editionEnd">
-             <property name="minimumWidth">
-              <number>55</number>
-             </property>
-            </widget>
+            <widget class="QComboBox" name="combo_editionEnd"/>
            </item>
           </layout>
          </item>
@@ -153,24 +200,17 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QListWidget" name="list_players">
-           <property name="minimumHeight">
-            <number>80</number>
-           </property>
-           <property name="maximumHeight">
-            <number>140</number>
-           </property>
-          </widget>
+          <widget class="QListWidget" name="list_players"/>
          </item>
          <item>
           <layout class="QHBoxLayout" name="layoutListButtons">
            <item>
             <widget class="QPushButton" name="button_removePlayer">
-             <property name="text">
-              <string>Suppr.</string>
-             </property>
              <property name="enabled">
               <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Suppr.</string>
              </property>
             </widget>
            </item>
@@ -234,15 +274,12 @@
         <property name="text">
          <string>Générer</string>
         </property>
-        <property name="minimumHeight">
-         <number>32</number>
-        </property>
        </widget>
       </item>
       <item>
        <spacer name="verticalSpacer">
         <property name="orientation">
-         <enum>Qt::Vertical</enum>
+         <enum>Qt::Orientation::Vertical</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -255,7 +292,10 @@
       <item>
        <widget class="QLabel" name="label_status">
         <property name="text">
-         <string></string>
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -279,7 +319,7 @@
         </size>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Shape::NoFrame</enum>
        </property>
       </widget>
      </item>
@@ -295,14 +335,14 @@
        <item>
         <widget class="QLabel" name="label_copy_confirm">
          <property name="text">
-          <string></string>
+          <string/>
          </property>
         </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>

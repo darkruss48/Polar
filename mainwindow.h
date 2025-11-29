@@ -229,12 +229,20 @@ private:
     QPushButton* joueurRemovePlayerBtn = nullptr;
     QPushButton* joueurClearBtn = nullptr;
 
+    // NEW: top 100 selection widgets
+    QComboBox* joueurTop100RegionCombo = nullptr;
+    QComboBox* joueurTop100EditionCombo = nullptr;
+    QPushButton* joueurLoadTop100Btn = nullptr;
+    QComboBox* joueurTop100PlayersCombo = nullptr;
+    QPushButton* joueurAddFromTop100Btn = nullptr;
+
     // Structure pour stocker les joueurs ajoutés
     struct JoueurEntry {
         QString playerId;
         QString displayName;
         int editionStart;
         int editionEnd;
+        QString region; // NEW: region for top 100 players ("Jap", "Glo", or empty for default)
     };
     QVector<JoueurEntry> joueurEntries;
     int joueurLatestEdition = 0; // NEW: numéro de l'édition la plus récente (pour savoir quand utiliser 0)
@@ -242,7 +250,11 @@ private:
     void setupJoueurPage();
     void populateJoueurEditionCombos();
     void refreshJoueurPlayersList();
-    void populateJoueurEditions(); // NEW: wrapper for populateJoueurEditionCombos
+    void populateJoueurEditions();
+    // NEW: top 100 helpers
+    void populateJoueurTop100Editions();
+    void onJoueurLoadTop100();
+    void onJoueurAddFromTop100();
 };
 
 #endif // MAINWINDOW_H
