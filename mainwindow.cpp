@@ -1099,11 +1099,14 @@ void MainWindow::changeEvent(QEvent* event)
         if (menuBar()) {
             if (auto nav = menuBar()->findChild<QMenu*>("menuNavigation")) {
                 nav->setTitle(tr("Navigation"));
-                if (auto actGraphs = nav->findChild<QAction*>("actionGraphiques")) {
+                if (auto actGraphs = this->findChild<QAction*>("actionGraphiques")) {
                     actGraphs->setText(tr("Graphiques"));
                 }
-                if (auto actClassement = nav->findChild<QAction*>("pageSecondaire")) {
+                if (auto actClassement = this->findChild<QAction*>("pageSecondaire")) {
                     actClassement->setText(tr("Classement"));
+                }
+                if (auto actClassement = this->findChild<QAction*>("actionJoueur")) {
+                    actClassement->setText(tr("Joueur"));
                 }
             }
             if (auto lang = menuBar()->findChild<QMenu*>("menuLangue")) {
@@ -1111,7 +1114,7 @@ void MainWindow::changeEvent(QEvent* event)
             }
             if (auto opts = menuBar()->findChild<QMenu*>("menuOptions")) {
                 opts->setTitle(tr("Options"));
-                if (auto actOpts = opts->findChild<QAction*>("actionOptions")) {
+                if (auto actOpts = this->findChild<QAction*>("actionOptions")) {
                     actOpts->setText(tr("Paramètres"));
                 }
             }
@@ -1205,24 +1208,47 @@ void MainWindow::changeEvent(QEvent* event)
         }
         // NEW: Retraduire la page Joueur
         if (pageJoueur) {
+            // Utiliser le contexte "JoueurPage" pour réutiliser les traductions existantes du fichier .ui
             if (auto g = pageJoueur->findChild<QGroupBox*>("group_player"))
-                g->setTitle(tr("Joueur"));
+                g->setTitle(QCoreApplication::translate("JoueurPage", "Joueur"));
             if (auto g = pageJoueur->findChild<QGroupBox*>("group_editions"))
-                g->setTitle(tr("Éditions à comparer"));
+                g->setTitle(QCoreApplication::translate("JoueurPage", "Éditions"));
             if (auto g = pageJoueur->findChild<QGroupBox*>("group_yaxis"))
-                g->setTitle(tr("Donnée en ordonnée"));
+                g->setTitle(QCoreApplication::translate("JoueurPage", "Ordonnée"));
+            if (auto g = pageJoueur->findChild<QGroupBox*>("group_list"))
+                g->setTitle(QCoreApplication::translate("JoueurPage", "Joueurs ajoutés"));
+
             if (auto l = pageJoueur->findChild<QLabel*>("label_identifier"))
-                l->setText(tr("Identifiant du joueur :"));
+                l->setText(QCoreApplication::translate("JoueurPage", "Identifiant :"));
+            if (auto l = pageJoueur->findChild<QLabel*>("label_from"))
+                l->setText(QCoreApplication::translate("JoueurPage", "De :"));
+            if (auto l = pageJoueur->findChild<QLabel*>("label_to"))
+                l->setText(QCoreApplication::translate("JoueurPage", "À :"));
+
             if (auto b = pageJoueur->findChild<QPushButton*>("button_useCurrentId"))
-                b->setText(tr("Utiliser mon identifiant"));
-            if (auto b = pageJoueur->findChild<QPushButton*>("button_selectAll"))
-                b->setText(tr("Tout sélectionner"));
-            if (auto b = pageJoueur->findChild<QPushButton*>("button_deselectAll"))
-                b->setText(tr("Tout désélectionner"));
+                b->setText(QCoreApplication::translate("JoueurPage", "Mon ID"));
             if (auto b = pageJoueur->findChild<QPushButton*>("button_generate"))
-                b->setText(tr("Générer le graphique"));
+                b->setText(QCoreApplication::translate("JoueurPage", "Générer"));
             if (auto b = pageJoueur->findChild<QPushButton*>("button_copy"))
-                b->setText(tr("Copier le graphique"));
+                b->setText(QCoreApplication::translate("JoueurPage", "Copier"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_addPlayer"))
+                b->setText(QCoreApplication::translate("JoueurPage", "Ajouter"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_removePlayer"))
+                b->setText(QCoreApplication::translate("JoueurPage", "Suppr."));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_clear"))
+                b->setText(QCoreApplication::translate("JoueurPage", "Effacer"));
+
+            // Top 100 translations
+            if (auto l = pageJoueur->findChild<QLabel*>("label_top100"))
+                l->setText(QCoreApplication::translate("JoueurPage", "Ou choisir dans le top 100 :"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_loadTop100"))
+                b->setText(QCoreApplication::translate("JoueurPage", "Charger"));
+            if (auto b = pageJoueur->findChild<QPushButton*>("button_addFromTop100"))
+                b->setText(QCoreApplication::translate("JoueurPage", "Ajouter ce joueur"));
+            if (auto e = pageJoueur->findChild<QLineEdit*>("lineEdit_playerId"))
+                e->setPlaceholderText(QCoreApplication::translate("JoueurPage", "Entrez l'identifiant..."));
+            if (auto c = pageJoueur->findChild<QComboBox*>("combo_top100_players"))
+                c->setPlaceholderText(QCoreApplication::translate("JoueurPage", "Sélectionner un joueur..."));
         }
 
         // NEW: Retraduire l'action Joueur dans le menu

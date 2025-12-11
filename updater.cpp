@@ -26,7 +26,7 @@
 
 Updater::Updater(QObject *parent) : QObject(parent) {}
 
-std::string Updater::polar_version = "v1.4.4";
+std::string Updater::polar_version = "v1.5.0";
 // NEW: defaults (assume up-to-date until proven otherwise)
 bool Updater::isCurrentLatest = true;
 QString Updater::latestReleaseName = QString();

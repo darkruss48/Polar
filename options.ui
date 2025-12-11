@@ -249,7 +249,7 @@
          <string></string>
         </property>
         <property name="styleSheet">
-         <string>color: #9aa0a6; font-size: 11px;</string>
+         <string notr="true">color: #9aa0a6; font-size: 11px;</string>
         </property>
        </widget>
       </item>
@@ -271,17 +271,17 @@
         </item>
         <item>
          <property name="text">
-          <string>dd/MM/yyyy HH:mm</string>
+          <string notr="true">dd/MM/yyyy HH:mm</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>MM/dd/yyyy HH:mm</string>
+          <string notr="true">MM/dd/yyyy HH:mm</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>yyyy-MM-dd HH:mm</string>
+          <string notr="true">yyyy-MM-dd HH:mm</string>
          </property>
         </item>
        </widget>
@@ -292,7 +292,7 @@
          <string>Aperçu : </string>
         </property>
         <property name="styleSheet">
-         <string>color: #888888; font-style: italic;</string>
+         <string notr="true">color: #888888; font-style: italic;</string>
         </property>
        </widget>
       </item>
