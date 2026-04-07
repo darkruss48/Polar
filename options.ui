@@ -44,11 +44,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupTheme">
+    <widget class="QGroupBox" name="groupGraph">
      <property name="title">
-      <string>Thème des graphiques</string>
+      <string>Graphique</string>
      </property>
-     <layout class="QHBoxLayout" name="layoutTheme">
+     <layout class="QVBoxLayout" name="layoutGraph">
+      <item>
+       <widget class="QLabel" name="labelTheme">
+        <property name="text">
+         <string>Thème des graphiques :</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QComboBox" name="comboTheme">
         <item>
@@ -91,6 +98,16 @@
           <string>Thème sombre</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkHideNegativeTime">
+        <property name="text">
+         <string>Masquer les horaires négatives</string>
+        </property>
+        <property name="toolTip">
+         <string>Certaines heures sont buggés, comme celle du TB 61. Cocher cette option les masquera.</string>
+        </property>
        </widget>
       </item>
      </layout>

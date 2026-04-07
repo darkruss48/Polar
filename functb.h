@@ -26,6 +26,9 @@ public:
     static void setLogBox(QTextEdit* box);
     // NEW: fetch by rank (no identifier), returns object with "points" string
     static QJsonObject pologetrank(int edition, int rank);
+    
+    // NEW: filter negative hours
+    static void filterNegativeHoursRecursive(QJsonObject &obj);
 };
 
 #endif // FUNCTB_H

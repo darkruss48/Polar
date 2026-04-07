@@ -1765,6 +1765,8 @@ void MainWindow::showOptionsDialog()
         if (AppSettings::region == "Jap") radioJap->setChecked(true);
         else radioGlo->setChecked(true);
     }
+    auto checkHideNegativeTime = content->findChild<QCheckBox*>("checkHideNegativeTime");
+    if (checkHideNegativeTime) checkHideNegativeTime->setChecked(AppSettings::hideNegativeTimes);
     if (comboTheme) {
         // OLD (par texte) supprimé
         // int idx = comboTheme->findText(AppSettings::chartThemeName);
@@ -1897,6 +1899,7 @@ void MainWindow::showOptionsDialog()
             // AppSettings::chartThemeName = comboTheme->currentText(); // plus nécessaire
         }
         if (checkCensorId) AppSettings::censorIdDisplay = checkCensorId->isChecked();
+        if (checkHideNegativeTime) AppSettings::hideNegativeTimes = checkHideNegativeTime->isChecked();
 
         if (checkCustom) AppSettings::useCustomBackground = checkCustom->isChecked();
         if (editPath) AppSettings::backgroundPath = editPath->text();

@@ -486,10 +486,19 @@ QJsonObject functb::pologet(int edition)
         QJsonObject new_json;
         // Mettre la liste dans un element "users"
         new_json["users"] = QJsonArray::fromVariantList(variantList);
+        
+        if (AppSettings::hideNegativeTimes) {
+            filterNegativeHoursRecursive(new_json);
+        }
+        
         // afficher le nombre d'users
         return new_json;
     }
-    return response_doc.object();
+    QJsonObject result = response_doc.object();
+    if (AppSettings::hideNegativeTimes) {
+        filterNegativeHoursRecursive(result);
+    }
+    return result;
 }
 
 QJsonObject functb::pologettop(int edition)
@@ -545,9 +554,17 @@ QJsonObject functb::pologettop(int edition)
         // Mettre la liste dans un element "users"
         new_json["top"] = QJsonArray::fromVariantList(variantList);
         // afficher le nombre d'users
+        if (AppSettings::hideNegativeTimes) {
+            filterNegativeHoursRecursive(new_json);
+        }
         return new_json;
     }
-    return response_doc.object();
+    
+    QJsonObject result = response_doc.object();
+    if (AppSettings::hideNegativeTimes) {
+        filterNegativeHoursRecursive(result);
+    }
+    return result;
 }
 
 QJsonObject functb::pologetmetadata(int edition)
@@ -624,5 +641,73 @@ QJsonObject functb::pologetrank(int edition, int rank)
     if (!result.isEmpty() && !result.contains("error")) {
         rankCache.insert(cacheKey, result);
     }
+    if (AppSettings::hideNegativeTimes) {
+        filterNegativeHoursRecursive(result);
+    }
     return result;
 }
+
+void functb::filterNegativeHoursRecursive(QJsonObject &obj)
+{
+    // Process string fields representing arrays in this object
+    if (obj.contains("hour") && obj["hour"].isString()) {
+        QString hourStr = obj["hour"].toString().remove("[").remove("]");
+        QStringList hourArr = hourStr.split(",");
+        QList<int> toRemove;
+        for (int i = 0; i < hourArr.size(); ++i) {
+            bool ok;
+            double val = hourArr[i].trimmed().toDouble(&ok);
+            if (ok && val < 0) {
+                toRemove.append(i);
+            }
+        }
+        
+        if (!toRemove.isEmpty()) {
+            // Find all parallel arrays automatically
+            QStringList parallelKeys;
+            for (auto it = obj.begin(); it != obj.end(); ++it) {
+                if (it.value().isString() && it.value().toString().trimmed().startsWith("[")) {
+                    // Check if it splits into same number of elements
+                    int maxElements = it.value().toString().split(",").size();
+                    if (maxElements == hourArr.size()) {
+                        parallelKeys.append(it.key());
+                    }
+                }
+            }
+
+            for (const QString &key : parallelKeys) {
+                if (obj.contains(key) && obj[key].isString()) {
+                    QString arrStr = obj[key].toString().remove("[").remove("]");
+                    QStringList arr = arrStr.split(",");
+                    QStringList newArr;
+                    for (int i = 0; i < arr.size(); ++i) {
+                        if (!toRemove.contains(i)) {
+                            newArr.append(arr[i]);
+                        }
+                    }
+                    obj[key] = "[" + newArr.join(",") + "]";
+                }
+            }
+        }
+    }
+    
+    // Process child objects and arrays
+    for (auto it = obj.begin(); it != obj.end(); ++it) {
+        if (it.value().isObject()) {
+            QJsonObject childObj = it.value().toObject();
+            filterNegativeHoursRecursive(childObj);
+            *it = childObj;
+        } else if (it.value().isArray()) {
+            QJsonArray arr = it.value().toArray();
+            for (int i = 0; i < arr.size(); ++i) {
+                if (arr[i].isObject()) {
+                    QJsonObject childObj = arr[i].toObject();
+                    filterNegativeHoursRecursive(childObj);
+                    arr[i] = childObj;
+                }
+            }
+            *it = arr;
+        }
+    }
+}
+

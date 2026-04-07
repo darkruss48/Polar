@@ -29,6 +29,7 @@ public:
     static bool    transparentControls;
     static int     selectedEdition;               // 0 = courant
     static bool    censorIdDisplay;
+    static bool    hideNegativeTimes;             // NEW: hide negative times in graphs/estimations
     static bool    updateStartShortcutOnUpgrade; // NEW: update Start Menu shortcut after auto-update
     static int     dateFormatIndex;               // NEW: 0=locale, 1=dd/MM/yyyy HH:mm, 2=MM/dd/yyyy HH:mm, 3=yyyy-MM-dd HH:mm
     static double  durationGlo;                   // NEW: Durée théorique pour GLO
