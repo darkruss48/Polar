@@ -377,10 +377,23 @@ MainWindow::MainWindow(QWidget *parent)
     ui->lineEdit_goal->setMaxLength(13);
     ui->lineEdit_afk->setValidator( new QIntValidator(0, 10000000000, this) );
     ui->lineEdit_afk->setMaxLength(2);
+
+    m_debounceTimerRank = new QTimer(this);
+    m_debounceTimerRank->setSingleShot(true);
+    m_debounceTimerRank->setInterval(660);
+    connect(m_debounceTimerRank, &QTimer::timeout, this, &MainWindow::updateRankEstimation);
+
+    m_debounceTimerGoal = new QTimer(this);
+    m_debounceTimerGoal->setSingleShot(true);
+    m_debounceTimerGoal->setInterval(660);
+    connect(m_debounceTimerGoal, &QTimer::timeout, this, [this]() {
+        if (ui->lineEdit_afk) doGoalEstimation();
+    });
+
     // NEW: Rank target validator + live updates
     if (ui->lineEdit_goal_2) {
         ui->lineEdit_goal_2->setValidator(new QIntValidator(1, 10000, this));
-        connect(ui->lineEdit_goal_2, &QLineEdit::textChanged, this, [this]() { updateRankEstimation(); });
+        connect(ui->lineEdit_goal_2, &QLineEdit::textChanged, this, [this]() { m_debounceTimerRank->start(); });
     }
 
     // Connecter le signal pour formatter le nombre avec des virgules
@@ -390,21 +403,23 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->lineEdit_goal, &QLineEdit::textChanged, [=]() {
         QString formattedNumber;
         formatNumberWithCommas(ui->lineEdit_goal->text(), formattedNumber);
-        ui->lineEdit_goal->setText(formattedNumber);
+        if (ui->lineEdit_goal->text() != formattedNumber) ui->lineEdit_goal->setText(formattedNumber);
+        m_debounceTimerGoal->start();
     });
     connect(ui->lineEdit_afk, &QLineEdit::textChanged, [=]() {
         QString formattedNumber;
         formatNumberWithCommas(ui->lineEdit_afk->text(), formattedNumber);
-        ui->lineEdit_afk->setText(formattedNumber);
+        if (ui->lineEdit_afk->text() != formattedNumber) ui->lineEdit_afk->setText(formattedNumber);
+        m_debounceTimerGoal->start();
     });
 
     // pr page rank
     if (ui->lineEdit_afk_2) {
-        connect(ui->lineEdit_afk_2, &QLineEdit::textChanged, this, [this](){ updateRankEstimation(); });
+        connect(ui->lineEdit_afk_2, &QLineEdit::textChanged, this, [this](){ updateAfkSummaries(); m_debounceTimerRank->start(); });
     }
     if (ui->combo_afk_minutes_2) {
         connect(ui->combo_afk_minutes_2, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int){ updateRankEstimation(); });
+                this, [this](int){ updateAfkSummaries(); m_debounceTimerRank->start(); });
     }
     // NEW: rank overlay checkbox wiring
     if (ui->checkBox_2) {
@@ -414,15 +429,25 @@ MainWindow::MainWindow(QWidget *parent)
     // NEW: recalculer quand les minutes AFK changent
     if (ui->combo_afk_minutes) {
         connect(ui->combo_afk_minutes, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int){ on_lineEdit_afk_textEdited(ui->lineEdit_afk->text()); });
-        // Also refresh Rank estimation pace (depends on AFK)
-        connect(ui->combo_afk_minutes, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int){ updateRankEstimation(); });
+                this, [this](int){ updateAfkSummaries(); m_debounceTimerGoal->start(); m_debounceTimerRank->start(); });
     }
     // Also refresh Rank estimation when AFK hours text changes
     if (ui->lineEdit_afk) {
-        connect(ui->lineEdit_afk, &QLineEdit::textChanged, this, [this](){ updateRankEstimation(); });
+        connect(ui->lineEdit_afk, &QLineEdit::textChanged, this, [this](){ updateAfkSummaries(); m_debounceTimerRank->start(); });
     }
+
+    // NEW: Create AFK summary labels
+    m_lblAfkSummary1 = new QLabel(ui->tab);
+    m_lblAfkSummary1->setGeometry(10, 220, 250, 16);
+    m_lblAfkSummary1->setStyleSheet("color: #7f8c8d; font-size: 11px;");
+    connect(m_lblAfkSummary1, &QLabel::linkActivated, this, [this](const QString&) { this->showOptionsDialog(); });
+    
+    m_lblAfkSummary2 = new QLabel(ui->tab_2);
+    m_lblAfkSummary2->setGeometry(10, 140, 250, 16);
+    m_lblAfkSummary2->setStyleSheet("color: #7f8c8d; font-size: 11px;");
+    connect(m_lblAfkSummary2, &QLabel::linkActivated, this, [this](const QString&) { this->showOptionsDialog(); });
+    
+    updateAfkSummaries();
 
     // Mettre en anglais de base
     // loadLanguage("en_US");
@@ -949,7 +974,7 @@ void MainWindow::on_bouton_graphique_clicked()
     functb::hour_missing = std::to_string(hourValue);
 
     // on reset le "goal"
-    MainWindow::on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+    doGoalEstimation();
 
     // NEW: (re)apply goal overlay if needed on newly created chart
     updateGoalOverlayOnGraphs(true); // NEW
@@ -1179,7 +1204,7 @@ void MainWindow::changeEvent(QEvent* event)
             }
             // Ne pas appeler restartTipsCycle() ni modifier tipsGroup/tipsEffect => le timing reste identique
         }
-            
+
         // Ré-appliquer les clés stables via traductions et restaurer la sélection
         if (ui->ydataBox) {
             const QStringList keys = { "wins_pace","points","points_pace","points_wins","ranks","wins" };
@@ -1473,10 +1498,49 @@ void MainWindow::hideEasterEgg()
     easterEggSlideAnim->start();
 }
 
+void MainWindow::updateAfkSummaries()
+{
+    auto updateLbl = [this](QLabel* lbl, QLineEdit* leH, QComboBox* cbM) {
+        if (!lbl || !leH) return;
+        int h = leH->text().remove(',').toInt();
+        int m = cbM ? cbM->currentText().toInt() : 0;
+        
+        double afkTotal = h + m / 60.0;
+        double baseDur = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
+        
+        if (baseDur <= 0) return;
+        
+        double pct = std::clamp((afkTotal / baseDur) * 100.0, 0.0, 100.0);
+        
+        int bDurH = static_cast<int>(baseDur);
+        int bDurM = qRound((baseDur - bDurH) * 60.0);
+
+        QString text = QString("%1% - %2h%3 sur <a href='#options' style='color:#7f8c8d; text-decoration:none; border-bottom:1px dashed #7f8c8d;'>%4h%5</a>")
+                           .arg(QString::number(pct, 'f', 1))
+                           .arg(h, 2, 10, QLatin1Char('0'))
+                           .arg(m, 2, 10, QLatin1Char('0'))
+                           .arg(bDurH, 2, 10, QLatin1Char('0'))
+                           .arg(bDurM, 2, 10, QLatin1Char('0'));
+        lbl->setText(text);
+    };
+
+    updateLbl(m_lblAfkSummary1, ui->lineEdit_afk, ui->combo_afk_minutes);
+    updateLbl(m_lblAfkSummary2, ui->lineEdit_afk_2, ui->combo_afk_minutes_2);
+}
+
 void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
+{
+    updateAfkSummaries();
+    if (m_debounceTimerGoal) {
+        m_debounceTimerGoal->start();
+    }
+}
+
+void MainWindow::doGoalEstimation()
 {
     // On veut tout simplement récupérer la valeur et calculer le goal
     // Avoir la nouvelle valeur
+    QString arg1 = ui->lineEdit_afk->text();
     std::cout<<"arg1 : " << arg1.toStdString() << std::endl;
 
     // Vérifier si on_lineEdit_afk et on_lineEdit_goal ont des valeurs
@@ -1498,23 +1562,32 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         std::string hourStr = functb::hour_missing;
         std::cout << "Step 4: Retrieved hourStr: " << hourStr << std::endl;
 
+        bool isSimulation = (ui->checkBox_estimation && ui->checkBox_estimation->isChecked());
+
         if (pointsStr == "-1") {
-            std::cout << "Step 5: pointsStr is -1, exiting function." << std::endl;
-            ui->label_win_pace->setText("");
-            QString color = "red";
-            QString comment = tr("Rentrez votre identifiant\net générer un graphique\nd'abord !");
-            QString style = QString("color: %1; font-size: 14px;").arg(color);
-            labeltext->setStyleSheet(style);
-            labeltext->setText(comment);
-            hasWinPace = false; // NEW: invalidate
-            updateGoalOverlayOnGraphs(true); // NEW: remove if showing
-            return;
+            if (!isSimulation) {
+                std::cout << "Step 5: pointsStr is -1, exiting function." << std::endl;
+                ui->label_win_pace->setText("");
+                QString color = "red";
+                QString comment = tr("On ne peut pas deviner\nvos points actuels !\nGénérez un graphique\nou activez la Simulation.");
+                QString style = QString("color: %1; font-size: 14px;").arg(color);
+                labeltext->setStyleSheet(style);
+                labeltext->setText(comment);
+                hasWinPace = false;
+                updateGoalOverlayOnGraphs(true);
+                return;
+            }
         }
 
-        int points = std::stoi(pointsStr);
+        int points = (pointsStr == "-1") ? 0 : std::stoi(pointsStr);
         std::cout << "Step 6: Converted pointsStr to integer: " << points << std::endl;
 
-        int seedValue = std::stoi(seedStr);
+        int seedValue;
+        if (seedStr == "-1" || seedStr.empty()) {
+            seedValue = 950000; // Realistic WT average points per win fallback
+        } else {
+            seedValue = std::stoi(seedStr);
+        }
         std::cout << "Step 7: Converted seedStr to integer: " << seedValue << std::endl;
 
         // Hours/minutes AFK (minutes come from combo box 0/15/30/45)
@@ -1530,10 +1603,13 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         int goalValue = ui->lineEdit_goal->text().remove(',').toInt();
         std::cout << "Step 9: Retrieved goalValue from lineEdit_goal: " << goalValue << std::endl;
 
-        float hours_left_total = std::stof(hourStr);
+        float hours_left_total = (hourStr == "-1" || hourStr.empty()) ? 0.0f : std::stof(hourStr);
+        if (isSimulation) {
+            hours_left_total = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
+        }
         std::cout << "Step 10: Converted hourStr to float: " << hours_left_total << std::endl;
 
-        if(points > goalValue) {
+        if(!isSimulation && points > goalValue) {
             std::cout << "Step 10.1: points is greater than goalValue, exiting function." << std::endl;
             ui->label_win_pace->setText("");
             QString color = "red";
@@ -1572,10 +1648,16 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         }
 
         // NEW: compute active hours and use them in pace calculation
-        const double activeHours = hours_left_total - afkTotalHours;
+        double activeHours = hours_left_total - afkTotalHours;
+        int currentPoints = points;
+        if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
+            activeHours = ((AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo) - afkTotalHours;
+            currentPoints = 0;
+        }
         std::cout << "Active hours: " << activeHours << std::endl;
 
-        float winsPerHour = (goalValue - points) / (seedValue * static_cast<float>(activeHours));
+        float winsPerHour = activeHours > 0 ? (goalValue - currentPoints) / (seedValue * static_cast<float>(activeHours)) : 0;
+        float totalWins = (goalValue - currentPoints) / static_cast<float>(seedValue);
         std::cout << "Step 11: Calculated winsPerHour: " << winsPerHour << std::endl;
 
         QString color;
@@ -1601,6 +1683,12 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
             comment = tr("bonne chance mdr");
         }
 
+        if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
+            double baseDur = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
+            comment += tr("\n\n-- Mode Simulation --\nDurée théorique : %1h (%2)").arg(baseDur).arg(AppSettings::region);
+            comment += tr("\nVictoires totales estimées : %1").arg(static_cast<int>(totalWins));
+        }
+
         QString style = QString("color: %1; font-size: 47px;").arg(color);
         labelWinPace->setStyleSheet(style);
         labelWinPace->setText(QString::number(winsPerHour, 'f', 2));
@@ -1610,8 +1698,8 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
         labeltext->setText(comment);
 
         // NEW: store last computed win pace and update overlay if asked
-        lastWinPace = static_cast<double>(winsPerHour);
-        hasWinPace = std::isfinite(lastWinPace) && lastWinPace > 0.0;
+        lastWinPace = winsPerHour;
+        hasWinPace = std::isfinite(lastWinPace) && lastWinPace >= 0.0;
         updateGoalOverlayOnGraphs(false);
     }
 }
@@ -1619,7 +1707,9 @@ void MainWindow::on_lineEdit_afk_textEdited(const QString &arg1)
 
 void MainWindow::on_lineEdit_goal_textEdited(const QString &arg1)
 {
-    MainWindow::on_lineEdit_afk_textEdited(arg1);
+    if (m_debounceTimerGoal) {
+        m_debounceTimerGoal->start();
+    }
 }
 
 void MainWindow::showOptionsDialog()
@@ -1647,7 +1737,7 @@ void MainWindow::showOptionsDialog()
     // NEW: privacy
     auto checkCensorId = content->findChild<QCheckBox*>("checkCensorId");
     // NEW: background selectors
-   
+
     auto checkCustom = content->findChild<QCheckBox*>("checkCustomBackground");
     auto editPath = content->findChild<QLineEdit*>("editBackgroundPath");
     auto btnBrowse = content->findChild<QPushButton*>("buttonBrowseBackground");
@@ -1666,6 +1756,9 @@ void MainWindow::showOptionsDialog()
     // NEW: date format
     auto comboDateFormat = content->findChild<QComboBox*>("comboDateFormat");
     auto labelDatePreview = content->findChild<QLabel*>("labelDatePreview");
+    // NEW: duration settings
+    auto spinDurGlo = content->findChild<QDoubleSpinBox*>("spinDurGlo");
+    auto spinDurJp = content->findChild<QDoubleSpinBox*>("spinDurJp");
 
     // Initialize from settings
     if (radioGlo && radioJap) {
@@ -1686,6 +1779,9 @@ void MainWindow::showOptionsDialog()
         editPath->setText(AppSettings::backgroundPath);
         editPath->setEnabled(AppSettings::useCustomBackground);
     }
+    // Initialize duration settings
+    if (spinDurGlo) spinDurGlo->setValue(AppSettings::durationGlo);
+    if (spinDurJp) spinDurJp->setValue(AppSettings::durationJp);
     if (btnBrowse) btnBrowse->setEnabled(AppSettings::useCustomBackground);
     if (sliderOpacity) {
         sliderOpacity->setRange(0, 100);
@@ -1709,12 +1805,21 @@ void MainWindow::showOptionsDialog()
             }
         });
     }
+
+    // Save button logic for durations - capture the widgets found at the start
+    if (buttonBox) {
+        QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dlg, [spinDurGlo, spinDurJp]() {
+            if (spinDurGlo) AppSettings::durationGlo = spinDurGlo->value();
+            if (spinDurJp) AppSettings::durationJp = spinDurJp->value();
+            AppSettings::save();
+        });
+    }
     // NEW: init extra delay from saved settings
     if (spinExtraDelay) {
         spinExtraDelay->setRange(0, 15); // safety (also set in .ui)
         spinExtraDelay->setValue(AppSettings::autoRefreshExtraDelayMinutes);
     }
-    // NEW: init transparent controls checkbox
+    // NEW: transparent controls
     if (checkTransparent) {
         checkTransparent->setChecked(AppSettings::transparentControls);
     }
@@ -1805,6 +1910,9 @@ void MainWindow::showOptionsDialog()
         // NEW: save date format
         if (comboDateFormat) AppSettings::dateFormatIndex = comboDateFormat->currentIndex();
         AppSettings::save();
+        updateAfkSummaries();
+        updateRankEstimation();
+        if (ui->lineEdit_afk) doGoalEstimation();
         updateBackgroundPalette();
         updateIdLabelDisplay();
         this->update();
@@ -1926,18 +2034,32 @@ void MainWindow::updateRankEstimation()
     // Query each edition for the rank points and collect last values
     QStringList lines;
     QVector<qint64> lastValsNewestFirst; // newest -> older
+    double rankAvgSeed = -1.0;
+    
     for (int ed : eds) {
         qint64 lastPts = -1;
         const QJsonObject obj = functb::pologetrank(ed, rank);
-        if (!obj.isEmpty() && obj.contains(QStringLiteral("points"))) {
-            const QString ptsStr = obj.value(QStringLiteral("points")).toString().remove('[').remove(']');
-            const QStringList vals = ptsStr.split(',', Qt::SkipEmptyParts);
-            if (!vals.isEmpty()) {
-                bool okNum = false;
-                lastPts = vals.last().trimmed().toLongLong(&okNum);
-                if (!okNum) lastPts = -1;
+        if (!obj.isEmpty()) {
+            if (obj.contains(QStringLiteral("points"))) {
+                const QString ptsStr = obj.value(QStringLiteral("points")).toString().remove('[').remove(']');
+                const QStringList vals = ptsStr.split(',', Qt::SkipEmptyParts);
+                if (!vals.isEmpty()) {
+                    bool okNum = false;
+                    lastPts = vals.last().trimmed().toLongLong(&okNum);
+                    if (!okNum) lastPts = -1;
+                }
+            }
+            if (rankAvgSeed < 0 && obj.contains(QStringLiteral("points_wins"))) {
+                const QString pwStr = obj.value(QStringLiteral("points_wins")).toString().remove('[').remove(']');
+                const QStringList pwVals = pwStr.split(',', Qt::SkipEmptyParts);
+                if (!pwVals.isEmpty()) {
+                    bool okNum = false;
+                    double pw = pwVals.last().trimmed().toDouble(&okNum);
+                    if (okNum && pw > 0.0) rankAvgSeed = pw;
+                }
             }
         }
+        
         if (lastPts >= 0) {
             lines << tr("Score édition %1 : %2").arg(ed).arg(formatMillionsCompact(lastPts));
             lastValsNewestFirst << lastPts;
@@ -1964,6 +2086,9 @@ void MainWindow::updateRankEstimation()
         // Append estimation line
         lines << QString();
         lines << tr("Estimation points : %1").arg(formatMillionsCompact(estimatedPoints));
+        if (rankAvgSeed > 0.0) {
+            lines << tr("(Seed du joueur : %1 pts/win)").arg(static_cast<int>(rankAvgSeed));
+        }
     }
 
     lbl->setText(lines.join('\n'));
@@ -1977,18 +2102,43 @@ void MainWindow::updateRankEstimation()
             updateRankOverlayOnGraphs(true);
             return;
         }
+        bool isSimulation = (ui->checkBox_estimation && ui->checkBox_estimation->isChecked());
+
         // Current variables from functb
         if (functb::points == "-1") {
-            ui->label_win_pace_rank->clear();
-            hasRankWinPace = false;
-            updateRankOverlayOnGraphs(true);
-            return;
+            if (!isSimulation) {
+                ui->label_win_pace_rank->clear();
+                hasRankWinPace = false;
+                updateRankOverlayOnGraphs(true);
+                // Also update the estimation label to show the error
+                if (ui->label_estimation_rank) {
+                    ui->label_estimation_rank->setStyleSheet("color: red; font-size: 14px;");
+                    ui->label_estimation_rank->setText(tr("On ne peut pas deviner\nvos points actuels !\nGénérez un graphique\nou activez la Simulation."));
+                }
+                return;
+            }
         }
-        bool okP=true, okS=true, okH=true;
-        const int curPoints = QString::fromStdString(functb::points).toInt(&okP);
-        const int seedValue = QString::fromStdString(functb::seed).toInt(&okS);
-        const double hours_left_total = QString::fromStdString(functb::hour_missing).toDouble(&okH);
-        if (!okP || !okS || !okH || seedValue == 0) {
+        
+        bool okP=true, okH=true;
+        const int curPoints = (functb::points == "-1") ? 0 : QString::fromStdString(functb::points).toInt(&okP);
+        
+        // Take the server response multiplier (points_wins) instead of 30 if available.
+        // Fallback to functb::seed if possible, otherwise use a realistic tournament average (e.g. 950000).
+        bool okS=true;
+        int parsedSeed = QString::fromStdString(functb::seed).toInt(&okS);
+        int seedValue;
+        if (rankAvgSeed > 0.0) {
+            seedValue = static_cast<int>(rankAvgSeed);
+        } else if (functb::seed != "-1" && !functb::seed.empty() && okS) {
+            seedValue = parsedSeed;
+        } else {
+            seedValue = 950000; // Realistic WT fallback
+        }
+        
+        const double hours_left_total = (functb::hour_missing == "-1" || functb::hour_missing.empty()) ? 0.0 : QString::fromStdString(functb::hour_missing).toDouble(&okH);
+        
+        // If simulation, we don't care about okP and okH since they're defaulting.
+        if (!isSimulation && (!okP || !okH || seedValue == 0)) {
             ui->label_win_pace_rank->clear();
             hasRankWinPace = false;
             updateRankOverlayOnGraphs(true);
@@ -2007,7 +2157,17 @@ void MainWindow::updateRankEstimation()
         else if (ui->combo_afk_minutes)
             afkMinutesInt = ui->combo_afk_minutes->currentText().toInt();
         const double afkTotalHours = static_cast<double>(afkHoursInt) + (static_cast<double>(afkMinutesInt) / 60.0);
-        const double activeHours = hours_left_total - afkTotalHours;
+        
+        double activeHours = hours_left_total - afkTotalHours;
+        if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
+            // If estimation is independent of current state, we use the configured theoretical duration.
+            if (AppSettings::region == "Jap") {
+                activeHours = AppSettings::durationJp - afkTotalHours;
+            } else {
+                activeHours = AppSettings::durationGlo - afkTotalHours;
+            }
+        }
+
         if (activeHours <= 0.0) {
             // Impossible: show same red text as Points tab
             lbl->setStyleSheet("color: red;");
@@ -2018,9 +2178,15 @@ void MainWindow::updateRankEstimation()
             return;
         }
 
-        // Target delta
-        const qint64 deltaPts = static_cast<qint64>(estimatedPoints) - static_cast<qint64>(curPoints);
-        if (deltaPts <= 0) {
+        // Target delta: in simulation mode, we start from 0 points. Otherwise, we start from current points.
+        qint64 targetDelta = 0;
+        if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
+            targetDelta = estimatedPoints;
+        } else {
+            targetDelta = static_cast<qint64>(estimatedPoints) - static_cast<qint64>(curPoints);
+        }
+
+        if (targetDelta <= 0) {
             ui->label_win_pace_rank->setText(QStringLiteral("0.00"));
             ui->label_win_pace_rank->setStyleSheet("color: green; font-size: 47px;");
             lastRankWinPace = 0.0;
@@ -2029,7 +2195,10 @@ void MainWindow::updateRankEstimation()
             return;
         }
 
-        const double winsPerHour = static_cast<double>(deltaPts) / (static_cast<double>(seedValue) * activeHours);
+        // NEW: use seedValue (points average per win) instead of edition deltas
+        double pointsPerStep = static_cast<double>(seedValue);
+
+        const double winsPerHour = (pointsPerStep > 0) ? ((static_cast<double>(targetDelta) / pointsPerStep) / activeHours) : 0.0;
 
         // Color mapping (same thresholds)
         QString color;
@@ -2042,11 +2211,33 @@ void MainWindow::updateRankEstimation()
 
         ui->label_win_pace_rank->setStyleSheet(QString("color: %1; font-size: 47px;").arg(color));
         ui->label_win_pace_rank->setText(QString::number(winsPerHour, 'f', 2));
-                // Store and update overlay if checkbox_2 is enabled
+        // Store and update overlay if checkbox_2 is enabled
         lastRankWinPace = winsPerHour;
         hasRankWinPace = std::isfinite(lastRankWinPace) && lastRankWinPace >= 0.0;
         updateRankOverlayOnGraphs(false);
+
+        // Update info label for simulation mode
+        if (ui->label_estimation_rank) {
+            // Retrieve previously set text (score editions + points estimation)
+            QString currentText = lines.join('\n');
+            
+            if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
+                double baseDur = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
+                double totalWins = (pointsPerStep > 0) ? (static_cast<double>(targetDelta) / pointsPerStep) : 0.0;
+                
+                currentText += tr("\n\n-- Mode Simulation --\n");
+                currentText += tr("Durée théorique : %1h (%2)").arg(baseDur).arg(AppSettings::region);
+                currentText += tr("\nVictoires totales estimées : %1").arg(static_cast<int>(totalWins));
+            }
+            ui->label_estimation_rank->setText(currentText);
+        }
     }
+}
+
+// Ensure the checkbox trigger is present to refresh the calculation immediately
+void MainWindow::on_checkBox_estimation_toggled(bool checked)
+{
+    updateRankEstimation();
 }
 
 void MainWindow::on_checkBox_clicked(bool checked)
@@ -2054,7 +2245,7 @@ void MainWindow::on_checkBox_clicked(bool checked)
     // If user enables the overlay but we don't have a computed pace yet, compute it now
     if (checked && !hasWinPace) {
         if (ui && ui->lineEdit_afk) {
-            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+            doGoalEstimation();
         }
     }
     updateGoalOverlayOnGraphs(true);
@@ -2435,7 +2626,7 @@ void MainWindow::onGoalOverlayToggled(bool checked)
     // If user enables the overlay but we don't have a computed pace yet, compute it now
     if (checked && !hasWinPace) {
         if (ui && ui->lineEdit_afk) {
-            on_lineEdit_afk_textEdited(ui->lineEdit_afk->text());
+            doGoalEstimation();
         }
     }
     updateGoalOverlayOnGraphs(true);
@@ -2856,7 +3047,7 @@ void MainWindow::onJoueurLoadTop100()
     const QJsonObject curMeta = functb::pologetmetadata(0);
     const int latestForRegion = curMeta.value(QStringLiteral("id")).toInt();
     const int edForApi = (edition == latestForRegion) ? 0 : edition;
-    
+
     QJsonObject ladder = functb::pologettop(edForApi);
 
     // Restore region
@@ -3046,7 +3237,7 @@ void MainWindow::onJoueurAddPlayer()
     // Récupérer le nom du joueur depuis la première édition
     // IMPORTANT: si edMax == édition la plus récente, utiliser 0 pour l'API (tournoi en cours)
     const int edForApi = (edMax == joueurLatestEdition) ? 0 : edMax;
-    
+
     const std::string prevId = functb::identifier;
     functb::identifier = playerId.toStdString();
     QJsonObject data = functb::pologet(edForApi);
@@ -3056,8 +3247,8 @@ void MainWindow::onJoueurAddPlayer()
     if (data.isEmpty() || data.contains("error")) {
         if (joueurStatusLabel) {
             joueurStatusLabel->setStyleSheet("color: red;");
-            QString errorMsg = data.contains("error") 
-                ? data["error"].toString() 
+            QString errorMsg = data.contains("error")
+                ? data["error"].toString()
                 : tr("Identifiant introuvable.");
             joueurStatusLabel->setText(tr("Erreur : %1").arg(errorMsg));
         }
@@ -3065,7 +3256,7 @@ void MainWindow::onJoueurAddPlayer()
     }
 
     QString displayName = playerId;
-    
+
     // Gérer le cas de plusieurs utilisateurs avec le même nom
     if (data.contains("users") && data["users"].isArray()) {
         QJsonArray jsonArray = data["users"].toArray();
@@ -3181,7 +3372,7 @@ void MainWindow::onJoueurAddPlayer()
             data = listWidget.currentItem()->data(Qt::UserRole).toJsonObject();
         }
     }
-    
+
     if (data.contains("name")) {
         displayName = data["name"].toString();
     }
@@ -3313,7 +3504,7 @@ void MainWindow::onJoueurGenerateClicked()
         for (int ed = entry.editionStart; ed <= entry.editionEnd; ++ed) {
             // IMPORTANT: si ed == édition la plus récente pour cette région, utiliser 0 pour l'API
             const int edForApi = (ed == latestForThisRegion) ? 0 : ed;
-            
+
             QJsonObject data = functb::pologet(edForApi);
             if (data.isEmpty() || data.contains("error")) continue;
 
@@ -3391,7 +3582,7 @@ void MainWindow::onJoueurGenerateClicked()
     QCategoryAxis* axisX = new QCategoryAxis();
     axisX->setTitleText(tr("Heures"));
     axisX->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
-    
+
     const double xRange = globalMaxX - globalMinX;
     const int step = (xRange > 48.0) ? 12 : 6;
     const int startH = static_cast<int>(std::floor(globalMinX / step)) * step;

@@ -300,6 +300,59 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupDurations">
+     <property name="title">
+      <string>Durées théoriques (heures)</string>
+     </property>
+     <layout class="QVBoxLayout" name="layoutDurations">
+      <item>
+       <layout class="QFormLayout" name="formDurations">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelDurGlo">
+          <property name="text">
+           <string>Durée GLO</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="spinDurGlo">
+          <property name="minimum">
+           <double>0.0</double>
+          </property>
+          <property name="maximum">
+           <double>1000.0</double>
+          </property>
+          <property name="suffix">
+           <string> h</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelDurJp">
+          <property name="text">
+           <string>Durée JP</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="spinDurJp">
+          <property name="minimum">
+           <double>0.0</double>
+          </property>
+          <property name="maximum">
+           <double>1000.0</double>
+          </property>
+          <property name="suffix">
+           <string> h</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>

@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <!-- ...existing code... -->
-        <file>classement.ui</file>
-        <file>joueur.ui</file>
-        <file>options.ui</file>
-        <!-- ...existing code... -->
-    </qresource>
-</RCC>

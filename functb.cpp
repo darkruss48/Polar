@@ -588,12 +588,20 @@ QJsonObject functb::pologetmetadata(int edition)
 
 QJsonObject functb::pologetrank(int edition, int rank)
 {
+    static QMap<QString, QJsonObject> rankCache;
+    QString region = (AppSettings::region == "Jap" || AppSettings::region == "JP") ? "JP" : "Glo";
+    QString cacheKey = QString("%1_%2_%3").arg(region).arg(edition).arg(rank);
+
+    if (rankCache.contains(cacheKey)) {
+        return rankCache.value(cacheKey);
+    }
+
     QNetworkAccessManager manager;
     // Build URL: /api/{edition}/get-user?rank=X (+ region when JP)
     QString urlStr = QStringLiteral("https://dokkan-wt.info/api/%1/get-user?rank=%2")
                          .arg(edition)
                          .arg(rank);
-    if (AppSettings::region == "Jap" || AppSettings::region == "JP") {
+    if (region == "JP") {
         urlStr += QStringLiteral("&region=JP");
     }
     QUrl url(urlStr);
@@ -608,6 +616,13 @@ QJsonObject functb::pologetrank(int edition, int rank)
         // appendErrorToLog(QStringLiteral("Erreur réseau (%1): %2").arg(url.toString(), reply->errorString()));
     }
     const QJsonDocument doc = QJsonDocument::fromJson(data);
+    reply->deleteLater();
+
     if (!doc.isObject()) return QJsonObject();
-    return doc.object();
+
+    QJsonObject result = doc.object();
+    if (!result.isEmpty() && !result.contains("error")) {
+        rankCache.insert(cacheKey, result);
+    }
+    return result;
 }

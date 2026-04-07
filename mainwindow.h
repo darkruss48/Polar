@@ -82,6 +82,7 @@ private slots:
     void on_lineEdit_goal_textEdited(const QString &arg1);
 
     void on_lineEdit_afk_textEdited(const QString &arg1);
+    void doGoalEstimation();
 
     // Options dialog
     void showOptionsDialog(); // +
@@ -110,7 +111,15 @@ private slots:
     void onJoueurClearAll();
     void onJoueurPlayerSelectionChanged();
 
+    void on_checkBox_estimation_toggled(bool checked);
+    void updateAfkSummaries();
+
 private:
+    QTimer* m_debounceTimerRank = nullptr;
+    QTimer* m_debounceTimerGoal = nullptr;
+    QLabel* m_lblAfkSummary1 = nullptr;
+    QLabel* m_lblAfkSummary2 = nullptr;
+
     // loads a language by the given language shortcur (e.g. de, en)
     void loadLanguage(const QString& rLanguage);
     void createLanguageMenu(void);

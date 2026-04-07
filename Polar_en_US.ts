@@ -479,8 +479,12 @@
         <location filename="mainwindow.ui" line="126"/>
         <location filename="mainwindow.ui" line="389"/>
         <source>Victoires par heure nécessaire</source>
-        <translation>Wins pace needed</translation>
-    </message>
+        <translation>Wins per hour needed</translation>
+      </message>
+      <message>
+        <source>Simulation (depuis O pt)</source>
+        <translation>Simulation (from 0 pts)</translation>
+      </message>
     <message>
         <location filename="mainwindow.ui" line="447"/>
         <source>Temps restant : </source>
@@ -713,7 +717,7 @@ wins/hours on the left of this window.</translation>
     <message>
         <location filename="mainwindow.cpp" line="1165"/>
         <location filename="mainwindow.cpp" line="1298"/>
-        <source>Tu peux générer les graphiques de plusieurs statistiques : 
+        <source>Tu peux générer les graphiques de plusieurs statistiques :
 Rang, Points, Points/heure, ...</source>
         <translation>You can generate graphs of several statistics:
 Rank, Points, Points/hour, ...</translation>
@@ -789,7 +793,7 @@ the graph first !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1540"/>
-        <source>Vous avez dépassé 
+        <source>Vous avez dépassé
 votre objectif !</source>
         <translation>You&apos;ve already
 reached this score !</translation>
@@ -893,9 +897,9 @@ reached this score !</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1871"/>
-        <source>Temps restant : 
+        <source>Temps restant :
 %1</source>
-        <translation>Time left : 
+        <translation>Time left :
 %1</translation>
     </message>
     <message>

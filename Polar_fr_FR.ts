@@ -489,7 +489,7 @@ victoires/heures à gauche de cette fenêtre.</source>
     <message>
         <location filename="mainwindow.cpp" line="1165"/>
         <location filename="mainwindow.cpp" line="1298"/>
-        <source>Tu peux générer les graphiques de plusieurs statistiques : 
+        <source>Tu peux générer les graphiques de plusieurs statistiques :
 Rang, Points, Points/heure, ...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -514,7 +514,7 @@ d&apos;abord !</source>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1540"/>
-        <source>Vous avez dépassé 
+        <source>Vous avez dépassé
 votre objectif !</source>
         <translation type="unfinished"></translation>
     </message>
@@ -617,7 +617,7 @@ votre objectif !</source>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1871"/>
-        <source>Temps restant : 
+        <source>Temps restant :
 %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -978,7 +978,11 @@ votre objectif !</source>
     <message>
         <location filename="mainwindow.ui" line="447"/>
         <source>Temps restant : </source>
-        <translation type="unfinished"></translation>
+        <translation>Temps restant : </translation>
+    </message>
+    <message>
+        <source>Simulation (depuis O pt)</source>
+        <translation>Simulation (depuis 0 pt)</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="632"/>
