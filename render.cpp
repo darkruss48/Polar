@@ -450,7 +450,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
 
     // NEW: Axe X personnalisé en heures (catégories à 6h ou 12h)
     if (!hours.isEmpty()) {
-        const double minX = hours.first();
+        const double minX = AppSettings::forceZeroHour ? 0.0 : hours.first();
         const double maxX = hours.last();
         const double span = std::max(0.0, maxX - minX);
         const double step = (span <= 36.0 ? 6.0 : 12.0);
@@ -568,7 +568,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
 
     // NEW: Axe X personnalisé en heures (catégories à 6h ou 12h)
     if (!hours.isEmpty()) {
-        const double minX = hours.first();
+        const double minX = AppSettings::forceZeroHour ? 0.0 : hours.first();
         const double maxX = hours.last();
         const double span = std::max(0.0, maxX - minX);
         const double step = (span <= 36.0 ? 6.0 : 12.0);
@@ -595,7 +595,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
 
     // NEW: mémoriser la plage X pour le mapping (utilisée par la sélection)
     if (!hours.isEmpty()) {
-        const double minX = hours.first();
+        const double minX = AppSettings::forceZeroHour ? 0.0 : hours.first();
         const double maxX = hours.last();
         chart->setProperty("xMin", minX);
         chart->setProperty("xMax", maxX);

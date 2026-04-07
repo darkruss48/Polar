@@ -20,6 +20,7 @@ bool    AppSettings::transparentControls = false;
 int     AppSettings::selectedEdition = 0;      // 0 = édition courante
 bool    AppSettings::censorIdDisplay = false;
 bool    AppSettings::hideNegativeTimes = true; // par défaut activé
+bool    AppSettings::forceZeroHour = false;
 bool    AppSettings::updateStartShortcutOnUpgrade = true;
 int     AppSettings::dateFormatIndex = 0; // NEW: default = locale
 double  AppSettings::durationGlo = 71.5;
@@ -60,6 +61,7 @@ void AppSettings::load()
     selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(selectedEdition);
     censorIdDisplay = o.value(QStringLiteral("censorIdDisplay")).toBool(censorIdDisplay);
     hideNegativeTimes = o.value(QStringLiteral("hideNegativeTimes")).toBool(hideNegativeTimes);
+    forceZeroHour = o.value(QStringLiteral("forceZeroHour")).toBool(forceZeroHour);
     updateStartShortcutOnUpgrade = o.value(QStringLiteral("updateStartShortcutOnUpgrade")).toBool(updateStartShortcutOnUpgrade);
     durationGlo = o.value(QStringLiteral("durationGlo")).toDouble(AppSettings::durationGlo);
     durationJp = o.value(QStringLiteral("durationJp")).toDouble(AppSettings::durationJp);
@@ -80,6 +82,7 @@ void AppSettings::save()
     o.insert(QStringLiteral("selectedEdition"), selectedEdition);
     o.insert(QStringLiteral("censorIdDisplay"), censorIdDisplay);
     o.insert(QStringLiteral("hideNegativeTimes"), hideNegativeTimes);
+    o.insert(QStringLiteral("forceZeroHour"), forceZeroHour);
     o.insert(QStringLiteral("updateStartShortcutOnUpgrade"), updateStartShortcutOnUpgrade);
     o.insert(QStringLiteral("durationGlo"), durationGlo);
     o.insert(QStringLiteral("durationJp"), durationJp);

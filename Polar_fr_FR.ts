@@ -505,7 +505,7 @@ victoires/heures à gauche de cette fenêtre.</source>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1641"/>
-        <location filename="mainwindow.cpp" line="2177"/>
+        <location filename="mainwindow.cpp" line="2180"/>
         <source>Impossible</source>
         <translation type="unfinished"></translation>
     </message>
@@ -540,58 +540,58 @@ victoires/heures à gauche de cette fenêtre.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1804"/>
+        <location filename="mainwindow.cpp" line="1806"/>
         <source>Choisir une image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1804"/>
+        <location filename="mainwindow.cpp" line="1806"/>
         <source>Images (*.png *.jpg *.jpeg *.bmp)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1835"/>
+        <location filename="mainwindow.cpp" line="1837"/>
         <source>Vous devez installer la dernière version pour ajouter Polar au menu Démarrer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1850"/>
+        <location filename="mainwindow.cpp" line="1852"/>
         <source>Ajouté au menu Démarrer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1853"/>
+        <location filename="mainwindow.cpp" line="1855"/>
         <source>Erreur lors de l&apos;ajout au menu Démarrer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1939"/>
-        <location filename="mainwindow.cpp" line="1947"/>
+        <location filename="mainwindow.cpp" line="1942"/>
+        <location filename="mainwindow.cpp" line="1950"/>
         <source>minute</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1945"/>
+        <location filename="mainwindow.cpp" line="1948"/>
         <source>jour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1945"/>
+        <location filename="mainwindow.cpp" line="1948"/>
         <source>jours</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1946"/>
+        <location filename="mainwindow.cpp" line="1949"/>
         <source>heure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1946"/>
+        <location filename="mainwindow.cpp" line="1949"/>
         <source>heures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1947"/>
+        <location filename="mainwindow.cpp" line="1950"/>
         <source>minutes</source>
         <translation type="unfinished"></translation>
     </message>
@@ -604,7 +604,7 @@ Rang, Points, Points/heure, ...</source>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1572"/>
-        <location filename="mainwindow.cpp" line="2119"/>
+        <location filename="mainwindow.cpp" line="2122"/>
         <source>On ne peut pas deviner
 vos points actuels !
 Générez un graphique
@@ -627,35 +627,35 @@ Durée théorique : %1h (%2)</source>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="1689"/>
-        <location filename="mainwindow.cpp" line="2233"/>
+        <location filename="mainwindow.cpp" line="2236"/>
         <source>
 Victoires totales estimées : %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1982"/>
+        <location filename="mainwindow.cpp" line="1985"/>
         <source>Temps restant : 
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2067"/>
         <location filename="mainwindow.cpp" line="2070"/>
+        <location filename="mainwindow.cpp" line="2073"/>
         <source>Score édition %1 : %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2091"/>
+        <location filename="mainwindow.cpp" line="2094"/>
         <source>Estimation points : %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2093"/>
+        <location filename="mainwindow.cpp" line="2096"/>
         <source>(Seed du joueur : %1 pts/win)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2231"/>
+        <location filename="mainwindow.cpp" line="2234"/>
         <source>
 
 -- Mode Simulation --
@@ -663,203 +663,203 @@ Victoires totales estimées : %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2232"/>
+        <location filename="mainwindow.cpp" line="2235"/>
         <source>Durée théorique : %1h (%2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2278"/>
+        <location filename="mainwindow.cpp" line="2281"/>
         <source>Objectif (Rank)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2331"/>
-        <location filename="mainwindow.cpp" line="2382"/>
+        <location filename="mainwindow.cpp" line="2334"/>
+        <location filename="mainwindow.cpp" line="2385"/>
         <source>%1ème Tenkaichi Budokai</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2375"/>
+        <location filename="mainwindow.cpp" line="2378"/>
         <source>Du %1 au %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2519"/>
+        <location filename="mainwindow.cpp" line="2522"/>
         <source>Une erreur est survenue lors de la copie du graphique.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2535"/>
+        <location filename="mainwindow.cpp" line="2538"/>
         <source>Aucun graphique n&apos;a
 été affiché !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2554"/>
-        <location filename="mainwindow.cpp" line="3706"/>
+        <location filename="mainwindow.cpp" line="2557"/>
+        <location filename="mainwindow.cpp" line="3709"/>
         <source>Erreur lors de la copie.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2571"/>
-        <location filename="mainwindow.cpp" line="3716"/>
+        <location filename="mainwindow.cpp" line="2574"/>
+        <location filename="mainwindow.cpp" line="3719"/>
         <source>Graphique copié !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2602"/>
+        <location filename="mainwindow.cpp" line="2605"/>
         <source>Erreur : aucun graphique affiché.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2617"/>
+        <location filename="mainwindow.cpp" line="2620"/>
         <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2765"/>
+        <location filename="mainwindow.cpp" line="2768"/>
         <source>Préparation du téléchargement...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2766"/>
+        <location filename="mainwindow.cpp" line="2769"/>
         <source>Téléchargement de la mise à jour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2783"/>
+        <location filename="mainwindow.cpp" line="2786"/>
         <source>Téléchargement... 0 / %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2815"/>
+        <location filename="mainwindow.cpp" line="2818"/>
         <source>Téléchargement... %1 / %2 — %3 — ETA %4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2827"/>
+        <location filename="mainwindow.cpp" line="2830"/>
         <source>Téléchargement terminé.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="2829"/>
+        <location filename="mainwindow.cpp" line="2832"/>
         <source>Erreur de téléchargement: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3040"/>
+        <location filename="mainwindow.cpp" line="3043"/>
         <source>Édition invalide.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3062"/>
+        <location filename="mainwindow.cpp" line="3065"/>
         <source>Erreur lors du chargement du classement.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3070"/>
+        <location filename="mainwindow.cpp" line="3073"/>
         <source>Aucun joueur trouvé.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3123"/>
+        <location filename="mainwindow.cpp" line="3126"/>
         <source>%1 joueurs chargés.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3151"/>
+        <location filename="mainwindow.cpp" line="3154"/>
         <source>Joueur invalide.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3160"/>
-        <location filename="mainwindow.cpp" line="3235"/>
+        <location filename="mainwindow.cpp" line="3163"/>
+        <location filename="mainwindow.cpp" line="3238"/>
         <source>Maximum 10 joueurs/séries.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3178"/>
-        <location filename="mainwindow.cpp" line="3395"/>
+        <location filename="mainwindow.cpp" line="3181"/>
+        <location filename="mainwindow.cpp" line="3398"/>
         <source>%1 ajouté.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3219"/>
+        <location filename="mainwindow.cpp" line="3222"/>
         <source>Veuillez entrer un identifiant.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3255"/>
+        <location filename="mainwindow.cpp" line="3258"/>
         <source>Identifiant introuvable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3256"/>
+        <location filename="mainwindow.cpp" line="3259"/>
         <source>Erreur : %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3269"/>
+        <location filename="mainwindow.cpp" line="3272"/>
         <source>Aucun joueur trouvé avec cet identifiant.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3331"/>
+        <location filename="mainwindow.cpp" line="3334"/>
         <source>Choisir un joueur</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3334"/>
+        <location filename="mainwindow.cpp" line="3337"/>
         <source>Plusieurs joueurs trouvés (triés par points). Sélectionnez-en un :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3351"/>
+        <location filename="mainwindow.cpp" line="3354"/>
         <source>Rank #</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3354"/>
+        <location filename="mainwindow.cpp" line="3357"/>
         <source>pts</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3409"/>
+        <location filename="mainwindow.cpp" line="3412"/>
         <source>Joueur supprimé.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3425"/>
+        <location filename="mainwindow.cpp" line="3428"/>
         <source>Liste effacée.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3443"/>
+        <location filename="mainwindow.cpp" line="3446"/>
         <source>Ajoutez au moins un joueur.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3479"/>
+        <location filename="mainwindow.cpp" line="3482"/>
         <source>Comparaison de %1 joueur(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3578"/>
+        <location filename="mainwindow.cpp" line="3581"/>
         <source>Aucune donnée trouvée.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3586"/>
+        <location filename="mainwindow.cpp" line="3589"/>
         <source>Heures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3684"/>
+        <location filename="mainwindow.cpp" line="3687"/>
         <source>Graphique généré avec %1 série(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="3694"/>
+        <location filename="mainwindow.cpp" line="3697"/>
         <source>Aucun graphique à copier.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -880,7 +880,7 @@ Victoires totales estimées : %1</source>
     </message>
     <message>
         <location filename="mainwindow.ui" line="634"/>
-        <location filename="mainwindow.cpp" line="2469"/>
+        <location filename="mainwindow.cpp" line="2472"/>
         <source>Identifiant actuel : </source>
         <translation type="unfinished"></translation>
     </message>
@@ -964,7 +964,7 @@ Victoires totales estimées : %1</source>
         <location filename="mainwindow.ui" line="55"/>
         <location filename="mainwindow.ui" line="171"/>
         <location filename="mainwindow.ui" line="325"/>
-        <location filename="mainwindow.cpp" line="2665"/>
+        <location filename="mainwindow.cpp" line="2668"/>
         <source>Objectif</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1068,7 +1068,7 @@ Victoires totales estimées : %1</source>
         <location filename="options.ui" line="49"/>
         <source>Graphique</source>
         <oldsource>Thème des graphiques</oldsource>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Graphique</translation>
     </message>
     <message>
         <location filename="options.ui" line="55"/>
@@ -1126,123 +1126,128 @@ Victoires totales estimées : %1</source>
         <translation>Certaines heures sont buggés, comme celle du TB 61. Cocher cette option les masquera.</translation>
     </message>
     <message>
-        <location filename="options.ui" line="119"/>
+        <location filename="options.ui" line="116"/>
+        <source>Forcer le graphique à l&apos;heure 0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="126"/>
         <source>Fond d&apos;écran</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="125"/>
+        <location filename="options.ui" line="132"/>
         <source>Utiliser un fond d&apos;écran personnalisé</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="137"/>
+        <location filename="options.ui" line="144"/>
         <source>Chemin de l&apos;image...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="144"/>
+        <location filename="options.ui" line="151"/>
         <source>Parcourir...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="153"/>
+        <location filename="options.ui" line="160"/>
         <source>Rendre les éléments transparents (boutons, listes, ...)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="156"/>
+        <location filename="options.ui" line="163"/>
         <source>Quand coché: boutons/listes/etc. sont transparents. Sinon, ils sont opaques. La barre de menu et la barre d&apos;état restent transparentes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="166"/>
+        <location filename="options.ui" line="173"/>
         <source>Opacité du fond</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="185"/>
+        <location filename="options.ui" line="192"/>
         <source>0%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="198"/>
+        <location filename="options.ui" line="205"/>
         <source>Confidentialité</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="204"/>
+        <location filename="options.ui" line="211"/>
         <source>Censurer l&apos;identifiant affiché</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="214"/>
+        <location filename="options.ui" line="221"/>
         <source>Auto-refresh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="220"/>
+        <location filename="options.ui" line="227"/>
         <source>Délai additionnel (min)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="230"/>
+        <location filename="options.ui" line="237"/>
         <source> min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="246"/>
+        <location filename="options.ui" line="253"/>
         <source>Menu Démarrer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="252"/>
+        <location filename="options.ui" line="259"/>
         <source>Ajouter au menu Démarrer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="259"/>
+        <location filename="options.ui" line="266"/>
         <source>Ajouter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="279"/>
+        <location filename="options.ui" line="286"/>
         <source>Format de date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="286"/>
+        <location filename="options.ui" line="293"/>
         <source>Locale système</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="309"/>
+        <location filename="options.ui" line="316"/>
         <source>Aperçu : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="322"/>
+        <location filename="options.ui" line="329"/>
         <source>Durées théoriques (heures)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="330"/>
+        <location filename="options.ui" line="337"/>
         <source>Durée GLO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="343"/>
-        <location filename="options.ui" line="363"/>
+        <location filename="options.ui" line="350"/>
+        <location filename="options.ui" line="370"/>
         <source> h</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="350"/>
+        <location filename="options.ui" line="357"/>
         <source>Durée JP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="options.ui" line="227"/>
+        <location filename="options.ui" line="234"/>
         <source>Ajoute 0 à 15 minutes aux quarts d&apos;heure (00, 15, 30, 45)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1280,7 +1285,7 @@ Victoires totales estimées : %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="1879"/>
+        <location filename="mainwindow.cpp" line="1881"/>
         <source>Aperçu : %1</source>
         <translation type="unfinished"></translation>
     </message>

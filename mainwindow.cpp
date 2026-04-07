@@ -1767,6 +1767,8 @@ void MainWindow::showOptionsDialog()
     }
     auto checkHideNegativeTime = content->findChild<QCheckBox*>("checkHideNegativeTime");
     if (checkHideNegativeTime) checkHideNegativeTime->setChecked(AppSettings::hideNegativeTimes);
+    auto checkForceZeroHour = content->findChild<QCheckBox*>("checkForceZeroHour");
+    if (checkForceZeroHour) checkForceZeroHour->setChecked(AppSettings::forceZeroHour);
     if (comboTheme) {
         // OLD (par texte) supprimé
         // int idx = comboTheme->findText(AppSettings::chartThemeName);
@@ -1900,6 +1902,7 @@ void MainWindow::showOptionsDialog()
         }
         if (checkCensorId) AppSettings::censorIdDisplay = checkCensorId->isChecked();
         if (checkHideNegativeTime) AppSettings::hideNegativeTimes = checkHideNegativeTime->isChecked();
+        if (checkForceZeroHour) AppSettings::forceZeroHour = checkForceZeroHour->isChecked();
 
         if (checkCustom) AppSettings::useCustomBackground = checkCustom->isChecked();
         if (editPath) AppSettings::backgroundPath = editPath->text();

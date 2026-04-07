@@ -110,6 +110,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="checkForceZeroHour">
+        <property name="text">
+         <string>Forcer le graphique à l'heure 0</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
