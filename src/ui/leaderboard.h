@@ -2,6 +2,7 @@
 #define LEADERBOARD_H
 
 #include <QWidget>
+#include <QJsonObject>
 #include <QListWidget>
 #include <QPushButton>
 #include <QLabel>
@@ -48,6 +49,7 @@ public:
         QString name;
         qint64 lastPoints;
         QStringList pointsList;
+        QJsonObject player;
     };
     static QVector<SimpleRow> snapshotRows;
 

@@ -1,28 +1,22 @@
 <RCC>
     <qresource prefix="/images">
-        <file>en_US.png</file>
-        <file>fr_FR.png</file>
-        <file>es_ES.png</file>
-        <file>it_IT.png</file>
-        <file>image.png</file>
-        <file>settings_icon.png</file>
-        <file>medal.png</file>
-        <file>chart.png</file>
-        <file>guy.png</file>
-    </qresource>
-    <qresource prefix="/i18n">
-        <file>Polar_en_US.qm</file>
-        <file>Polar_fr_FR.qm</file>
-	    <file>Polar_es_ES.qm</file>
-        <file>Polar_it_IT.qm</file>
+        <file alias="en_US.png">resources/images/en_US.png</file>
+        <file alias="fr_FR.png">resources/images/fr_FR.png</file>
+        <file alias="es_ES.png">resources/images/es_ES.png</file>
+        <file alias="it_IT.png">resources/images/it_IT.png</file>
+        <file alias="image.png">resources/images/image.png</file>
+        <file alias="settings_icon.png">resources/images/settings_icon.png</file>
+        <file alias="medal.png">resources/images/medal.png</file>
+        <file alias="chart.png">resources/images/chart.png</file>
+        <file alias="guy.png">resources/images/guy.png</file>
     </qresource>
     <qresource prefix="/">
         <!-- Other resources -->
-        <file>mainwindow.ui</file>
+        <file alias="mainwindow.ui">ui/mainwindow.ui</file>
         <!-- NEW: classement page -->
-        <file>classement.ui</file>
+        <file alias="classement.ui">ui/classement.ui</file>
         <!-- NEW: options dialog -->
-        <file>options.ui</file>
-        <file>joueur.ui</file>
+        <file alias="options.ui">ui/options.ui</file>
+        <file alias="joueur.ui">ui/joueur.ui</file>
     </qresource>
 </RCC>

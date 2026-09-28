@@ -36,7 +36,7 @@
 class ViewResizeFilter : public QObject {
 public:
     ViewResizeFilter(QGraphicsView* v, QGraphicsProxyWidget* p)
-        : QObject(v), view(v), proxy(p) {
+        : QObject(p), view(v), proxy(p) {
         if (view->viewport()) view->viewport()->installEventFilter(this);
         view->installEventFilter(this);
         updateNow();
@@ -351,7 +351,7 @@ void adjustChartAxes(QChart *chart, const QList<double> &points) {
 
     // Remove old vertical axis and attach new one
     const auto vAxes = chart->axes(Qt::Vertical);
-    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
+    if (!vAxes.isEmpty()) { chart->removeAxis(vAxes.first()); delete vAxes.first(); }
     chart->addAxis(axisY, Qt::AlignLeft);
     if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
@@ -373,7 +373,7 @@ static void adjustChartAxesEvenWinsPace(QChart* chart, const QList<double>& poin
     }
 
     const auto vAxes = chart->axes(Qt::Vertical);
-    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
+    if (!vAxes.isEmpty()) { chart->removeAxis(vAxes.first()); delete vAxes.first(); }
     chart->addAxis(axisY, Qt::AlignLeft);
     if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
@@ -400,7 +400,7 @@ void adjustChartAxes_leaderboard(QChart *chart, const QList<double> &points) {
 
     // Remplace l’axe vertical par le nouvel axe
     const auto vAxes = chart->axes(Qt::Vertical);
-    if (!vAxes.isEmpty()) chart->removeAxis(vAxes.first());
+    if (!vAxes.isEmpty()) { chart->removeAxis(vAxes.first()); delete vAxes.first(); }
     chart->addAxis(axisY, Qt::AlignLeft);
     if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisY);
 }
@@ -413,7 +413,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     QList<double> points = parseJsonArray(pointsStr);
 
     // Vérification que les listes ont la même taille
-    if (hours.size() != points.size()) {
+    if (hours.isEmpty() || hours.size() != points.size()) {
         qWarning("Les tailles des données ne correspondent pas !");
         // std::cout << hours.size() << " " << points.size() << std::endl;
 
@@ -433,7 +433,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
     chart->createDefaultAxes();
     chart->axes(Qt::Horizontal).first()->setTitleText(QObject::tr("Heures"));
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setAnimationOptions(QChart::NoAnimation);
 
     // Appliquer le thème
     chart->setTheme(AppSettings::chartThemeEnum());
@@ -468,7 +468,7 @@ void Render::createLineChartInGraphicsView(Ui::MainWindow *ui, const QString &ho
 
         // Remplacer l’axe horizontal par le nouvel axe
         const auto hAxes = chart->axes(Qt::Horizontal);
-        for (auto a : hAxes) chart->removeAxis(a);
+        for (auto a : hAxes) { chart->removeAxis(a); delete a; }
         chart->addAxis(axisX, Qt::AlignBottom);
         if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisX);
     }
@@ -530,7 +530,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     QList<double> points = parseJsonArray(pointsStr);
 
     // Vérification que les listes ont la même taille
-    if (hours.size() != points.size()) {
+    if (hours.isEmpty() || hours.size() != points.size()) {
         qWarning("Les tailles des données ne correspondent pas !");
         // std::cout << hours.size() << " " << points.size() << std::endl;
 
@@ -552,7 +552,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
     chart->createDefaultAxes();
     chart->axes(Qt::Horizontal).first()->setTitleText(QObject::tr("Heures"));
     chart->axes(Qt::Vertical).first()->setTitleText(QObject::tr("Points"));
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setAnimationOptions(QChart::NoAnimation);
     chart->legend()->setVisible(false);
     chart->legend()->setBackgroundVisible(false);
     chart->legend()->setAlignment(Qt::AlignBottom);
@@ -588,7 +588,7 @@ void Render::render_leaderboard(MainWindow *this_, QGraphicsView *graphPlacehold
 
         // Remplace l’axe horizontal par le nouvel axe
         const auto hAxes = chart->axes(Qt::Horizontal);
-        for (auto a : hAxes) chart->removeAxis(a);
+        for (auto a : hAxes) { chart->removeAxis(a); delete a; }
         chart->addAxis(axisX, Qt::AlignBottom);
         if (!chart->series().isEmpty()) chart->series().first()->attachAxis(axisX);
     }

@@ -31,7 +31,7 @@ Check the releases.
 If you want, you can build your own version of Polar.
 To do so, you need to download it using [QT](https://qt.io).
 I made this client using my own static QT build (v6.8.0), which allows me to compile it and to share it without you needing to install QT.
-If you build it yourself with the distributed version of QT (the dynamic one), it will work for you but you can't share your executable as it need to have QT installed on the computer to start.
+A dynamic Qt build can be distributed by bundling its required Qt libraries and plugins (for example with windeployqt on Windows). For a single executable, use a separately configured static Qt toolchain; CONFIG += static alone does not turn a dynamic Qt installation into a static one.
 Feel free to contact us (check [contact](#Contact)) if you need any help to compile it.
 
 ### Build for (Arch) linux
@@ -53,10 +53,7 @@ mkdir build
 cd build
 ```
 
-Compile the translations files by typing this command :
-```bash
-/usr/lib/qt6/bin/lrelease ../*.ts
-```
+Translations are compiled and embedded by qmake; no source-tree `.qm` files are required.
 
 Finally, use qmake and make to compile Polar :
 ```bash
@@ -90,3 +87,50 @@ Contact me on [Twitter](https://twitter.com/darkruss47) or reach me on discord :
 
 ## License
 Polar is released under the [MIT License](https://choosealicense.com/licenses/mit/).
+
+## Source layout
+
+- `src/app`: application entry point
+- `src/core`: settings and domain logic
+- `src/network`: API and update transport
+- `src/ui`: native widgets and chart rendering
+- `ui`: Qt Designer forms
+- `resources/images`: bundled artwork (resource aliases remain unchanged)
+- `translations`: Linguist catalogs
+
+## Race analysis
+
+Open **Race analysis** in the menu for a native Top 20 table. Choose a reference
+player, a 1/2/6-hour scoring window and an optional extra future pause. Finish
+scenarios compare recent pace with active/idle behavior observed in the current
+snapshot. They are not confidence intervals or learned cross-edition habits.
+Tooltips describe sample coverage and why an estimate may be unavailable.
+
+Tournament `0` always means **Current**, even when metadata omits its edition
+number. Archive numbers come from the public archive catalog. Current cannot be
+mixed with numbered archives in one range; add another player entry to compare
+both. The historical rank estimator requires a known edition number, excludes
+the target edition and uses actual edition numbers for its regression.
+
+The API transport is asynchronous, reuses one connection manager and coalesces
+identical in-flight requests. Batch comparisons allow four concurrent requests
+and at most 40 series. Successful responses have a short bounded cache; explicit
+leaderboard refresh bypasses it. No Qt WebEngine, WebView or new runtime module
+is required.
+
+## Tests (Qt 6)
+
+```sh
+mkdir -p build/tests
+cd build/tests
+qmake6 ../../tests/tests.pro
+make -j4
+QT_QPA_PLATFORM=offscreen ./polar_tests
+```
+
+Tests cover metadata without an id, region catalogs, series validation, real-time
+intervals, missing samples, large scores, projection boundaries, asynchronous
+request coalescing and bounded batches, widget input, graph replacement followed
+by resizing, and bundled resources. Offscreen plugin size-hint warnings are
+expected. Windows static packaging and live tournament accuracy still require
+validation on the target platform.
