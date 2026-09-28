@@ -55,7 +55,7 @@ cd build
 
 Compile the translations files by typing this command :
 ```bash
-/usr/lib/qt6/bin/lrelease ../*.ts
+/usr/lib/qt6/bin/lrelease ../translations/*.ts
 ```
 
 Finally, use qmake and make to compile Polar :
@@ -90,3 +90,13 @@ Contact me on [Twitter](https://twitter.com/darkruss47) or reach me on discord :
 
 ## License
 Polar is released under the [MIT License](https://choosealicense.com/licenses/mit/).
+
+## Source layout
+
+- `src/app`: application entry point
+- `src/core`: settings and domain logic
+- `src/network`: API and update transport
+- `src/ui`: native widgets and chart rendering
+- `ui`: Qt Designer forms
+- `resources/images`: bundled artwork (resource aliases remain unchanged)
+- `translations`: Linguist catalogs

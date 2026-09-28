@@ -32,45 +32,45 @@ CONFIG += static
 QT += core
 QT += network
 QT += charts
-RC_ICONS = appico.ico
+RC_ICONS = resources/images/appico.ico
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-RC_ICONS = appico.ico
+RC_ICONS = resources/images/appico.ico
 
 RESOURCES += resources.qrc
 
 SOURCES += \
-    functb.cpp \
-    gameplatform.cpp \
-    leaderboard.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    render.cpp \
-    updater.cpp \
-    appsettings.cpp
+    src/network/functb.cpp \
+    src/core/gameplatform.cpp \
+    src/ui/leaderboard.cpp \
+    src/app/main.cpp \
+    src/ui/mainwindow.cpp \
+    src/ui/render.cpp \
+    src/network/updater.cpp \
+    src/core/appsettings.cpp
 
 HEADERS += \
-    functb.h \
-    gameplatform.h \
-    leaderboard.h \
-    mainwindow.h \
-    render.h \
-    updater.h \
-    appsettings.h
+    src/network/functb.h \
+    src/core/gameplatform.h \
+    src/ui/leaderboard.h \
+    src/ui/mainwindow.h \
+    src/ui/render.h \
+    src/network/updater.h \
+    src/core/appsettings.h
 
 FORMS += \
-    classement.ui \
-    mainwindow.ui \
-    options.ui
+    ui/classement.ui \
+    ui/mainwindow.ui \
+    ui/options.ui
 
 TRANSLATIONS += \
-    Polar_fr_FR.ts \
-    Polar_en_US.ts \
-    Polar_es_ES.ts \
-    Polar_it_IT.ts
+    translations/Polar_fr_FR.ts \
+    translations/Polar_en_US.ts \
+    translations/Polar_es_ES.ts \
+    translations/Polar_it_IT.ts
 
 CONFIG += lrelease
 CONFIG += embed_translations
@@ -79,3 +79,5 @@ CONFIG += embed_translations
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+INCLUDEPATH += src/core src/network src/ui
