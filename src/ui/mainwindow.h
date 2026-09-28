@@ -48,6 +48,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    double remainingTournamentHours() const;
 
 protected:
     QMenu* menu1;
@@ -67,7 +68,7 @@ private slots:
 
     // void fetchData(int pageNumber, QJsonDocument previousResponse);
 
-    void on_pushButton_clicked();
+
 
     void formatNumberWithCommas(const QString &text, QString &outFormattedNumber);
 
@@ -220,6 +221,9 @@ private:
 
 
     // Cached times (epoch seconds)
+    quint64 metadataGeneration = 0;
+    quint64 graphGeneration = 0;
+    quint64 rankGeneration = 0, top100Generation = 0, addPlayerGeneration = 0, comparisonGeneration = 0;
     qint64 tbStartEpoch = 0;
     qint64 tbEndEpoch = 0;
     int    tbEdition   = 0;                 // NEW: cached edition number

@@ -1,37 +1,16 @@
-QT       += core gui uitools
+QT += core gui uitools
+lessThan(QT_MAJOR_VERSION, 6): error("Polar requires Qt 6")
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT += widgets
 
 CONFIG += c++20
 
-QMAKE_CFLAGS_RELEASE -= -MD
-QMAKE_CFLAGS_DEBUG   -= -MDd
-QMAKE_CXXFLAGS_RELEASE -= -MD
-QMAKE_CXXFLAGS_DEBUG   -= -MDd
-
-# optimisation globale (LTO)
-QMAKE_CXXFLAGS_RELEASE += /GL
-QMAKE_CFLAGS_RELEASE     += /GL
-
-# optimisation de l'éditeur de liens : supprimer code non utilisé et combiner identiques
-QMAKE_LFLAGS_RELEASE += /LTCG /OPT:REF /OPT:ICF
-
-# fonction-level linking
-QMAKE_CXXFLAGS_RELEASE += /Gy
-QMAKE_CFLAGS_RELEASE     += /Gy
-QMAKE_CXXFLAGS_RELEASE += /O1         # optimise pour la taille (au lieu de /O2)
-QMAKE_CFLAGS_RELEASE   += /O1
-
-
-
-
-
-
-# JE VEUX UN STANDALONE --> RAJOUTER CETTE LIGNE POUR LINKER DE MANIERE STATIQUE ET NON DYNAMIQUE
-CONFIG += static
-QT += core
-QT += network
-QT += charts
+# Compiler-specific size/link-time optimizations; do not pass MSVC flags to GCC/Clang.
+win32-msvc {
+    QMAKE_CXXFLAGS_RELEASE += /GL /Gy /O1
+    QMAKE_LFLAGS_RELEASE += /LTCG /OPT:REF /OPT:ICF
+}
+QT += network charts
 RC_ICONS = resources/images/appico.ico
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -81,3 +60,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 INCLUDEPATH += src/core src/network src/ui
+
+HEADERS += src/core/wtdata.h src/core/performanceanalysis.h src/network/wtapi.h src/ui/editionpicker.h
+SOURCES += src/core/wtdata.cpp src/core/performanceanalysis.cpp src/network/wtapi.cpp src/ui/editionpicker.cpp
+HEADERS += src/ui/raceanalysisdialog.h
+SOURCES += src/ui/raceanalysisdialog.cpp

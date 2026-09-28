@@ -1,34 +1,14 @@
-#ifndef FUNCTB_H
-#define FUNCTB_H
-#include <QNetworkRequest>
-#include "mainwindow.h"
-#include <QTextEdit> // NEW
+#pragma once
+#include <string>
+class QTextEdit;
 
-class functb
-{
+// Compatibility state for existing goal/graph screens; network operations live in WtApi.
+class functb {
 public:
-    functb();
-    static std::string ver_code;
-    static std::string identifier; // identifiant qui permet d'avoir
-    static QJsonObject pologet(int edition = 0);
-    static QJsonObject pologettop(int edition = 0);       // NEW: edition-aware
-    static std::string secret;
-    static std::string access_token;
-    static void connect(Ui::MainWindow *ui);
-    static void getHeader(QNetworkRequest &request);
-    static QString mac(const QString& url, int port, const QString& method, const QString& action, QString secret, QString access_token);
+    static std::string identifier;
     static std::string points;
     static std::string wins;
     static std::string seed;
     static std::string hour_missing;
-    static QJsonObject pologetmetadata(int edition = 0);  // NEW: edition-aware
-    // NEW: set the QTextEdit to receive error logs
-    static void setLogBox(QTextEdit* box);
-    // NEW: fetch by rank (no identifier), returns object with "points" string
-    static QJsonObject pologetrank(int edition, int rank);
-    
-    // NEW: filter negative hours
-    static void filterNegativeHoursRecursive(QJsonObject &obj);
+    static void setLogBox(QTextEdit *box);
 };
-
-#endif // FUNCTB_H

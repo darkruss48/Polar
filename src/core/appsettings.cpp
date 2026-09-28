@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QSaveFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QtCharts/QChart>
@@ -65,6 +66,7 @@ void AppSettings::load()
     hideNegativeTimes = o.value(QStringLiteral("hideNegativeTimes")).toBool(hideNegativeTimes);
     forceZeroHour = o.value(QStringLiteral("forceZeroHour")).toBool(forceZeroHour);
     updateStartShortcutOnUpgrade = o.value(QStringLiteral("updateStartShortcutOnUpgrade")).toBool(updateStartShortcutOnUpgrade);
+    dateFormatIndex = qBound(0, o.value("dateFormatIndex").toInt(dateFormatIndex), 3);
     durationGlo = o.value(QStringLiteral("durationGlo")).toDouble(AppSettings::durationGlo);
     durationJp = o.value(QStringLiteral("durationJp")).toDouble(AppSettings::durationJp);
 }
@@ -87,16 +89,17 @@ void AppSettings::save()
     o.insert(QStringLiteral("hideNegativeTimes"), hideNegativeTimes);
     o.insert(QStringLiteral("forceZeroHour"), forceZeroHour);
     o.insert(QStringLiteral("updateStartShortcutOnUpgrade"), updateStartShortcutOnUpgrade);
+    o.insert(QStringLiteral("dateFormatIndex"), dateFormatIndex);
     o.insert(QStringLiteral("durationGlo"), durationGlo);
     o.insert(QStringLiteral("durationJp"), durationJp);
 
     const QJsonDocument doc(o);
-    QFile f(configPath());
+    QSaveFile f(configPath());
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         return;
     }
     f.write(doc.toJson(QJsonDocument::Indented));
-    f.close();
+    f.commit();
 }
 
 QChart::ChartTheme AppSettings::chartThemeEnum()

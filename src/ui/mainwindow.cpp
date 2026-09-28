@@ -1,3 +1,8 @@
+#include "raceanalysisdialog.h"
+#include "editionpicker.h"
+#include "wtapi.h"
+#include "wtdata.h"
+#include "performanceanalysis.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "gameplatform.h"
@@ -84,107 +89,6 @@
 static bool createStartMenuShortcut(const QString& displayName);
 #endif
 
-// NEW: lightweight 3-slot edition picker (center = selected, side = neighbors)
-class EditionPickerWidget : public QWidget {
-public:
-    explicit EditionPickerWidget(QWidget* parent=nullptr) : QWidget(parent) {
-        setAttribute(Qt::WA_TransparentForMouseEvents, false);
-        setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        setMinimumSize(120, 36); // allow it to shrink; parent/layout decides final size
-    }
-    void setOnChanged(std::function<void(int)> cb) { onChanged = std::move(cb); }
-    void setEditions(const QVector<int>& list, int selectedEdition, int latestEdition) {
-        editions = list;
-        latest = latestEdition;
-        // Map selectedEdition=0 to latest number
-        const int desired = (selectedEdition <= 0 ? latest : selectedEdition);
-        int idx = editions.indexOf(desired);
-        if (idx < 0) idx = qMax(0, editions.size() - 1); // default to smallest
-        if (idx != selIdx) { selIdx = idx; update(); }
-    }
-    QSize sizeHint() const override { return QSize(220, 54); }
-protected:
-    void paintEvent(QPaintEvent*) override {
-        QPainter p(this);
-        p.setRenderHint(QPainter::Antialiasing, true);
-        // Background
-        const QRectF R = rect().adjusted(0.5, 0.5, -0.5, -0.5);
-        QPainterPath bg; bg.addRoundedRect(R, 8, 8);
-        p.fillPath(bg, QColor(30,30,30,180));
-        p.setPen(QPen(QColor(255,255,255,28), 1));
-        p.drawPath(bg);
-
-        // Columns
-        const int w = width(), h = height();
-        const int colW = w/3;
-        const QRect cols[3] = {
-            QRect(0, 0, colW, h),
-            QRect(colW, 0, colW, h),
-            QRect(colW*2, 0, w - colW*2, h)
-        };
-        // Typography scaled to height
-        const int pxSide   = std::max(8,  static_cast<int>(std::round(h * 0.36)));
-        const int pxCenter = std::max(10, static_cast<int>(std::round(h * 0.48)));
-        const int underH   = std::max(2,  h / 12);
-        const int underW   = std::max(10, colW / 3);
-
-        // Values to show
-        const QString leftTxt  = (selIdx > 0)                  ? QString::number(editions.at(selIdx-1)) : QString();
-        const QString midTxt   = (selIdx >=0 && selIdx<editions.size()) ? QString::number(editions.at(selIdx))   : QString();
-        const QString rightTxt = (selIdx+1 < editions.size())  ? QString::number(editions.at(selIdx+1)) : QString();
-        const QString labels[3] = { leftTxt, midTxt, rightTxt };
-
-        // Draw texts
-        for (int i=0;i<3;++i) {
-            const bool center = (i==1);
-            QRect r = cols[i];
-            // subtle column separators
-            if (i!=0) {
-                p.setPen(QPen(QColor(255,255,255,20), 1));
-                p.drawLine(r.topLeft(), r.bottomLeft());
-            }
-            if (labels[i].isEmpty()) continue;
-            QFont f = font();
-            f.setPixelSize(center ? pxCenter : pxSide);
-            f.setBold(center);
-            p.setFont(f);
-            p.setPen(center ? QColor(255,255,255,235) : QColor(220,220,220,160));
-            p.drawText(r, Qt::AlignCenter, labels[i]);
-            if (center) {
-                // highlight under center
-                const int uw = underW;
-                const int ux = r.center().x() - uw/2;
-                p.setPen(Qt::NoPen);
-                p.fillRect(QRect(ux, r.bottom() - (underH + 2), uw, underH), QColor(255,255,255,90));
-            }
-        }
-    }
-    void mousePressEvent(QMouseEvent* e) override {
-        const int x = e->pos().x();
-        const int third = width()/3;
-        if (x < third) {
-            if (selIdx > 0) { selIdx--; changed(); }
-        } else if (x >= 2*third) {
-            if (selIdx+1 < editions.size()) { selIdx++; changed(); }
-        } else {
-            // click on center: no-op
-        }
-    }
-private:
-    QVector<int> editions;
-    int selIdx = -1;
-    int latest = 0;
-    std::function<void(int)> onChanged;
-    void changed() {
-        update();
-        if (!onChanged || selIdx<0 || selIdx>=editions.size()) return;
-        const int edNum = editions.at(selIdx);
-        const int stored = (edNum == latest ? 0 : edNum);
-        onChanged(stored);
-    }
-};
-
-
 QString formatWithCommas(qint64 number) {
     QString numberStr = QString::number(number);
     int len = numberStr.length();
@@ -220,84 +124,6 @@ void MainWindow::formatNumberWithCommas(const QString &text, QString &outFormatt
 }
 
 
-
-void sendRequest(Ui::MainWindow *ui) {
-    // Création d'un gestionnaire réseau
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
-
-    // URL cible
-    QUrl url("https://ishin-global.aktsk.com/ping");
-
-    // Préparation de la requête
-    QNetworkRequest request(url);
-    // std::string ver_code = "5.23.0-eb08f8a58bbdef433e02ac565ae490b0966becf3519dea57a755d440421f5532";
-    // request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("X-Platform", "android");
-    request.setRawHeader("X-ClientVersion", functb::ver_code.c_str());
-    request.setRawHeader("X-Language", "en");
-    request.setRawHeader("X-UserID", "////");
-
-    // Optionnel : Ajouter des paramètres JSON pour une requête POST
-    QJsonObject jsonBody;
-    // jsonBody["param1"] = "valeur1";
-    // jsonBody["param2"] = "valeur2";
-
-    // Conversion en QByteArray
-    QByteArray bodyData = QJsonDocument(jsonBody).toJson();
-
-    // on accepte http (je crois)
-    // request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
-
-    // Envoyer une requête GET
-    QNetworkReply *reply = manager->get(request, bodyData);
-    // ui->boitetext->append("b");
-
-    // Gérer la réponse (asynchrone)
-    QObject::connect(reply, &QNetworkReply::finished, [reply, ui, request]() {
-        if (reply->error() == QNetworkReply::NoError) {
-            // Récupérer la réponse en texte brut
-            QByteArray responseBytes = reply->readAll();
-            //qDebug() << "Réponse brute:" << responseBytes;
-            //ui->boitetext->append("Réponse brute reçue : \"" + QString(responseBytes) + "\"");
-            /*// récupérer les headers
-            QList<QByteArray> headers = request.rawHeaderList();
-            ui->boitetext->append("Headers : ");
-            for (int i = 0; i < headers.size(); i++) {
-                ui->boitetext->append(headers.at(i) + " : " + reply->rawHeader(headers.at(i)));
-            }*/
-
-            // Convertir la réponse en JSON
-            QJsonDocument jsonResponse = QJsonDocument::fromJson(responseBytes);
-            if (!jsonResponse.isNull()) {
-                // qDebug() << "Réponse JSON:" << jsonResponse;
-                // ui->boitetext->append("Réponse JSON formatée : " + QString(jsonResponse.toJson(QJsonDocument::Indented)));
-            } else {
-                // qWarning() << "Erreur lors de la conversion en JSON";
-                ui->boitetext->append(QObject::tr("Erreur lors de la conversion en JSON"));
-            }
-        } else {
-            // Gestion des erreurs
-            // qWarning() << "Erreur réseau:" << reply->errorString();
-            ui->boitetext->append(QObject::tr("Erreur réseau : ") + reply->errorString());
-        }
-
-        // test
-        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-        if (statusCode.isValid()) {
-            int httpStatus = statusCode.toInt();
-            ui->boitetext->append(QObject::tr("Code de statut HTTP: ") + QString::number(httpStatus));
-
-            if (httpStatus != 200) {
-                ui->boitetext->append(QObject::tr("Le serveur a répondu avec un code d'erreur HTTP."));
-            }
-        } else {
-            ui->boitetext->append(QObject::tr("Impossible de récupérer le code de statut HTTP."));
-        }
-
-        reply->deleteLater();
-    });
-}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -748,7 +574,6 @@ MainWindow::MainWindow(QWidget *parent)
         tbTimer->start();
     }
     // Fetch metadata for selected edition and initialize the UI
-    fetchAndInitTbMetadata();
     // Build and wire the custom editions picker
     tbPickerHost = this->findChild<QWidget*>("tbEditionPicker");
     if (tbPickerHost) {
@@ -765,27 +590,31 @@ MainWindow::MainWindow(QWidget *parent)
     }
     buildTbEditionCombo();
 
-    // NEW: TB widgets autodetect + periodic update
-    // 1) Progress bar: pick the first QProgressBar on the main page
-    tbProgressBar = ui->progressBar;
-    if (tbProgressBar) {
-        tbProgressBar->setRange(0, 1000); // tenths of percent
-        tbProgressBar->setTextVisible(true);
-        tbProgressBar->setFormat(QStringLiteral("0.0%"));
-    }
-    tbTitleLabel = ui->label_8;
+    QTimer::singleShot(0, this, &MainWindow::fetchAndInitTbMetadata);
+    auto *analysisAction = this->menuBar()->addAction(tr("Race analysis"));
+    analysisAction->setToolTip(tr("Top 20 pace, observed activity, finish scenarios and catch-up estimates."));
+    connect(analysisAction, &QAction::triggered, this, [this, analysisAction] {
+        const auto region = AppSettings::region;
+        const int edition = AppSettings::selectedEdition;
+        analysisAction->setEnabled(false);
+        WtApi::instance().get(WtApi::endpoint(edition,"get-top100",region),this,
+            [this,region,edition,analysisAction](const QByteArray &bytes,const QString &error) {
+                if (region!=AppSettings::region || edition!=AppSettings::selectedEdition) {analysisAction->setEnabled(true);return;}
+                const auto data=WtData::normalize(QJsonDocument::fromJson(bytes),"top");
+                if(!error.isEmpty() || !data.value("top").isArray()) {
+                    analysisAction->setEnabled(true);
+                    ui->boitetext->append(tr("Race analysis unavailable: %1").arg(error.isEmpty()?tr("Invalid response"):error));return;
+                }
+                WtApi::instance().get(WtApi::endpoint(edition,"metadata",region),this,
+                    [this,region,edition,analysisAction,data](const QByteArray &meta,const QString &) {
+                        analysisAction->setEnabled(true);
+                        if(region!=AppSettings::region || edition!=AppSettings::selectedEdition) return;
+                        auto *dialog=new RaceAnalysisDialog(data.value("top").toArray(),WtData::metadata(QJsonDocument::fromJson(meta)),this);
+                        dialog->setAttribute(Qt::WA_DeleteOnClose);dialog->show();
+                    },300);
+            });
+    });
 
-    // 3) Timer to refresh remaining time/progress
-    if (!tbTimer) {
-        tbTimer = new QTimer(this);
-        tbTimer->setInterval(30000); // 30s
-        connect(tbTimer, &QTimer::timeout, this, &MainWindow::updateTbUiFromTimes);
-        tbTimer->start();
-    }
-    // 4) Fetch metadata now (edition/start/end) and initialize the UI
-    fetchAndInitTbMetadata();
-    // NEW: run initial estimation once the UI is ready
-    QTimer::singleShot(0, this, [this](){ updateRankEstimation(); });
 }
 
 MainWindow::~MainWindow()
@@ -800,12 +629,6 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     updateBackgroundPalette();
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    sendRequest(ui);
-}
-
-
 void MainWindow::onUpdateAvailable(const QString &latestVersion, const QString &changelog, const QString &downloadUrl)
 {
     QMessageBox msgBox;
@@ -814,9 +637,7 @@ void MainWindow::onUpdateAvailable(const QString &latestVersion, const QString &
     msgBox.setInformativeText(changelog);
     msgBox.setStandardButtons(QMessageBox::Ok);
     QPushButton *downloadButton = msgBox.addButton(tr("Télécharger"), QMessageBox::AcceptRole);
-    #ifdef Q_OS_WIN
-        QPushButton *directLinkButton = msgBox.addButton("🔗 GitHub", QMessageBox::AcceptRole);
-    #endif
+    QPushButton *directLinkButton = msgBox.addButton("GitHub", QMessageBox::AcceptRole);
 
     msgBox.exec();
     if (msgBox.clickedButton() == directLinkButton) {
@@ -833,17 +654,29 @@ void MainWindow::onUpdateAvailable(const QString &latestVersion, const QString &
                 updater->startDownloadLatestAsset();
             }
         }
+    #else
+        if (msgBox.clickedButton() == downloadButton) QDesktopServices::openUrl(QUrl(downloadUrl));
     #endif
 }
 
 void MainWindow::on_bouton_graphique_clicked()
 {
     // Simuler des données pour le graphique
-    // QString hours = "[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75, 5.0, 5.25, 5.5, 5.75, 6.0, 6.25, 6.5, 6.75, 7.0, 7.25, 7.5, 7.75, 8.0, 8.25, 8.5, 8.75, 9.0, 9.25, 9.5, 9.75, 10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75, 12.0, 12.25, 12.5, 12.75, 13.0, 13.25, 13.5, 13.75, 14.0, 14.25, 14.5, 14.75, 15.0, 15.25, 15.5, 15.75, 16.0, 16.25, 16.5, 16.75, 17.0, 17.25, 17.5, 17.75, 18.0, 18.25, 18.5, 18.75, 19.0, 19.25, 19.5, 19.75, 20.0, 20.25, 20.5, 20.75, 21.0, 21.25, 21.5, 21.75, 22.0, 22.25, 22.5, 22.75, 23.0, 23.25, 23.5, 23.75, 24.0, 24.25, 24.5, 24.75, 25.0, 25.25, 25.5, 25.75, 26.0, 26.25, 26.5, 26.75, 27.0, 27.25, 27.5, 27.75, 28.0, 28.25, 28.5, 28.75, 29.0, 29.25, 29.5, 29.75, 30.0, 30.25, 30.5, 30.75, 31.0, 31.25, 31.5, 31.75, 32.0, 32.25, 32.5, 32.75, 33.0, 33.25, 33.5, 33.75, 34.0, 34.25, 34.5, 34.75, 35.0, 35.25, 35.5, 35.75, 36.0, 36.25, 36.5, 36.75, 37.0, 37.25, 37.5, 37.75, 38.0, 38.25, 38.5, 38.75, 39.0, 39.25, 39.5, 39.75, 40.0, 40.25, 40.5, 40.75, 41.0, 41.25, 41.5, 41.75, 42.0, 42.25, 42.5, 42.75, 43.0, 43.25, 43.5, 43.75, 44.0, 44.25, 44.5, 44.75, 45.0, 45.25, 45.5, 45.75, 46.0, 46.25, 46.5, 46.75, 47.0, 47.25, 47.5, 47.75, 48.0, 48.25, 48.5, 48.75, 49.0, 49.25, 49.5, 49.75, 50.0, 50.25, 50.5, 50.75, 51.0, 51.25, 51.5, 51.75, 52.0, 52.25, 52.5, 52.75, 53.0, 53.25, 53.5, 53.75, 54.0, 54.25, 54.75, 55.0, 55.25, 55.5, 55.75, 56.0, 56.25, 56.5, 56.75, 57.0, 57.25, 57.5, 57.75, 58.0, 58.25, 58.5, 58.75, 59.0, 59.25, 59.5, 59.75, 60.0, 60.25, 60.5, 60.75, 61.0, 61.25, 61.5, 61.75, 62.0, 62.25, 62.5, 62.75, 63.0, 63.25, 63.5, 63.75]";
-    // QString points = "[941080591.9161111, 954992299.3683333, 954796492.6183333, 968928798.7647221, 968725659.4555554, 960828762.8919444, 959794832.3283333, 960103803.0783333, 959108686.1419444, 959816838.5783333, 958587293.3283333, 956769817.4511111, 956525744.1419444, 956807881.5783333, 956607881.6419444, 954295580.0783333, 953043648.4555554, 952890358.5783333, 952651368.3283333, 951927051.7647221, 952229145.1419444, 951996060.5783333, 950832455.0147221, 950720249.0783333, 951320991.1419444, 951432952.5783333, 999542601.7130555, 1029240519.9333333, 1028836966.9333333, 1029277206.9333334, 1028871452.2888889, 1033396316.0525, 1042248248.3208333, 1041652944.5333333, 1041447120.9749999, 1041536954.8791666, 1041856904.3208333, 1044158942.3288889, 1068659988.1666666, 1068507978.1666666, 1068518587.0, 1068313611.1666666, 1068488670.1666666, 1074279603.6647222, 1094199310.4466667, 1093448944.6477778, 1092772835.8488889, 1092913066.6477778, 1092286172.4466667, 1092414331.6477778, 1091613328.6477778, 1091055021.8488889, 1091075003.6477778, 1090396226.05, 1090017511.05, 1089753221.05, 1089435869.6477778, 1089149797.8488889, 1088554280.05, 1088696762.05, 1088051255.8488889, 1087681893.05, 1087377153.8488889, 1086912837.8488889, 1086929223.6477778, 1086215261.05, 1085535512.8488889, 1085552888.05, 1084923028.8488889, 1084573663.05, 1084412709.05, 1084075187.05, 1083810920.6477778, 1083569612.05, 1083667276.05, 1083306044.05, 1083156911.8488889, 1082553161.05, 1081898550.05, 1081948704.05, 1081269297.8488889, 1080898378.251111, 1088646902.05, 1080160016.251111, 1079845008.8488889, 1079678985.05, 1079248541.05, 1078764408.8488889, 1077711226.8488889, 1077691214.05, 1077178608.05, 1077302976.05, 1076692617.8488889, 1076344115.05, 1076849364.05, 1075540656.05, 1075708382.8488889, 1075314150.05, 1075448712.251111, 1074886507.8488889, 1074226499.6477778, 1074225163.6477778, 1073646359.8488889, 1073838703.05, 1073155905.4466666, 1072523148.6477778, 1072528502.8488889, 1071732816.6477778, 1071091218.6477778, 1070861482.8488889, 1078572655.6477778, 1069893097.6477778, 1069479798.4466667, 1069197816.8488889, 1068534096.6477778, 1068137508.6477778, 1067982549.4466666, 1067370693.8488889, 1067339347.6477778, 1066777108.8488889, 1066848864.4466667, 1066117435.8488889, 1066233026.6477778, 1065554841.6477778, 1065159257.4466666, 1064869946.6477778, 1064226527.6477778, 1064371924.05, 1063727203.4466666, 1063005627.8488889, 1062987165.8488889, 1062214311.8488889, 1061664232.6477778, 1061667082.8488889, 1061125821.8488889, 1061129469.8488889, 1060294704.8488889, 1059808699.8488889, 1059962146.8488889, 1059722490.8488889, 1059491993.6477778, 1059192978.8488889, 1058915008.6477778, 1059177199.8488889, 1058558397.05, 1058715774.6477778, 1058202912.6477778, 1058221411.8488889, 1057711417.8488889, 1057703137.251111, 1057935174.6477778, 1057291440.8488889, 1056927797.6477778, 1056746511.8488889, 1056364596.05, 1056493701.6477778, 1055811983.6477778, 1055945840.8488889, 1054670445.8488889, 1054401797.05, 1053867624.8488889, 1053913478.8488889, 1053384024.8488889, 1052871247.6477778, 1052752160.05, 1051981828.8488889, 1051720944.8488889, 1051461135.8488889, 1050703302.8488889, 1064294627.6477778, 1051447135.8488889, 1067296427.6477778, 1071294627.6477778, 1065918447.7812119, 1085135435.5364616, 1095205229.4200351, 1099527280.932805, 1084398605.374169, 1069477042.8786293, 1050572265.6123109, 1065960045.7355093, 1070271428.2372028, 1079179193.6377938, 1058484184.0832614, 1078379869.9415963, 1092719848.0115724, 1080146537.4812322, 1066399511.081863, 1052894820.0457423, 1044650326.9108752, 1045684799.4867858, 1042838237.1053739, 1034129667.68958, 1038756483.5635549, 1023777359.9790686, 1015265455.8598633, 1009838327.6963152, 1008063839.1493576, 1019562862.1283556, 1007314803.7989633, 1007888346.2204752, 1011614088.8995569, 993261402.7992756, 997534208.8178141, 984387670.5137279, 967261356.5467328, 984628941.8946476, 1002967932.9361858, 1015340438.9667206, 1007405097.3116981, 991192810.7860737, 998497228.8416022, 996106926.0754386, 981047312.7929261, 980858045.6179382, 962590095.01009, 978350405.5991534, 968910497.4855431, 975209279.3809793, 967864435.1488886, 968641360.1081613, 970451180.4487257, 958217845.8227893, 976216420.6407113, 986959987.8416057, 1004310702.6425092, 1020171875.9917282, 1024166868.1934583, 1041449652.7556638, 1024307079.1218885, 1011850802.8739507, 993444317.5603093, 986503333.9461744, 982110524.9515643, 973128104.0541553, 985924252.4146553, 980275037.6430349, 971685260.3725352, 973344746.5597557, 959364565.7902483, 970961248.7992171, 954437455.2666767, 973025580.4175401, 983621625.403961, 971767634.5624377, 952546930.4589881, 964566603.0731025, 972547710.4921353, 981456526.3707174, 992106128.4573482, 975202411.9987965, 969681429.4826318]";
 
     // Récupérer les données
-    QJsonObject data = functb::pologet(AppSettings::selectedEdition);
+    const auto region=AppSettings::region;
+    const int edition=AppSettings::selectedEdition;
+    const auto generation=++graphGeneration;
+    QUrlQuery query;query.addQueryItem("identifier",QString::fromStdString(functb::identifier));
+    WtApi::instance().get(WtApi::endpoint(edition,"get-user",region,query),this,
+        [this,region,edition,generation](const QByteArray &bytes,const QString &error) {
+    if(generation!=graphGeneration || region!=AppSettings::region || edition!=AppSettings::selectedEdition) return;
+    auto data=WtData::normalize(QJsonDocument::fromJson(bytes),"users");
+    if(!error.isEmpty() || data.isEmpty() || data.contains("error")) {
+        ui->boitetext->append(error.isEmpty()?tr("Player data unavailable"):error);return;
+    }
+    if(AppSettings::hideNegativeTimes) WtData::filterNegativeHours(data);
+
 
     // Check si ya un "error"
     if (data.contains("error")) {
@@ -977,8 +810,11 @@ void MainWindow::on_bouton_graphique_clicked()
     // Hour
     QString hour_ex = data["hour"].toString().remove("[").remove("]");
     QStringList hour_values = hour_ex.split(",");
-    double hourValue = std::stod(hour_values.last().trimmed().toStdString());
-    hourValue = 71.51 - hourValue;
+    bool validHour=false;
+    const double sampleHour=hour_values.last().trimmed().toDouble(&validHour);
+    const double duration=tbEndEpoch>tbStartEpoch?(tbEndEpoch-tbStartEpoch)/3600.0:0;
+    double hourValue=validHour && duration>0?std::max(0.0,duration-sampleHour):0;
+    if(tbEndEpoch>0 && tbEndEpoch<=QDateTime::currentSecsSinceEpoch()) hourValue=0;
     functb::hour_missing = std::to_string(hourValue);
 
     // on reset le "goal"
@@ -986,6 +822,7 @@ void MainWindow::on_bouton_graphique_clicked()
 
     // NEW: (re)apply goal overlay if needed on newly created chart
     updateGoalOverlayOnGraphs(true); // NEW
+    });
 }
 
 
@@ -1606,14 +1443,16 @@ void MainWindow::doGoalEstimation()
             }
         }
 
-        int points = (pointsStr == "-1") ? 0 : std::stoi(pointsStr);
+        bool pointsOk=true;
+        qint64 points = (pointsStr == "-1") ? 0 : QString::fromStdString(pointsStr).toLongLong(&pointsOk);
+        if(!pointsOk) {hasWinPace=false;ui->label_win_pace->clear();return;}
         std::cout << "Step 6: Converted pointsStr to integer: " << points << std::endl;
 
         int seedValue;
         if (seedStr == "-1" || seedStr.empty()) {
             seedValue = 950000; // Realistic WT average points per win fallback
         } else {
-            seedValue = std::stoi(seedStr);
+            seedValue = QString::fromStdString(seedStr).toInt();
         }
         std::cout << "Step 7: Converted seedStr to integer: " << seedValue << std::endl;
 
@@ -1627,10 +1466,12 @@ void MainWindow::doGoalEstimation()
         std::cout << "Step 8: AFK hours=" << afkHoursInt << " AFK minutes=" << afkMinutesInt
                   << " => AFK total=" << afkTotalHours << "h" << std::endl;
 
-        int goalValue = ui->lineEdit_goal->text().remove(',').toInt();
+        bool goalOk=false;
+        const qint64 goalValue = ui->lineEdit_goal->text().remove(',').toLongLong(&goalOk);
+        if(!goalOk || goalValue<0) {hasWinPace=false;ui->label_win_pace->clear();return;}
         std::cout << "Step 9: Retrieved goalValue from lineEdit_goal: " << goalValue << std::endl;
 
-        float hours_left_total = (hourStr == "-1" || hourStr.empty()) ? 0.0f : std::stof(hourStr);
+        double hours_left_total = remainingTournamentHours();
         if (isSimulation) {
             hours_left_total = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
         }
@@ -1676,7 +1517,7 @@ void MainWindow::doGoalEstimation()
 
         // NEW: compute active hours and use them in pace calculation
         double activeHours = hours_left_total - afkTotalHours;
-        int currentPoints = points;
+        qint64 currentPoints = points;
         if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
             activeHours = ((AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo) - afkTotalHours;
             currentPoints = 0;
@@ -2032,6 +1873,9 @@ QString MainWindow::formatMillionsCompact(qint64 v)
 void MainWindow::updateRankEstimation()
 {
     if (!ui) return;
+    const auto generation=++rankGeneration;
+    const auto region=AppSettings::region;
+    const int requestedEdition=AppSettings::selectedEdition;
     auto edit = ui->lineEdit_goal_2;
     auto lbl  = ui->label_estimation_rank;
     if (!edit || !lbl) return;
@@ -2050,17 +1894,13 @@ void MainWindow::updateRankEstimation()
     }
 
     // Determine base edition (current selected metadata), and min start per region
+    m_rankProjectedPts=-1; m_rankHistoryEds.clear(); m_rankHistoryPts.clear();
     int baseEd = tbEdition;
     if (baseEd <= 0) {
-        const QJsonObject m = functb::pologetmetadata(AppSettings::selectedEdition);
-        baseEd = m.value(QStringLiteral("id")).toInt();
-    }
-    if (baseEd <= 0) {
-        lbl->clear();
+        lbl->setText(tr("Edition number unavailable"));
+        lbl->setToolTip(tr("The API provides dates but no edition number. Historical rank extrapolation is disabled rather than guessing a tournament."));
         if (ui->label_win_pace_rank) ui->label_win_pace_rank->clear();
-        hasRankWinPace = false;
-        updateRankOverlayOnGraphs(true);
-        return;
+        hasRankWinPace=false;updateRankOverlayOnGraphs(true);return;
     }
 
     const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
@@ -2068,7 +1908,7 @@ void MainWindow::updateRankEstimation()
 
     // Build up to 8 editions for a better trend projection
     QVector<int> eds;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 1; i <= 8; ++i) {
         if (baseEd - i >= start) eds.push_back(baseEd - i);
     }
 
@@ -2076,11 +1916,16 @@ void MainWindow::updateRankEstimation()
     m_rankHistoryEds.clear();
     m_rankHistoryPts.clear();
 
+    QList<QUrl> urls;
+    for(int ed:eds) {QUrlQuery q;q.addQueryItem("rank",QString::number(rank));urls.append(WtApi::endpoint(ed,"get-user",region,q));}
+    WtApi::instance().getMany(urls,this,[this,eds,urls,rank,baseEd,lbl,generation,region,requestedEdition](const QHash<QUrl,WtApi::Result> &results) {
+    if(generation!=rankGeneration || region!=AppSettings::region || requestedEdition!=AppSettings::selectedEdition) return;
     double rankAvgSeed = -1.0;
     
     for (int ed : eds) {
         qint64 lastPts = -1;
-        const QJsonObject obj = functb::pologetrank(ed, rank);
+        const auto response=results.value(urls.at(eds.indexOf(ed)));
+        const QJsonObject obj = response.error.isEmpty()?WtData::normalize(QJsonDocument::fromJson(response.bytes)):QJsonObject();
         if (!obj.isEmpty()) {
             if (obj.contains(QStringLiteral("points"))) {
                 const QString ptsStr = obj.value(QStringLiteral("points")).toString().remove('[').remove(']');
@@ -2112,25 +1957,12 @@ void MainWindow::updateRankEstimation()
     // Mathematical Linear Regression
     qint64 estimatedPoints = -1;
     if (!m_rankHistoryPts.isEmpty()) {
-        const int n = m_rankHistoryPts.size();
-        if (n == 1) {
-            estimatedPoints = m_rankHistoryPts.last();
-        } else {
-            double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-            for (int i = 0; i < n; ++i) {
-                double y = static_cast<double>(m_rankHistoryPts[i]);
-                sumX += i;
-                sumY += y;
-                sumXY += i * y;
-                sumX2 += i * i;
-            }
-            double m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-            double b = (sumY - m * sumX) / n;
-            double est = m * n + b; // Target next edition at X = n
-            
-            estimatedPoints = static_cast<qint64>(std::max(0.0, est));
-        }
-        
+        QVector<int> historyEditions;
+        for(qint64 ed:m_rankHistoryEds) historyEditions.append(int(ed));
+        const double projection=Performance::historicalProjection(historyEditions,m_rankHistoryPts,baseEd);
+        if(std::isfinite(projection) && projection<double(std::numeric_limits<qint64>::max()))
+            estimatedPoints=static_cast<qint64>(projection);
+
         m_rankProjectedEd = baseEd;
         m_rankProjectedPts = estimatedPoints;
 
@@ -2177,7 +2009,7 @@ void MainWindow::updateRankEstimation()
         }
         
         bool okP=true, okH=true;
-        const int curPoints = (functb::points == "-1") ? 0 : QString::fromStdString(functb::points).toInt(&okP);
+        const qint64 curPoints = (functb::points == "-1") ? 0 : QString::fromStdString(functb::points).toLongLong(&okP);
         
         // Take the server response multiplier (points_wins) instead of 30 if available.
         // Fallback to functb::seed if possible, otherwise use a realistic tournament average (e.g. 950000).
@@ -2192,7 +2024,7 @@ void MainWindow::updateRankEstimation()
             seedValue = 950000; // Realistic WT fallback
         }
         
-        const double hours_left_total = (functb::hour_missing == "-1" || functb::hour_missing.empty()) ? 0.0 : QString::fromStdString(functb::hour_missing).toDouble(&okH);
+        const double hours_left_total = remainingTournamentHours();
         
         // If simulation, we don't care about okP and okH since they're defaulting.
         if (!isSimulation && (!okP || !okH || seedValue == 0)) {
@@ -2289,6 +2121,7 @@ void MainWindow::updateRankEstimation()
             ui->label_estimation_rank->setText(currentText);
         }
     }
+    });
 }
 
 // Ensure the checkbox trigger is present to refresh the calculation immediately
@@ -2351,7 +2184,7 @@ void MainWindow::updateRankOverlayOnGraphs(bool allowAxisAdjust)
     if (!hasRankWinPace || !yIsWinsPace) return;
 
     const double minX = 0.0;
-    const double maxX = 71.75;
+    const double maxX = tbEndEpoch > tbStartEpoch ? (tbEndEpoch - tbStartEpoch) / 3600.0 : ((AppSettings::region == "Jap" || AppSettings::region == "JP") ? AppSettings::durationJp : AppSettings::durationGlo);
 
     auto line = new QLineSeries();
     line->setName(kRankName);
@@ -2372,24 +2205,34 @@ void MainWindow::updateRankOverlayOnGraphs(bool allowAxisAdjust)
 
 void MainWindow::fetchAndInitTbMetadata()
 {
-    // Use selected edition (0 = current) to fetch metadata
-    const QJsonObject m = functb::pologetmetadata(AppSettings::selectedEdition);
-    if (m.isEmpty()) return;
-
-    // Cache times
-    tbStartEpoch = m.value(QStringLiteral("start_at")).toVariant().toLongLong();
-    tbEndEpoch   = m.value(QStringLiteral("end_at")).toVariant().toLongLong();
-    // Cache and show title with edition (localized placeholder)
-    tbEdition = m.value(QStringLiteral("id")).toInt();
-    if (tbTitleLabel && tbEdition > 0) {
-        tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
-    }
-    // First UI refresh
-    updateTbUiFromTimes();
-    // NEW: update dates display
-    updateTbDatesDisplay();
-    // NEW: also refresh rank estimation (depends on edition/region)
-    updateRankEstimation();
+    const int edition=AppSettings::selectedEdition;
+    const QString region=AppSettings::region;
+    const auto generation=++metadataGeneration;
+    ++graphGeneration;++rankGeneration;
+    tbStartEpoch=tbEndEpoch=0;tbEdition=0;
+    hasWinPace=hasRankWinPace=false;
+    functb::points=functb::wins=functb::seed="-1";
+    functb::hour_missing="-1";
+    if(tbTitleLabel) tbTitleLabel->setText(edition==0?tr("Current WT"):tr("%1ème Tenkaichi Budokai").arg(edition));
+    if(tbProgressBar) {tbProgressBar->setValue(0);tbProgressBar->setFormat("—");}
+    ui->label_time_left->setText(tr("Loading…"));ui->wt_date->clear();
+    ui->label_estimation_rank->clear();ui->label_win_pace_rank->clear();
+    ui->label_7->clear();ui->label_win_pace->clear();
+    // Never leave a chart from a different edition/region labeled as current.
+    for(auto *view:{ui->graphiqueTest,Leaderboard::graphPlaceholder}) if(view && view->scene()) view->scene()->clear();
+    if(Leaderboard::playerListPtr) Leaderboard::playerListPtr->clear();
+    Leaderboard::snapshotRows.clear();Leaderboard::overlayNames.clear();Leaderboard::currentSelectedName.clear();
+    WtApi::instance().get(WtApi::endpoint(edition,"metadata",region),this,
+        [this,edition,region,generation](const QByteArray &bytes,const QString &error) {
+            if(generation!=metadataGeneration || edition!=AppSettings::selectedEdition || region!=AppSettings::region) return;
+            const auto m=WtData::metadata(QJsonDocument::fromJson(bytes));
+            if(!error.isEmpty() || m.isEmpty()) {ui->label_time_left->setText(tr("Metadata unavailable"));return;}
+            tbStartEpoch=m.value("start_at").toVariant().toLongLong();
+            tbEndEpoch=m.value("end_at").toVariant().toLongLong();
+            tbEdition=m.value("id").toInt(edition);
+            if(tbTitleLabel && tbEdition>0) tbTitleLabel->setText(tr("%1ème Tenkaichi Budokai").arg(tbEdition));
+            updateTbUiFromTimes();updateTbDatesDisplay();updateRankEstimation();
+        },300);
 }
 
 void MainWindow::updateTbDatesDisplay()
@@ -2915,7 +2758,7 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
         // Clamp X anyway if requested and checkbox is checked
         if (allowAxisAdjust) {
             const double minX = 0.0;
-            const double maxX = 71.75;
+            const double maxX = tbEndEpoch > tbStartEpoch ? (tbEndEpoch - tbStartEpoch) / 3600.0 : ((AppSettings::region == "Jap" || AppSettings::region == "JP") ? AppSettings::durationJp : AppSettings::durationGlo);
             const auto hAxes = chart->axes(Qt::Horizontal);
             if (!hAxes.isEmpty()) hAxes.first()->setRange(minX, maxX);
         }
@@ -2924,7 +2767,7 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
 
     // Clamp X to [0; 71.75]
     const double minX = 0.0;
-    const double maxX = 71.75;
+    const double maxX = tbEndEpoch > tbStartEpoch ? (tbEndEpoch - tbStartEpoch) / 3600.0 : ((AppSettings::region == "Jap" || AppSettings::region == "JP") ? AppSettings::durationJp : AppSettings::durationGlo);
     if (allowAxisAdjust) {
         const auto hAxes = chart->axes(Qt::Horizontal);
         if (!hAxes.isEmpty()) hAxes.first()->setRange(minX, maxX);
@@ -2952,20 +2795,19 @@ void MainWindow::updateGoalOverlayOnGraphs(bool allowAxisAdjust)
 // NEW: populate the TB edition ComboBox based on region + latest edition
 void MainWindow::buildTbEditionCombo()
 {
-    // Fetch latest/current edition number from /api/0/metadata
-    const QJsonObject cur = functb::pologetmetadata(0);
-    const int latest = cur.value(QStringLiteral("id")).toInt();
-    if (latest <= 0) return;
-    const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
-    const int start = isJP ? 56 : 55;
-
-    // Build list [latest..start] descending
-    QVector<int> list; list.reserve(qMax(0, latest - start + 1));
-    for (int ed = latest; ed >= start; --ed) list.push_back(ed);
-
-    if (tbPicker) {
-        tbPicker->setEditions(list, AppSettings::selectedEdition, latest);
-    }
+    const auto region=AppSettings::region;
+    if(tbPicker) tbPicker->setEditions({0},0);
+    WtApi::instance().get(QUrl("https://dokkan-wt.info/older_editions"),this,
+        [this,region](const QByteArray &bytes,const QString &error) {
+            if(region!=AppSettings::region) return;
+            auto list=WtData::editions(bytes,region);list.prepend(0);
+            if(AppSettings::selectedEdition>0 && !list.contains(AppSettings::selectedEdition)) list.append(AppSettings::selectedEdition);
+            if(tbPicker) {
+                tbPicker->setEditions(list,AppSettings::selectedEdition);
+                if(!error.isEmpty()) tbPicker->setToolTip(tr("Archive list unavailable. Current remains accessible."));
+            }
+            populateJoueurEditionCombos();populateJoueurTop100Editions();
+        },3600);
 }
 
 // Progress UI slots
@@ -3164,32 +3006,19 @@ void MainWindow::setupJoueurPage()
 
 void MainWindow::populateJoueurEditionCombos()
 {
-    if (!joueurEditionStartCombo || !joueurEditionEndCombo) return;
-
-    joueurEditionStartCombo->clear();
-    joueurEditionEndCombo->clear();
-
-    const QJsonObject cur = functb::pologetmetadata(0);
-    const int latest = cur.value(QStringLiteral("id")).toInt();
-    if (latest <= 0) return;
-
-    const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
-    const int start = isJP ? 56 : 55;
-
-    // Stocker le numéro de la dernière édition pour référence
-    joueurLatestEdition = latest;
-
-    for (int ed = latest; ed >= start; --ed) {
-        QString txt = QString::number(ed);
-        joueurEditionStartCombo->addItem(txt, ed);
-        joueurEditionEndCombo->addItem(txt, ed);
-    }
-
-    // Par défaut: édition actuelle
-    if (joueurEditionStartCombo->count() > 0) {
-        joueurEditionStartCombo->setCurrentIndex(0);
-        joueurEditionEndCombo->setCurrentIndex(0);
-    }
+    if(!joueurEditionStartCombo || !joueurEditionEndCombo) return;
+    const auto region=AppSettings::region;
+    joueurEditionStartCombo->clear();joueurEditionEndCombo->clear();
+    joueurEditionStartCombo->addItem(tr("Current"),0);joueurEditionEndCombo->addItem(tr("Current"),0);
+    WtApi::instance().get(QUrl("https://dokkan-wt.info/older_editions"),this,
+        [this,region](const QByteArray &bytes,const QString &) {
+            if(region!=AppSettings::region) return;
+            for(auto *combo:{joueurEditionStartCombo,joueurEditionEndCombo}) {
+                const int selected=combo->currentData().toInt();combo->clear();combo->addItem(tr("Current"),0);
+                for(int ed:WtData::editions(bytes,region)) combo->addItem(QString::number(ed),ed);
+                combo->setCurrentIndex(qMax(0,combo->findData(selected)));
+            }
+        },3600);
 }
 
 void MainWindow::populateJoueurEditions()
@@ -3199,38 +3028,19 @@ void MainWindow::populateJoueurEditions()
 
 void MainWindow::populateJoueurTop100Editions()
 {
-    if (!joueurTop100EditionCombo || !joueurTop100RegionCombo) return;
-
-    joueurTop100EditionCombo->clear();
-    if (joueurTop100PlayersCombo) {
-        joueurTop100PlayersCombo->clear();
-        joueurTop100PlayersCombo->setEnabled(false);
-    }
-    if (joueurAddFromTop100Btn) {
-        joueurAddFromTop100Btn->setEnabled(false);
-    }
-
-    // Determine region from combo
-    const QString region = joueurTop100RegionCombo->currentText();
-    const bool isJP = (region == "Jap" || region == "JP");
-
-    // Temporarily switch region to fetch correct metadata
-    const QString prevRegion = AppSettings::region;
-    AppSettings::region = isJP ? "Jap" : "Glo";
-
-    const QJsonObject cur = functb::pologetmetadata(0);
-    const int latest = cur.value(QStringLiteral("id")).toInt();
-
-    // Restore region
-    AppSettings::region = prevRegion;
-
-    if (latest <= 0) return;
-
-    const int start = isJP ? 56 : 55;
-
-    for (int ed = latest; ed >= start; --ed) {
-        joueurTop100EditionCombo->addItem(QString::number(ed), ed);
-    }
+    if(!joueurTop100EditionCombo || !joueurTop100RegionCombo) return;
+    const auto region=joueurTop100RegionCombo->currentText();
+    joueurTop100EditionCombo->clear();joueurTop100EditionCombo->addItem(tr("Current"),0);
+    if(joueurTop100PlayersCombo) {joueurTop100PlayersCombo->clear();joueurTop100PlayersCombo->setEnabled(false);}
+    if(joueurAddFromTop100Btn) joueurAddFromTop100Btn->setEnabled(false);
+    WtApi::instance().get(QUrl("https://dokkan-wt.info/older_editions"),this,
+        [this,region](const QByteArray &bytes,const QString &) {
+            if(region!=joueurTop100RegionCombo->currentText()) return;
+            const int selected=joueurTop100EditionCombo->currentData().toInt();
+            joueurTop100EditionCombo->clear();joueurTop100EditionCombo->addItem(tr("Current"),0);
+            for(int ed:WtData::editions(bytes,region)) joueurTop100EditionCombo->addItem(QString::number(ed),ed);
+            joueurTop100EditionCombo->setCurrentIndex(qMax(0,joueurTop100EditionCombo->findData(selected)));
+        },3600);
 }
 
 void MainWindow::onJoueurLoadTop100()
@@ -3244,7 +3054,7 @@ void MainWindow::onJoueurLoadTop100()
     const QString region = joueurTop100RegionCombo->currentText();
     const int edition = joueurTop100EditionCombo->currentData().toInt();
 
-    if (edition <= 0) {
+    if (edition < 0) {
         if (joueurStatusLabel) {
             joueurStatusLabel->setStyleSheet("color: red;");
             joueurStatusLabel->setText(tr("Édition invalide."));
@@ -3252,20 +3062,12 @@ void MainWindow::onJoueurLoadTop100()
         return;
     }
 
-    // Temporarily switch region
-    const QString prevRegion = AppSettings::region;
-    AppSettings::region = (region == "Jap" || region == "JP") ? "Jap" : "Glo";
-
-    // Fetch top 100 (use 0 if it's the current edition for that region)
-    const QJsonObject curMeta = functb::pologetmetadata(0);
-    const int latestForRegion = curMeta.value(QStringLiteral("id")).toInt();
-    const int edForApi = (edition == latestForRegion) ? 0 : edition;
-
-    QJsonObject ladder = functb::pologettop(edForApi);
-
-    // Restore region
-    AppSettings::region = prevRegion;
-
+    const auto generation=++top100Generation;
+    WtApi::instance().get(WtApi::endpoint(edition,"get-top100",region),this,
+        [this,region,edition,generation](const QByteArray &bytes,const QString &error) {
+    if(generation!=top100Generation || region!=joueurTop100RegionCombo->currentText() || edition!=joueurTop100EditionCombo->currentData().toInt()) return;
+    auto ladder=WtData::normalize(QJsonDocument::fromJson(bytes),"top");
+    if(!error.isEmpty() || ladder.isEmpty()) ladder["error"]=error.isEmpty()?tr("Invalid response"):error;
     if (ladder.contains("error")) {
         if (joueurStatusLabel) {
             joueurStatusLabel->setStyleSheet("color: red;");
@@ -3332,6 +3134,7 @@ void MainWindow::onJoueurLoadTop100()
         joueurStatusLabel->setStyleSheet("color: green;");
         joueurStatusLabel->setText(tr("%1 joueurs chargés.").arg(players.size()));
     }
+    });
 }
 
 void MainWindow::onJoueurAddFromTop100()
@@ -3379,6 +3182,7 @@ void MainWindow::onJoueurAddFromTop100()
     entry.editionStart = edition;
     entry.editionEnd = edition;
     entry.region = (region == "Jap" || region == "JP") ? "Jap" : "Glo"; // NEW: store region
+    ++comparisonGeneration;
     joueurEntries.append(entry);
 
     refreshJoueurPlayersList();
@@ -3435,6 +3239,10 @@ void MainWindow::onJoueurAddPlayer()
     const int edEnd = joueurEditionEndCombo->currentData().toInt();
 
     // Valider les éditions (start <= end en valeur, mais les combos sont décroissants)
+    if ((edStart==0)!=(edEnd==0)) {
+        if(joueurStatusLabel) joueurStatusLabel->setText(tr("Select Current on both sides, or two archive editions."));
+        return;
+    }
     const int edMin = qMin(edStart, edEnd);
     const int edMax = qMax(edStart, edEnd);
 
@@ -3449,13 +3257,18 @@ void MainWindow::onJoueurAddPlayer()
 
     // Récupérer le nom du joueur depuis la première édition
     // IMPORTANT: si edMax == édition la plus récente, utiliser 0 pour l'API (tournoi en cours)
-    const int edForApi = (edMax == joueurLatestEdition) ? 0 : edMax;
+    const int edForApi = edMax;
 
-    const std::string prevId = functb::identifier;
-    functb::identifier = playerId.toStdString();
-    QJsonObject data = functb::pologet(edForApi);
-    functb::identifier = prevId;
-
+    const auto region=AppSettings::region;
+    const auto generation=++addPlayerGeneration;
+    QUrlQuery query;query.addQueryItem("identifier",playerId);
+    if(joueurAddPlayerBtn) joueurAddPlayerBtn->setEnabled(false);
+    WtApi::instance().get(WtApi::endpoint(edForApi,"get-user",region,query),this,
+        [this,region,playerId,edMin,edMax,generation](const QByteArray &bytes,const QString &error) {
+    if(joueurAddPlayerBtn) joueurAddPlayerBtn->setEnabled(!joueurIdEdit->text().trimmed().isEmpty());
+    if(generation!=addPlayerGeneration || region!=AppSettings::region || joueurEntries.size()>=10) return;
+    auto data=WtData::normalize(QJsonDocument::fromJson(bytes),"users");
+    if(!error.isEmpty()) data["error"]=error;
     // Vérifier si l'ID existe
     if (data.isEmpty() || data.contains("error")) {
         if (joueurStatusLabel) {
@@ -3591,10 +3404,13 @@ void MainWindow::onJoueurAddPlayer()
     }
 
     JoueurEntry entry;
-    entry.playerId = playerId;
+    entry.playerId = data.value("id").toVariant().toString();
+    if(entry.playerId.isEmpty()) entry.playerId=playerId;
+    entry.region=region;
     entry.displayName = displayName;
     entry.editionStart = edMin;
     entry.editionEnd = edMax;
+    ++comparisonGeneration;
     joueurEntries.append(entry);
 
     refreshJoueurPlayersList();
@@ -3604,6 +3420,7 @@ void MainWindow::onJoueurAddPlayer()
         joueurStatusLabel->setStyleSheet("color: green;");
         joueurStatusLabel->setText(tr("%1 ajouté.").arg(displayName));
     }
+    });
 }
 
 void MainWindow::onJoueurRemovePlayer()
@@ -3612,6 +3429,7 @@ void MainWindow::onJoueurRemovePlayer()
 
     const int row = joueurPlayersList->currentRow();
     if (row >= 0 && row < joueurEntries.size()) {
+        ++comparisonGeneration;
         joueurEntries.remove(row);
         refreshJoueurPlayersList();
         if (joueurStatusLabel) {
@@ -3623,6 +3441,7 @@ void MainWindow::onJoueurRemovePlayer()
 
 void MainWindow::onJoueurClearAll()
 {
+    ++comparisonGeneration;
     joueurEntries.clear();
     refreshJoueurPlayersList();
 
@@ -3655,6 +3474,19 @@ void MainWindow::onJoueurGenerateClicked()
         return;
     }
 
+    const auto entries=joueurEntries;
+    const auto region=AppSettings::region;
+    const auto generation=++comparisonGeneration;
+    QList<QUrl> urls;
+    for(const auto &entry:entries) {
+        QUrlQuery query;query.addQueryItem("identifier",entry.playerId);
+        for(int ed=entry.editionStart;ed<=entry.editionEnd;++ed) urls.append(WtApi::endpoint(ed,"get-user",entry.region.isEmpty()?region:entry.region,query));
+    }
+    if(urls.size()>40) {if(joueurStatusLabel) joueurStatusLabel->setText(tr("Select at most 40 player/edition series."));return;}
+    if(joueurGenerateBtn) joueurGenerateBtn->setEnabled(false);
+    WtApi::instance().getMany(urls,this,[this,entries,region,generation](const QHash<QUrl,WtApi::Result> &results) {
+    if(joueurGenerateBtn) joueurGenerateBtn->setEnabled(true);
+    if(generation!=comparisonGeneration || region!=AppSettings::region) return;
     const QString ydata = joueurYDataCombo->currentText();
     const bool isWinsPace = (ydata == QStringLiteral("wins_pace"));
 
@@ -3686,9 +3518,9 @@ void MainWindow::onJoueurGenerateClicked()
 
     // Créer le graphique
     QChart* chart = new QChart();
-    chart->setTitle(tr("Comparaison de %1 joueur(s)").arg(joueurEntries.size()));
+    chart->setTitle(tr("Comparaison de %1 joueur(s)").arg(entries.size()));
     chart->setTheme(AppSettings::chartThemeEnum());
-    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setAnimationOptions(QChart::NoAnimation);
     chart->setMargins(QMargins(12, 8, 8, 14));
     chart->setBackgroundPen(Qt::NoPen);
 
@@ -3699,26 +3531,17 @@ void MainWindow::onJoueurGenerateClicked()
     int validSeries = 0;
     QList<double> allYValues; // Pour ajuster l'axe Y
 
-    const std::string prevId = functb::identifier;
 
-    for (const auto& entry : joueurEntries) {
-        functb::identifier = entry.playerId.toStdString();
 
-        // NEW: temporarily switch region if the entry has a specific region
-        const QString prevRegion = AppSettings::region;
-        if (!entry.region.isEmpty()) {
-            AppSettings::region = entry.region;
-        }
-
-        // NEW: get the latest edition for this region (may differ from joueurLatestEdition)
-        const QJsonObject curMeta = functb::pologetmetadata(0);
-        const int latestForThisRegion = curMeta.value(QStringLiteral("id")).toInt();
-
+    for (const auto& entry : entries) {
         for (int ed = entry.editionStart; ed <= entry.editionEnd; ++ed) {
-            // IMPORTANT: si ed == édition la plus récente pour cette région, utiliser 0 pour l'API
-            const int edForApi = (ed == latestForThisRegion) ? 0 : ed;
+            const int edForApi = ed;
 
-            QJsonObject data = functb::pologet(edForApi);
+            QUrlQuery query;query.addQueryItem("identifier",entry.playerId);
+            const auto response=results.value(WtApi::endpoint(edForApi,"get-user",entry.region.isEmpty()?region:entry.region,query));
+            if(!response.error.isEmpty()) continue;
+            QJsonObject data=WtData::normalize(QJsonDocument::fromJson(response.bytes),"users");
+            if(AppSettings::hideNegativeTimes) WtData::filterNegativeHours(data);
             if (data.isEmpty() || data.contains("error")) continue;
 
             if (data.contains("users") && data["users"].isArray()) {
@@ -3776,11 +3599,10 @@ void MainWindow::onJoueurGenerateClicked()
             }
         }
 
-        // NEW: restore region after processing this entry
-        AppSettings::region = prevRegion;
+
     }
 
-    functb::identifier = prevId;
+
 
     if (validSeries == 0) {
         if (joueurStatusLabel) {
@@ -3893,6 +3715,7 @@ void MainWindow::onJoueurGenerateClicked()
         joueurStatusLabel->setStyleSheet("color: green;");
         joueurStatusLabel->setText(tr("Graphique généré avec %1 série(s).").arg(validSeries));
     }
+    });
 }
 
 
@@ -3996,3 +3819,7 @@ void MainWindow::showRankAnalysisDialog(const QString &link) {
     dlg.exec();
 }
 
+
+double MainWindow::remainingTournamentHours() const {
+    return tbEndEpoch>0?std::max(0.0,(tbEndEpoch-QDateTime::currentSecsSinceEpoch())/3600.0):0;
+}
