@@ -155,6 +155,16 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="checkNewUI">
+        <property name="text">
+         <string>Nouvelle interface</string>
+        </property>
+        <property name="toolTip">
+         <string>Utilise le nouveau style d'affichage pour l'application.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkTransparentControls">
         <property name="text">
          <string>Rendre les éléments transparents (boutons, listes, ...)</string>

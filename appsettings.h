@@ -27,6 +27,7 @@ public:
     static int     backgroundDimPercent;          // 0..100
     static int     autoRefreshExtraDelayMinutes;  // 0..15
     static bool    transparentControls;
+    static bool    useNewUI;                      // NEW: use new styling everywhere
     static int     selectedEdition;               // 0 = courant
     static bool    censorIdDisplay;
     static bool    hideNegativeTimes;             // NEW: hide negative times in graphs/estimations

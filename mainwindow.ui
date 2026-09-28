@@ -57,14 +57,14 @@
     <widget class="QTabWidget" name="tabWidget">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>20</y>
-       <width>421</width>
-       <height>261</height>
+       <width>441</width>
+       <height>271</height>
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -606,9 +606,9 @@
      <property name="geometry">
       <rect>
        <x>250</x>
-       <y>20</y>
+       <y>30</y>
        <width>171</width>
-       <height>61</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -616,22 +616,38 @@
      </property>
     </widget>
     <widget class="QLabel" name="label">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>40</y>
-       <width>211</width>
+       <x>15</x>
+       <y>45</y>
+       <width>110</width>
        <height>20</height>
       </rect>
      </property>
-     <property name="autoFillBackground">
+     <property name="text">
+      <string>Identifiant actuel :</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_id">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>43</y>
+       <width>110</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit { background: transparent; border: none; color: inherit; font-weight: bold; } QLineEdit[readOnly=&quot;false&quot;] { background: rgba(128, 128, 128, 20); border: 1px solid #1a73e8; border-radius: 2px; padding: 2px; }</string>
+     </property>
+     <property name="frame">
       <bool>false</bool>
      </property>
-     <property name="text">
-      <string>Identifiant actuel : </string>
+     <property name="echoMode">
+      <enum>QLineEdit::EchoMode::Normal</enum>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
@@ -650,10 +666,10 @@
     <widget class="QTextEdit" name="boitetext">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>20</y>
-       <width>421</width>
-       <height>181</height>
+       <width>441</width>
+       <height>191</height>
       </rect>
      </property>
      <property name="readOnly">
@@ -676,10 +692,10 @@
     <widget class="QWidget" name="tbEditionPicker" native="true">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>0</x>
        <y>20</y>
-       <width>421</width>
-       <height>51</height>
+       <width>441</width>
+       <height>61</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -691,9 +707,9 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>70</y>
+      <y>65</y>
       <width>331</width>
-      <height>20</height>
+      <height>40</height>
      </rect>
     </property>
     <property name="text">

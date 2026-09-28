@@ -17,6 +17,7 @@ QString AppSettings::backgroundPath  = QString();
 int     AppSettings::backgroundDimPercent = 40;
 int     AppSettings::autoRefreshExtraDelayMinutes = 0;
 bool    AppSettings::transparentControls = false;
+bool    AppSettings::useNewUI = true;            // default: on
 int     AppSettings::selectedEdition = 0;      // 0 = édition courante
 bool    AppSettings::censorIdDisplay = false;
 bool    AppSettings::hideNegativeTimes = true; // par défaut activé
@@ -58,6 +59,7 @@ void AppSettings::load()
     backgroundDimPercent = qBound(0, o.value(QStringLiteral("backgroundDimPercent")).toInt(backgroundDimPercent), 100);
     autoRefreshExtraDelayMinutes = qBound(0, o.value(QStringLiteral("autoRefreshExtraDelayMinutes")).toInt(autoRefreshExtraDelayMinutes), 15);
     transparentControls = o.value(QStringLiteral("transparentControls")).toBool(transparentControls);
+    useNewUI = o.value(QStringLiteral("useNewUI")).toBool(useNewUI);
     selectedEdition = o.value(QStringLiteral("selectedEdition")).toInt(selectedEdition);
     censorIdDisplay = o.value(QStringLiteral("censorIdDisplay")).toBool(censorIdDisplay);
     hideNegativeTimes = o.value(QStringLiteral("hideNegativeTimes")).toBool(hideNegativeTimes);
@@ -79,6 +81,7 @@ void AppSettings::save()
     o.insert(QStringLiteral("backgroundDimPercent"), backgroundDimPercent);
     o.insert(QStringLiteral("autoRefreshExtraDelayMinutes"), autoRefreshExtraDelayMinutes);
     o.insert(QStringLiteral("transparentControls"), transparentControls);
+    o.insert(QStringLiteral("useNewUI"), useNewUI);
     o.insert(QStringLiteral("selectedEdition"), selectedEdition);
     o.insert(QStringLiteral("censorIdDisplay"), censorIdDisplay);
     o.insert(QStringLiteral("hideNegativeTimes"), hideNegativeTimes);

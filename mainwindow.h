@@ -197,6 +197,17 @@ private:
     void buildTbEditionCombo();        // NEW: populate tbPicker (3-slot) from region and latest edition
     // NEW: update "Score édition XX : ..." lines for rank estimation
     void updateRankEstimation();
+    
+public slots:
+    void showRankAnalysisDialog(const QString &link);
+
+private:
+    qint64 m_rankProjectedEd = 0;
+    qint64 m_rankProjectedPts = -1;
+    int m_rankTarget = 0;
+    QVector<qint64> m_rankHistoryEds;
+    QVector<qint64> m_rankHistoryPts;
+
     // NEW: 853.3M formatter (no space)
     static QString formatMillionsCompact(qint64 v);
 

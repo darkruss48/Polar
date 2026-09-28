@@ -1,22 +1,1410 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en_it"><context><name>ClassementPage</name><message><location filename="classement.ui" line="14"/><source>Classement</source><translation>Classifica</translation></message><message><location filename="classement.ui" line="51"/><source>Infos</source><translation>Info</translation></message><message><location filename="classement.ui" line="122"/><source>Infos Moyenne</source><translation>Info Medie</translation></message><message><location filename="classement.ui" line="193"/><source>Gap</source><translation>Distanza</translation></message><message><location filename="classement.ui" line="280"/><source>REFRESH</source><translation>AGGIORNA</translation></message><message><location filename="classement.ui" line="293"/><source>Bienvenue sur le leaderboard !</source><translation>Benvenuto nella classifica!</translation></message><message><location filename="classement.ui" line="325"/><source>Copier le graphique</source><translation>Copia il grafico</translation></message></context><context><name>JoueurPage</name><message><location filename="joueur.ui" line="14"/><source>Joueur</source><translation>Giocatore</translation></message><message><location filename="joueur.ui" line="74"/><source>Identifiant :</source><translation>Nome utente:</translation></message><message><location filename="joueur.ui" line="81"/><source>Entrez l'identifiant...</source><translation>Inserisci nome utente:</translation></message><message><location filename="joueur.ui" line="88"/><source>Mon ID</source><translation>Mio ID</translation></message><message><location filename="joueur.ui" line="95"/><source>Ou choisir dans le top 100 :</source><translation>O scegli tra la top 100:</translation></message><message><location filename="joueur.ui" line="105"/><source>Glo</source><translation>Global</translation></message><message><location filename="joueur.ui" line="110"/><source>Jap</source><translation>Jap</translation></message><message><location filename="joueur.ui" line="121"/><source>Charger</source><translation>Carica</translation></message><message><location filename="joueur.ui" line="133"/><source>Sélectionner un joueur...</source><translation>Seleziona un giocatore...</translation></message><message><location filename="joueur.ui" line="143"/><source>Ajouter ce joueur</source><translation>Aggiungi questo giocatore</translation></message><message><location filename="joueur.ui" line="153"/><source>Éditions</source><translation>Edizioni</translation></message><message><location filename="joueur.ui" line="164"/><source>De :</source><translation>Di:</translation></message><message><location filename="joueur.ui" line="174"/><source>À :</source><translation>Ha:</translation></message><message><location filename="joueur.ui" line="186"/><source>Ajouter</source><translation>Aggiungi</translation></message><message><location filename="joueur.ui" line="196"/><source>Joueurs ajoutés</source><translation>Giocatori aggiunti</translation></message><message><location filename="joueur.ui" line="213"/><source>Suppr.</source><translation>Elimina</translation></message><message><location filename="joueur.ui" line="220"/><source>Effacer</source><translation>Eliminare</translation></message><message><location filename="joueur.ui" line="232"/><source>Ordonnée</source><translation>Ordinato</translation></message><message><location filename="joueur.ui" line="239"/><source>wins_pace</source><translation>ritmo_vittorie</translation></message><message><location filename="joueur.ui" line="244"/><source>points</source><translation>punti</translation></message><message><location filename="joueur.ui" line="249"/><source>wins</source><translation>vittorie</translation></message><message><location filename="joueur.ui" line="254"/><source>ranks</source><translation>posizione</translation></message><message><location filename="joueur.ui" line="259"/><source>points_pace</source><translation>ritmo_punti</translation></message><message><location filename="joueur.ui" line="264"/><source>points_wins</source><translation>punti_per_vittoria</translation></message><message><location filename="joueur.ui" line="275"/><source>Générer</source><translation>Genera</translation></message><message><location filename="joueur.ui" line="331"/><source>Copier</source><translation>Copia</translation></message></context><context><name>Leaderboard</name><message><location filename="leaderboard.cpp" line="415"/><source>Refreshe</source><translation>Aggiorna</translation></message><message><location filename="leaderboard.cpp" line="416"/><source>Data placeholder here</source><translation>Segnaposto per dati</translation></message><message><location filename="leaderboard.cpp" line="838"/><source>Rajouter %1 au graphique</source><translation>Aggiungi %1 al grafico</translation></message><message><location filename="leaderboard.cpp" line="878"/><source>Aucun joueur ajouté</source><translation>Nessun giocatore aggiunto</translation></message><message><location filename="leaderboard.cpp" line="882"/><source>Supprimer %1</source><translation>Elimina %1</translation></message><message><location filename="leaderboard.cpp" line="890"/><source>Supprimer tout le monde</source><translation>Elimina tutti</translation></message><message><location filename="leaderboard.cpp" line="1001"/><source>Nom</source><translation>Nome</translation></message><message><location filename="leaderboard.cpp" line="1001"/><source>Rank</source><translation>Posizione</translation></message><message><location filename="leaderboard.cpp" line="1001"/><source>Wins</source><translation>Vittorie</translation></message><message><location filename="leaderboard.cpp" line="1001"/><source>Points totaux</source><translation>Punti totali</translation></message><message><location filename="leaderboard.cpp" line="1001"/><source>Heures AFK</source><translation>Ore inattivo</translation></message><message><location filename="leaderboard.cpp" line="1008"/><source>Non-AFK</source><translation>Ore attivo</translation></message><message><location filename="leaderboard.cpp" line="1008"/><source>AFK</source><translation>Inattivo</translation></message><message><location filename="leaderboard.cpp" line="1008"/><source>Wins/h (actif)</source><translation>Vittorie/ora (attivo)</translation></message><message><location filename="leaderboard.cpp" line="1051"/><source>Au-dessus</source><translation>Sopra</translation></message><message><location filename="leaderboard.cpp" line="1051"/><source>Gap</source><translation>Distanza</translation></message><message><location filename="leaderboard.cpp" line="1051"/><source>Rattraper</source><translation>Per raggiungere</translation></message><message><location filename="leaderboard.cpp" line="1057"/><source>Aucun</source><translation>Nessuno</translation></message><message><location filename="leaderboard.cpp" line="1073"/><source>En-dessous</source><translation>Sotto</translation></message><message><location filename="leaderboard.cpp" line="1073"/><source>Se faire rattraper</source><translation>Per essere raggiunto</translation></message></context><context><name>MainWindow</name><message><location filename="mainwindow.ui" line="557"/><source>Générer graphique</source><translation>Genera grafico</translation></message><message><location filename="mainwindow.ui" line="587"/><source>Identification</source><translation>Nome utente</translation></message><message><location filename="mainwindow.ui" line="599"/><source>Changer l'identifiant</source><translation>Cambia nome utente</translation></message><message><location filename="mainwindow.ui" line="618"/><source>Identifiant actuel : </source><translation>Nome utente attuale:</translation></message><message><location filename="mainwindow.ui" line="513"/><source>max_points</source><translation>massimo_punti</translation></message><message><location filename="mainwindow.ui" line="71"/><source>Points</source><translation>Punti</translation></message><message><location filename="mainwindow.ui" line="241"/><source>Rank</source><translation>Posizione</translation></message><message><location filename="mainwindow.ui" line="373"/><source>Estimation</source><translation>Stima</translation></message><message><location filename="mainwindow.ui" line="463"/><source>55ème Tenkaichi Budokai</source><translation>55esimo Torneo Mondiale</translation></message><message><location filename="mainwindow.ui" line="495"/><source>Graphique</source><translation>Grafico</translation></message><message><location filename="mainwindow.ui" line="518"/><source>max_wins</source><translation>massimo_vittorie</translation></message><message><location filename="mainwindow.ui" line="523"/><source>points</source><translation>punti</translation></message><message><location filename="mainwindow.ui" line="528"/><source>points_pace</source><translation>ritmo_punti</translation></message><message><location filename="mainwindow.ui" line="533"/><source>points_wins</source><translation>punti_per_vittoria</translation></message><message><location filename="mainwindow.ui" line="538"/><source>ranks</source><translation>posizione</translation></message><message><location filename="mainwindow.ui" line="543"/><source>wins</source><translation>vittorie</translation></message><message><location filename="mainwindow.ui" line="658"/><source>Édition du tournoi</source><translation>Edizione del torneo</translation></message><message><location filename="mainwindow.ui" line="670"/><source>Choisir l'édition du Tenkaichi Budokai</source><translation>Scegli l'edizione del Torneo Mondiale</translation></message><message><location filename="mainwindow.ui" line="203"/><source>Heures AFK</source><translation>Ore inattivo</translation></message><message><location filename="mainwindow.ui" line="55"/><source>Objectif</source><translation>Obiettivo</translation></message><message><location filename="mainwindow.ui" line="232"/><source>Minutes AFK</source><translation>Minuti inattivo</translation></message><message><location filename="mainwindow.ui" line="84"/><source>0</source><translation>0</translation></message><message><location filename="mainwindow.ui" line="89"/><source>15</source><translation>15</translation></message><message><location filename="mainwindow.ui" line="94"/><source>30</source><translation>30</translation></message><message><location filename="mainwindow.ui" line="99"/><source>45</source><translation>45</translation></message><message><location filename="mainwindow.ui" line="145"/><source>Ajouter l'objectif au graphique</source><translation>Aggiunti l'obiettivo al grafico</translation></message><message><location filename="mainwindow.ui" line="126"/><source>Victoires par heure nécessaire</source><translation>Vittorie all'ora necessarie</translation></message><message><location filename="mainwindow.ui" line="447"/><source>Temps restant : </source><translation>Tempo rimanente:</translation></message><message><location filename="mainwindow.ui" line="632"/><source>Sortie d'application</source><translation>Esci dall'applicazione</translation></message><message><location filename="mainwindow.ui" line="508"/><source>wins_pace</source><translation>ritmo_vittorie</translation></message><message><location filename="mainwindow.ui" line="570"/><source>Donnée en ordonnée</source><translation>Dati sull'asse verticale</translation></message><message><location filename="mainwindow.cpp" line="1092"/><source>Bienvenue sur le leaderboard !</source><translation>Benvenuto nella classifica!</translation></message><message><location filename="mainwindow.cpp" line="611"/><source>Navigation</source><translation>Navigazione</translation></message><message><location filename="mainwindow.cpp" line="616"/><source>Graphiques</source><translation>Grafici</translation></message><message><location filename="mainwindow.cpp" line="618"/><source>Classement</source><translation>Classifica</translation></message><message><location filename="mainwindow.cpp" line="621"/><source>Joueur</source><translation>Giocatore</translation></message><message><location filename="mainwindow.cpp" line="634"/><source>Options</source><translation>Opzioni</translation></message><message><location filename="mainwindow.cpp" line="636"/><source>Paramètres</source><translation>Impostazioni</translation></message><message><location filename="mainwindow.cpp" line="779"/><source>Mise à jour disponible</source><translation>Aggiornamento disponibile</translation></message><message><location filename="mainwindow.cpp" line="780"/><source>Une nouvelle version (%1) est disponible.</source><translation>Una nuova versione (%1) è disponibile.</translation></message><message><location filename="mainwindow.cpp" line="783"/><source>Télécharger</source><translation>Scarica</translation></message><message><location filename="mainwindow.cpp" line="963"/><source>Nouvel identifiant</source><translation>Nuovo nome utente</translation></message><message><location filename="mainwindow.cpp" line="964"/><source>Identifiant:</source><translation>Nome utente:</translation></message><message><location filename="mainwindow.cpp" line="979"/><source>Langue</source><translation>Lingua</translation></message><message><location filename="mainwindow.cpp" line="1143"/><source>Ne lâche rien !</source><translation>Non mollare!</translation></message><message><location filename="mainwindow.cpp" line="1144"/><source>Tu peux accomplir tes objectifs !</source><translation>Puoi raggiungere i tuoi obiettivi!</translation></message><message><location filename="mainwindow.cpp" line="1145"/><source>Il est normal d'être fatigué, mais je crois en toi !</source><translation>È normale essere stanchi, ma io credo in te!</translation></message><message><location filename="mainwindow.cpp" line="1146"/><source>Personne ne peut le faire à ta place,
-alors tu vas me le gravir ce classement !</source><translation>Nessuno può farlo al tuo posto, quindi devi scalare la classifica!</translation></message><message><location filename="mainwindow.cpp" line="1147"/><source>Tu peux le faire !</source><translation>Puoi farcela!</translation></message><message><location filename="mainwindow.cpp" line="1148"/><source>Prouve-nous que tu es meilleur que ce qu'on peut penser !</source><translation>Dimostraci che sei meglio di quello che pensiamo!</translation></message><message><location filename="mainwindow.cpp" line="1149"/><source>Tout le monde est passé par là, ne te décourage pas !</source><translation>Ci siamo passati tutti, non ti scoraggiare!</translation></message><message><location filename="mainwindow.cpp" line="1150"/><source>C'est pas le moment de se décourager !</source><translation>Non è il momento di scoraggiarsi!</translation></message><message><location filename="mainwindow.cpp" line="1151"/><source>Pense à ceux qui croient en toi ... Tu ne
-peux PAS les décevoir !</source><translation>Pensa a coloro che credono in te... Non puoi deluderli!</translation></message><message><location filename="mainwindow.cpp" line="1153"/><source>Si tu es fatigué, tu peux prendre une pause
-avant la nuit. Ça t'évitera de tomber de fatigue 😉</source><translation>Se sei stanco, puoi fare una pausa prima di andare a letto. Eviterai di crollare per la stanchezza 😉</translation></message><message><location filename="mainwindow.cpp" line="1154"/><source>Ne néglige pas la douche.
-L'hygiène avant tout ... non ?</source><translation>Non dimenticare di farti una doccia. L'igiene è fondamentale... giusto?</translation></message><message><location filename="mainwindow.cpp" line="1155"/><source>Il vaudrait mieux que tu aies préparé de quoi
-manger avant de commencer le tournoi.</source><translation>Sarebbe meglio se preparassi qualcosa da mangiare prima dell'inizio del torneo.</translation></message><message><location filename="mainwindow.cpp" line="1156"/><source>Se concentrer sur le tournoi est important, mais
-avoir un autre centre d'attention en a déjà aidé plus d'un.</source><translation>Concentrarsi sul torneo è importante, ma avere anche altri interessi fa bene.</translation></message><message><location filename="mainwindow.cpp" line="1157"/><source>Fatigué pendant la nuit ? Marcher, boire de l'eau et se rafraîchir
-aident à lutter temporairement contre la fatigue.</source><translation>Sei stanco di notte? Camminare, bere acqua e una boccata d'aria fresca possono aiutare a combattere temporaneamente la stanchezza.</translation></message><message><location filename="mainwindow.cpp" line="1158"/><source>La nuit est souvent dure à passer, mais le matin peut te
-surprendre. Fais attention.</source><translation>La notte è spesso la più dura da superare, ma il mattino può sorprendere. Fai attenzione.</translation></message><message><location filename="mainwindow.cpp" line="1160"/><source>Tu peux regarder le classement en cliquant sur l'onglet
-Navigation, puis sur "Classement".</source><translation>Puoi vedere le classifiche cliccando sul tasto
-Navigazione, poi su "Classifiche"</translation></message><message><location filename="mainwindow.cpp" line="1161"/><source>Un objectif en tête ? Tu peux calculer le nombre de
-victoires/heures à gauche de cette fenêtre.</source><translation>Hai un obiettivo in mente? Puoi calcolare le tue vittorie/ora necessarie alla sinistra di questa finestra.</translation></message><message><location filename="mainwindow.cpp" line="1162"/><source>Tu peux générer les graphiques de plusieurs statistiques : 
-Rang, Points, Points/heure, ...</source><translation>Puoi creare grafici per diverse statistiche:
-Posizione, Punti, Punti/ora, ...</translation></message><message><location filename="mainwindow.cpp" line="1163"/><source>La touche "Tab" te permet de rapidement changer de page. Essaye donc !</source><translation>Il tasto "Scheda" ti permette di cambiare pagina velocemente. Provalo!</translation></message><message><location filename="mainwindow.cpp" line="1165"/><source>Team Café, Team Boisson énergisante ou Team Eau ?</source><translation>Team Caffè, Team Bevanda Energetica o Team Acqua?</translation></message><message><location filename="mainwindow.cpp" line="1211"/><source>Éditions à comparer</source><translation>Edizioni da confrontare</translation></message><message><location filename="mainwindow.cpp" line="1215"/><source>Identifiant du joueur :</source><translation>Nome utente del giocatore:</translation></message><message><location filename="mainwindow.cpp" line="1217"/><source>Utiliser mon identifiant</source><translation>Utilizza il mio nome utente</translation></message><message><location filename="mainwindow.cpp" line="1219"/><source>Tout sélectionner</source><translation>Seleziona tutto</translation></message><message><location filename="mainwindow.cpp" line="1221"/><source>Tout désélectionner</source><translation>Deseleziona tutto</translation></message><message><location filename="mainwindow.cpp" line="1223"/><source>Générer le graphique</source><translation>Genera il grafico</translation></message><message><location filename="mainwindow.cpp" line="1225"/><source>Copier le graphique</source><translation>Copia il grafico</translation></message><message><location filename="mainwindow.cpp" line="1479"/><source>Rentrez votre identifiant
+<TS version="2.1" language="en_it">
+<context>
+    <name>ClassementPage</name>
+    <message>
+        <location filename="classement.ui" line="14"/>
+        <source>Classement</source>
+        <translation>Classifica</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="51"/>
+        <location filename="mainwindow.cpp" line="1154"/>
+        <source>Infos</source>
+        <translation>Info</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="122"/>
+        <location filename="mainwindow.cpp" line="1156"/>
+        <source>Infos Moyenne</source>
+        <translation>Info Medie</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="193"/>
+        <location filename="mainwindow.cpp" line="1158"/>
+        <source>Gap</source>
+        <translation>Distanza</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="280"/>
+        <location filename="mainwindow.cpp" line="1160"/>
+        <source>REFRESH</source>
+        <translation>AGGIORNA</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="293"/>
+        <source>Bienvenue sur le leaderboard !</source>
+        <translation>Benvenuto nella classifica!</translation>
+    </message>
+    <message>
+        <location filename="classement.ui" line="325"/>
+        <location filename="mainwindow.cpp" line="1162"/>
+        <source>Copier le graphique</source>
+        <translation>Copia il grafico</translation>
+    </message>
+</context>
+<context>
+    <name>JoueurPage</name>
+    <message>
+        <location filename="joueur.ui" line="14"/>
+        <location filename="joueur.ui" line="65"/>
+        <location filename="mainwindow.cpp" line="1238"/>
+        <source>Joueur</source>
+        <translation>Giocatore</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="74"/>
+        <location filename="mainwindow.cpp" line="1247"/>
+        <source>Identifiant :</source>
+        <translation>Nome utente:</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="81"/>
+        <location filename="mainwindow.cpp" line="1274"/>
+        <source>Entrez l&apos;identifiant...</source>
+        <translation>Inserisci nome utente:</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="88"/>
+        <location filename="mainwindow.cpp" line="1254"/>
+        <source>Mon ID</source>
+        <translation>Mio ID</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="95"/>
+        <location filename="mainwindow.cpp" line="1268"/>
+        <source>Ou choisir dans le top 100 :</source>
+        <translation>O scegli tra la top 100:</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="105"/>
+        <source>Glo</source>
+        <translation>Global</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="110"/>
+        <source>Jap</source>
+        <translation>Jap</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="121"/>
+        <location filename="mainwindow.cpp" line="1270"/>
+        <source>Charger</source>
+        <translation>Carica</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="133"/>
+        <location filename="mainwindow.cpp" line="1276"/>
+        <source>Sélectionner un joueur...</source>
+        <translation>Seleziona un giocatore...</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="143"/>
+        <location filename="mainwindow.cpp" line="1272"/>
+        <source>Ajouter ce joueur</source>
+        <translation>Aggiungi questo giocatore</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="153"/>
+        <location filename="mainwindow.cpp" line="1240"/>
+        <source>Éditions</source>
+        <translation>Edizioni</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="164"/>
+        <location filename="mainwindow.cpp" line="1249"/>
+        <source>De :</source>
+        <translation>Di:</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="174"/>
+        <location filename="mainwindow.cpp" line="1251"/>
+        <source>À :</source>
+        <translation>Ha:</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="186"/>
+        <location filename="mainwindow.cpp" line="1260"/>
+        <source>Ajouter</source>
+        <translation>Aggiungi</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="196"/>
+        <location filename="mainwindow.cpp" line="1244"/>
+        <source>Joueurs ajoutés</source>
+        <translation>Giocatori aggiunti</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="213"/>
+        <location filename="mainwindow.cpp" line="1262"/>
+        <source>Suppr.</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="220"/>
+        <location filename="mainwindow.cpp" line="1264"/>
+        <source>Effacer</source>
+        <translation>Eliminare</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="232"/>
+        <location filename="mainwindow.cpp" line="1242"/>
+        <source>Ordonnée</source>
+        <translation>Ordinato</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="239"/>
+        <source>wins_pace</source>
+        <translation>ritmo_vittorie</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="244"/>
+        <source>points</source>
+        <translation>punti</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="249"/>
+        <source>wins</source>
+        <translation>vittorie</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="254"/>
+        <source>ranks</source>
+        <translation>posizione</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="259"/>
+        <source>points_pace</source>
+        <translation>ritmo_punti</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="264"/>
+        <source>points_wins</source>
+        <translation>punti_per_vittoria</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="275"/>
+        <location filename="mainwindow.cpp" line="1256"/>
+        <source>Générer</source>
+        <translation>Genera</translation>
+    </message>
+    <message>
+        <location filename="joueur.ui" line="331"/>
+        <location filename="mainwindow.cpp" line="1258"/>
+        <source>Copier</source>
+        <translation>Copia</translation>
+    </message>
+</context>
+<context>
+    <name>Leaderboard</name>
+    <message>
+        <location filename="leaderboard.cpp" line="415"/>
+        <source>Refreshe</source>
+        <translation>Aggiorna</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="416"/>
+        <source>Data placeholder here</source>
+        <translation>Segnaposto per dati</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="838"/>
+        <source>Rajouter %1 au graphique</source>
+        <translation>Aggiungi %1 al grafico</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="878"/>
+        <source>Aucun joueur ajouté</source>
+        <translation>Nessun giocatore aggiunto</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="882"/>
+        <source>Supprimer %1</source>
+        <translation>Elimina %1</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="890"/>
+        <source>Supprimer tout le monde</source>
+        <translation>Elimina tutti</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1001"/>
+        <source>Nom</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1001"/>
+        <source>Rank</source>
+        <translation>Posizione</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1001"/>
+        <source>Wins</source>
+        <translation>Vittorie</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1001"/>
+        <source>Points totaux</source>
+        <translation>Punti totali</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1001"/>
+        <source>Heures AFK</source>
+        <translation>Ore inattivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1008"/>
+        <source>Non-AFK</source>
+        <translation>Ore attivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1008"/>
+        <source>AFK</source>
+        <translation>Inattivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1008"/>
+        <source>Wins/h (actif)</source>
+        <translation>Vittorie/ora (attivo)</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1051"/>
+        <location filename="leaderboard.cpp" line="1056"/>
+        <source>Au-dessus</source>
+        <translation>Sopra</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1051"/>
+        <location filename="leaderboard.cpp" line="1073"/>
+        <source>Gap</source>
+        <translation>Distanza</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1051"/>
+        <source>Rattraper</source>
+        <translation>Per raggiungere</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1057"/>
+        <location filename="leaderboard.cpp" line="1079"/>
+        <source>Aucun</source>
+        <translation>Nessuno</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1073"/>
+        <location filename="leaderboard.cpp" line="1078"/>
+        <source>En-dessous</source>
+        <translation>Sotto</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="1073"/>
+        <source>Se faire rattraper</source>
+        <translation>Per essere raggiunto</translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="mainwindow.ui" line="573"/>
+        <source>Générer graphique</source>
+        <translation>Genera grafico</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="603"/>
+        <source>Identification</source>
+        <translation>Nome utente</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="615"/>
+        <source>Changer l&apos;identifiant</source>
+        <translation>Cambia nome utente</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="634"/>
+        <location filename="mainwindow.cpp" line="2472"/>
+        <source>Identifiant actuel : </source>
+        <translation>Nome utente attuale:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="529"/>
+        <source>max_points</source>
+        <translation>massimo_punti</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="71"/>
+        <source>Points</source>
+        <translation>Punti</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="241"/>
+        <source>Rank</source>
+        <translation>Posizione</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="376"/>
+        <source>Simulation (depuis O pt)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="389"/>
+        <source>Estimation</source>
+        <translation>Stima</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="479"/>
+        <source>55ème Tenkaichi Budokai</source>
+        <translation>55esimo Torneo Mondiale</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="511"/>
+        <source>Graphique</source>
+        <translation>Grafico</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="534"/>
+        <source>max_wins</source>
+        <translation>massimo_vittorie</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="539"/>
+        <source>points</source>
+        <translation>punti</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="544"/>
+        <source>points_pace</source>
+        <translation>ritmo_punti</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="549"/>
+        <source>points_wins</source>
+        <translation>punti_per_vittoria</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="554"/>
+        <source>ranks</source>
+        <translation>posizione</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="559"/>
+        <source>wins</source>
+        <translation>vittorie</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="674"/>
+        <source>Édition du tournoi</source>
+        <translation>Edizione del torneo</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="686"/>
+        <source>Choisir l&apos;édition du Tenkaichi Budokai</source>
+        <translation>Scegli l&apos;edizione del Torneo Mondiale</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="203"/>
+        <location filename="mainwindow.ui" line="341"/>
+        <source>Heures AFK</source>
+        <translation>Ore inattivo</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="55"/>
+        <location filename="mainwindow.ui" line="171"/>
+        <location filename="mainwindow.ui" line="325"/>
+        <location filename="mainwindow.cpp" line="2668"/>
+        <source>Objectif</source>
+        <translation>Obiettivo</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="232"/>
+        <location filename="mainwindow.ui" line="266"/>
+        <source>Minutes AFK</source>
+        <translation>Minuti inattivo</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="84"/>
+        <location filename="mainwindow.ui" line="283"/>
+        <source>0</source>
+        <translation>0</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="89"/>
+        <location filename="mainwindow.ui" line="288"/>
+        <source>15</source>
+        <translation>15</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="94"/>
+        <location filename="mainwindow.ui" line="293"/>
+        <source>30</source>
+        <translation>30</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="99"/>
+        <location filename="mainwindow.ui" line="298"/>
+        <source>45</source>
+        <translation>45</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="145"/>
+        <location filename="mainwindow.ui" line="360"/>
+        <source>Ajouter l&apos;objectif au graphique</source>
+        <translation>Aggiunti l&apos;obiettivo al grafico</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="126"/>
+        <location filename="mainwindow.ui" line="405"/>
+        <source>Victoires par heure nécessaire</source>
+        <translation>Vittorie all&apos;ora necessarie</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="463"/>
+        <source>Temps restant : </source>
+        <translation>Tempo rimanente:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="648"/>
+        <source>Sortie d&apos;application</source>
+        <translation>Esci dall&apos;applicazione</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="524"/>
+        <source>wins_pace</source>
+        <translation>ritmo_vittorie</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.ui" line="586"/>
+        <source>Donnée en ordonnée</source>
+        <translation>Dati sull&apos;asse verticale</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1117"/>
+        <source>Bienvenue sur le leaderboard !</source>
+        <translation>Benvenuto nella classifica!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="636"/>
+        <location filename="mainwindow.cpp" line="1126"/>
+        <source>Navigation</source>
+        <translation>Navigazione</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="641"/>
+        <location filename="mainwindow.cpp" line="1128"/>
+        <source>Graphiques</source>
+        <translation>Grafici</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="643"/>
+        <location filename="mainwindow.cpp" line="1131"/>
+        <source>Classement</source>
+        <translation>Classifica</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="646"/>
+        <location filename="mainwindow.cpp" line="1134"/>
+        <location filename="mainwindow.cpp" line="1283"/>
+        <source>Joueur</source>
+        <translation>Giocatore</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="659"/>
+        <location filename="mainwindow.cpp" line="1141"/>
+        <location filename="mainwindow.cpp" line="1727"/>
+        <source>Options</source>
+        <translation>Opzioni</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="661"/>
+        <location filename="mainwindow.cpp" line="1143"/>
+        <source>Paramètres</source>
+        <translation>Impostazioni</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="804"/>
+        <source>Mise à jour disponible</source>
+        <translation>Aggiornamento disponibile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="805"/>
+        <source>Une nouvelle version (%1) est disponible.</source>
+        <translation>Una nuova versione (%1) è disponibile.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="808"/>
+        <source>Télécharger</source>
+        <translation>Scarica</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="988"/>
+        <source>Nouvel identifiant</source>
+        <translation>Nuovo nome utente</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="989"/>
+        <source>Identifiant:</source>
+        <translation>Nome utente:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1004"/>
+        <location filename="mainwindow.cpp" line="1138"/>
+        <source>Langue</source>
+        <translation>Lingua</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1171"/>
+        <location filename="mainwindow.cpp" line="1304"/>
+        <source>Ne lâche rien !</source>
+        <translation>Non mollare!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1172"/>
+        <location filename="mainwindow.cpp" line="1305"/>
+        <source>Tu peux accomplir tes objectifs !</source>
+        <translation>Puoi raggiungere i tuoi obiettivi!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1173"/>
+        <location filename="mainwindow.cpp" line="1306"/>
+        <source>Il est normal d&apos;être fatigué, mais je crois en toi !</source>
+        <translation>È normale essere stanchi, ma io credo in te!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1174"/>
+        <location filename="mainwindow.cpp" line="1307"/>
+        <source>Personne ne peut le faire à ta place,
+alors tu vas me le gravir ce classement !</source>
+        <translation>Nessuno può farlo al tuo posto, quindi devi scalare la classifica!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1175"/>
+        <location filename="mainwindow.cpp" line="1308"/>
+        <source>Tu peux le faire !</source>
+        <translation>Puoi farcela!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1176"/>
+        <location filename="mainwindow.cpp" line="1309"/>
+        <source>Prouve-nous que tu es meilleur que ce qu&apos;on peut penser !</source>
+        <translation>Dimostraci che sei meglio di quello che pensiamo!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1177"/>
+        <location filename="mainwindow.cpp" line="1310"/>
+        <source>Tout le monde est passé par là, ne te décourage pas !</source>
+        <translation>Ci siamo passati tutti, non ti scoraggiare!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1178"/>
+        <location filename="mainwindow.cpp" line="1311"/>
+        <source>C&apos;est pas le moment de se décourager !</source>
+        <translation>Non è il momento di scoraggiarsi!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1179"/>
+        <location filename="mainwindow.cpp" line="1312"/>
+        <source>Pense à ceux qui croient en toi ... Tu ne
+peux PAS les décevoir !</source>
+        <translation>Pensa a coloro che credono in te... Non puoi deluderli!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1181"/>
+        <location filename="mainwindow.cpp" line="1314"/>
+        <source>Si tu es fatigué, tu peux prendre une pause
+avant la nuit. Ça t&apos;évitera de tomber de fatigue 😉</source>
+        <translation>Se sei stanco, puoi fare una pausa prima di andare a letto. Eviterai di crollare per la stanchezza 😉</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1182"/>
+        <location filename="mainwindow.cpp" line="1315"/>
+        <source>Ne néglige pas la douche.
+L&apos;hygiène avant tout ... non ?</source>
+        <translation>Non dimenticare di farti una doccia. L&apos;igiene è fondamentale... giusto?</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1183"/>
+        <location filename="mainwindow.cpp" line="1316"/>
+        <source>Il vaudrait mieux que tu aies préparé de quoi
+manger avant de commencer le tournoi.</source>
+        <translation>Sarebbe meglio se preparassi qualcosa da mangiare prima dell&apos;inizio del torneo.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1184"/>
+        <location filename="mainwindow.cpp" line="1317"/>
+        <source>Se concentrer sur le tournoi est important, mais
+avoir un autre centre d&apos;attention en a déjà aidé plus d&apos;un.</source>
+        <translation>Concentrarsi sul torneo è importante, ma avere anche altri interessi fa bene.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1185"/>
+        <location filename="mainwindow.cpp" line="1318"/>
+        <source>Fatigué pendant la nuit ? Marcher, boire de l&apos;eau et se rafraîchir
+aident à lutter temporairement contre la fatigue.</source>
+        <translation>Sei stanco di notte? Camminare, bere acqua e una boccata d&apos;aria fresca possono aiutare a combattere temporaneamente la stanchezza.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1186"/>
+        <location filename="mainwindow.cpp" line="1319"/>
+        <source>La nuit est souvent dure à passer, mais le matin peut te
+surprendre. Fais attention.</source>
+        <translation>La notte è spesso la più dura da superare, ma il mattino può sorprendere. Fai attenzione.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1188"/>
+        <location filename="mainwindow.cpp" line="1321"/>
+        <source>Tu peux regarder le classement en cliquant sur l&apos;onglet
+Navigation, puis sur &quot;Classement&quot;.</source>
+        <translation>Puoi vedere le classifiche cliccando sul tasto
+Navigazione, poi su &quot;Classifiche&quot;</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1189"/>
+        <location filename="mainwindow.cpp" line="1322"/>
+        <source>Un objectif en tête ? Tu peux calculer le nombre de
+victoires/heures à gauche de cette fenêtre.</source>
+        <translation>Hai un obiettivo in mente? Puoi calcolare le tue vittorie/ora necessarie alla sinistra di questa finestra.</translation>
+    </message>
+    <message>
+        <source>Tu peux générer les graphiques de plusieurs statistiques :
+Rang, Points, Points/heure, ...</source>
+        <translation type="vanished">Puoi creare grafici per diverse statistiche:
+Posizione, Punti, Punti/ora, ...</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1191"/>
+        <location filename="mainwindow.cpp" line="1324"/>
+        <source>La touche &quot;Tab&quot; te permet de rapidement changer de page. Essaye donc !</source>
+        <translation>Il tasto &quot;Scheda&quot; ti permette di cambiare pagina velocemente. Provalo!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1193"/>
+        <location filename="mainwindow.cpp" line="1326"/>
+        <source>Team Café, Team Boisson énergisante ou Team Eau ?</source>
+        <translation>Team Caffè, Team Bevanda Energetica o Team Acqua?</translation>
+    </message>
+    <message>
+        <source>Éditions à comparer</source>
+        <translation type="vanished">Edizioni da confrontare</translation>
+    </message>
+    <message>
+        <source>Identifiant du joueur :</source>
+        <translation type="vanished">Nome utente del giocatore:</translation>
+    </message>
+    <message>
+        <source>Utiliser mon identifiant</source>
+        <translation type="vanished">Utilizza il mio nome utente</translation>
+    </message>
+    <message>
+        <source>Tout sélectionner</source>
+        <translation type="vanished">Seleziona tutto</translation>
+    </message>
+    <message>
+        <source>Tout désélectionner</source>
+        <translation type="vanished">Deseleziona tutto</translation>
+    </message>
+    <message>
+        <source>Générer le graphique</source>
+        <translation type="vanished">Genera il grafico</translation>
+    </message>
+    <message>
+        <source>Copier le graphique</source>
+        <translation type="vanished">Copia il grafico</translation>
+    </message>
+    <message>
+        <source>Rentrez votre identifiant
 et générer un graphique
-d'abord !</source><translation>Prima inserisci un nome utente e genera un grafico!</translation></message><message><location filename="mainwindow.cpp" line="1514"/><source>Vous avez dépassé 
-votre objectif !</source><translation>Hai superato il tuo obiettivo!</translation></message><message><location filename="mainwindow.cpp" line="1525"/><source>Le seed est nul !</source><translation>I tuoi punti per vittoria sono bassi!</translation></message><message><location filename="mainwindow.cpp" line="1539"/><source>Impossible</source><translation>Impossibile</translation></message><message><location filename="mainwindow.cpp" line="1560"/><source>Très Facile</source><translation>Molto facile</translation></message><message><location filename="mainwindow.cpp" line="1563"/><source>Facile</source><translation>Facile</translation></message><message><location filename="mainwindow.cpp" line="1566"/><source>Moyen</source><translation>Medio</translation></message><message><location filename="mainwindow.cpp" line="1569"/><source>Difficile</source><translation>Difficile</translation></message><message><location filename="mainwindow.cpp" line="1572"/><source>Très difficile</source><translation>Molto difficile</translation></message><message><location filename="mainwindow.cpp" line="1575"/><source>bonne chance mdr</source><translation>buona fortuna lol</translation></message><message><location filename="mainwindow.cpp" line="1680"/><source>Choisir une image</source><translation>Scegli un'immagine</translation></message><message><location filename="mainwindow.cpp" line="1680"/><source>Images (*.png *.jpg *.jpeg *.bmp)</source><translation>Immagini (*.png *.jpg *.jpeg *.bmp)</translation></message><message><location filename="mainwindow.cpp" line="1702"/><source>Vous devez installer la dernière version pour ajouter Polar au menu Démarrer.</source><translation>Per aggiungere Polar al menu Start è necessario installare l'ultima versione.</translation></message><message><location filename="mainwindow.cpp" line="1717"/><source>Ajouté au menu Démarrer.</source><translation>Aggiunto al menu Start.</translation></message><message><location filename="mainwindow.cpp" line="1720"/><source>Erreur lors de l'ajout au menu Démarrer.</source><translation>Errore durante l'aggiunta al menu Start.</translation></message><message><location filename="mainwindow.cpp" line="1802"/><source>minute</source><translation>minuto</translation></message><message><location filename="mainwindow.cpp" line="1808"/><source>jour</source><translation>giorno</translation></message><message><location filename="mainwindow.cpp" line="1808"/><source>jours</source><translation>giorni</translation></message><message><location filename="mainwindow.cpp" line="1809"/><source>heure</source><translation>ora</translation></message><message><location filename="mainwindow.cpp" line="1809"/><source>heures</source><translation>ore</translation></message><message><location filename="mainwindow.cpp" line="1810"/><source>minutes</source><translation>minuti</translation></message><message><location filename="mainwindow.cpp" line="1845"/><source>Temps restant : 
-%1</source><translation>Tempo restante:
-%1</translation></message><message><location filename="mainwindow.cpp" line="2155"/><source>Du %1 au %2</source><translation>Da %1 a %2</translation></message><message><location filename="mainwindow.cpp" line="2545"/><source>Préparation du téléchargement...</source><translation>Preparazione del download...</translation></message><message><location filename="mainwindow.cpp" line="2546"/><source>Téléchargement de la mise à jour</source><translation>Download dell'aggiornamento</translation></message><message><location filename="mainwindow.cpp" line="2563"/><source>Téléchargement... 0 / %1</source><translation>Download... 0 / %1</translation></message><message><location filename="mainwindow.cpp" line="2595"/><source>Téléchargement... %1 / %2 — %3 — ETA %4</source><translation>Download... %1 / %2 — %3 — ETA %4</translation></message><message><location filename="mainwindow.cpp" line="2607"/><source>Téléchargement terminé.</source><translation>Download terminato.</translation></message><message><location filename="mainwindow.cpp" line="2609"/><source>Erreur de téléchargement: %1</source><translation>Errore nel download: %1</translation></message><message><location filename="mainwindow.cpp" line="2820"/><source>Édition invalide.</source><translation>Edizione non valida.</translation></message><message><location filename="mainwindow.cpp" line="2842"/><source>Erreur lors du chargement du classement.</source><translation>Errore durante il caricamento della classifica.</translation></message><message><location filename="mainwindow.cpp" line="2850"/><source>Aucun joueur trouvé.</source><translation>Nessun giocatore trovato.</translation></message><message><location filename="mainwindow.cpp" line="2903"/><source>%1 joueurs chargés.</source><translation>%1 giocatori caricati.</translation></message><message><location filename="mainwindow.cpp" line="2931"/><source>Joueur invalide.</source><translation>Giocatore non valido.</translation></message><message><location filename="mainwindow.cpp" line="2940"/><source>Maximum 10 joueurs/séries.</source><translation>Massimo 10 giocatori/serie.</translation></message><message><location filename="mainwindow.cpp" line="2958"/><source>%1 ajouté.</source><translation>%1 aggiunto.</translation></message><message><location filename="mainwindow.cpp" line="2999"/><source>Veuillez entrer un identifiant.</source><translation>Inserisci un nome utente.</translation></message><message><location filename="mainwindow.cpp" line="3035"/><source>Identifiant introuvable.</source><translation>Nome utente non trovato.</translation></message><message><location filename="mainwindow.cpp" line="3036"/><source>Erreur : %1</source><translation>Errore: %1</translation></message><message><location filename="mainwindow.cpp" line="3049"/><source>Aucun joueur trouvé avec cet identifiant.</source><translation>Non è stato trovato nessun giocatore con questo nome utente.</translation></message><message><location filename="mainwindow.cpp" line="3111"/><source>Choisir un joueur</source><translation>Scegli un giocatore</translation></message><message><location filename="mainwindow.cpp" line="3114"/><source>Plusieurs joueurs trouvés (triés par points). Sélectionnez-en un :</source><translation>Sono stati trovati diversi giocatori (in ordine di punti). Scegline uno:</translation></message><message><location filename="mainwindow.cpp" line="3131"/><source>Rank #</source><translation>Posizione #</translation></message><message><location filename="mainwindow.cpp" line="3134"/><source>pts</source><translation>punti</translation></message><message><location filename="mainwindow.cpp" line="3189"/><source>Joueur supprimé.</source><translation>Giocatore rimosso.</translation></message><message><location filename="mainwindow.cpp" line="3205"/><source>Liste effacée.</source><translation>Lista eliminata.</translation></message><message><location filename="mainwindow.cpp" line="3223"/><source>Ajoutez au moins un joueur.</source><translation>Aggiungi almeno un giocatore.</translation></message><message><location filename="mainwindow.cpp" line="3259"/><source>Comparaison de %1 joueur(s)</source><translation>Confronto di %1 giocatore/i</translation></message><message><location filename="mainwindow.cpp" line="3358"/><source>Aucune donnée trouvée.</source><translation>Nessun dato trovato.</translation></message><message><location filename="mainwindow.cpp" line="3366"/><source>Heures</source><translation>Ore</translation></message><message><location filename="mainwindow.cpp" line="3464"/><source>Graphique généré avec %1 série(s).</source><translation>Grafico generato con %1 serie.</translation></message><message><location filename="mainwindow.cpp" line="3474"/><source>Aucun graphique à copier.</source><translation>Nessun grafico da copiare.</translation></message><message><location filename="mainwindow.cpp" line="1916"/><source>Score édition %1 : %2</source><translation>Punteggio edizione %1 : %2</translation></message><message><location filename="mainwindow.cpp" line="1940"/><source>Estimation points : %1</source><translation>Punti stimati : %1</translation></message><message><location filename="mainwindow.cpp" line="2058"/><source>Objectif (Rank)</source><translation>Obiettivo (Posizione)</translation></message><message><location filename="mainwindow.cpp" line="2111"/><source>%1ème Tenkaichi Budokai</source><translation>%1esimo Torneo Mondiale</translation></message><message><location filename="mainwindow.cpp" line="2299"/><source>Une erreur est survenue lors de la copie du graphique.</source><translation>Si è verificato un errore durante la copia del grafico.</translation></message><message><location filename="mainwindow.cpp" line="2315"/><source>Aucun graphique n'a
-été affiché !</source><translation>Nessun grafico visualizzato !</translation></message><message><location filename="mainwindow.cpp" line="2334"/><source>Erreur lors de la copie.</source><translation>Errore durante la copia.</translation></message><message><location filename="mainwindow.cpp" line="2351"/><source>Graphique copié !</source><translation>Grafico copiato !</translation></message><message><location filename="mainwindow.cpp" line="2382"/><source>Erreur : aucun graphique affiché.</source><translation>Errore : nessun grafico visualizzato.</translation></message><message><location filename="mainwindow.cpp" line="2397"/><source>Erreur : une erreur s'est produite lors de la copie du graphique</source><translation>Errore : si è verificato un errore durante la copia del grafico.</translation></message></context><context><name>OptionsDialog</name><message><location filename="options.ui" line="14"/><source>Options</source><translation>Opzioni</translation></message><message><location filename="options.ui" line="20"/><source>Région</source><translation>Regione</translation></message><message><location filename="options.ui" line="29"/><source>Glo</source><translation>Global</translation></message><message><location filename="options.ui" line="39"/><source>Jap</source><translation>Jap</translation></message><message><location filename="options.ui" line="49"/><source>Thème des graphiques</source><translation>Tema del grafico</translation></message><message><location filename="options.ui" line="56"/><source>Bleu Céruléen</source><translation>Blu Ceruleo</translation></message><message><location filename="options.ui" line="61"/><source>Clair - Bleu 1</source><translation>Chiaro - Blu 1</translation></message><message><location filename="options.ui" line="66"/><source>Clair - Bleu 2</source><translation>Chiaro - Blu 2</translation></message><message><location filename="options.ui" line="71"/><source>Clair - Bleu 3</source><translation>Chiaro - Blu 3</translation></message><message><location filename="options.ui" line="76"/><source>Clair - Noir</source><translation>Chiaro - Nero</translation></message><message><location filename="options.ui" line="81"/><source>Clair - Vert</source><translation>Chiaro - Verde</translation></message><message><location filename="options.ui" line="86"/><source>Sable</source><translation>Sabbia</translation></message><message><location filename="options.ui" line="91"/><source>Thème sombre</source><translation>Tema scuro</translation></message><message><location filename="options.ui" line="102"/><source>Fond d'écran</source><translation>Sfondo</translation></message><message><location filename="options.ui" line="108"/><source>Utiliser un fond d'écran personnalisé</source><translation>Utilizza uno sfondo personalizzato</translation></message><message><location filename="options.ui" line="120"/><source>Chemin de l'image...</source><translation>Percorso dell'immagine...</translation></message><message><location filename="options.ui" line="127"/><source>Parcourir...</source><translation>Sfoglia...</translation></message><message><location filename="options.ui" line="136"/><source>Rendre les éléments transparents (boutons, listes, ...)</source><translation>Rendi gli elementi trasparenti (pulsanti, liste, ...)</translation></message><message><location filename="options.ui" line="139"/><source>Quand coché: boutons/listes/etc. sont transparents. Sinon, ils sont opaques. La barre de menu et la barre d'état restent transparentes.</source><translation>Se selezionato: pulsanti/liste/ecc. saranno trasparenti. Altrimenti saranno opachi. La barra dei menu e la barra di stato rimarranno trasparenti.</translation></message><message><location filename="options.ui" line="149"/><source>Opacité du fond</source><translation>Opacità dello sfondo</translation></message><message><location filename="options.ui" line="168"/><source>0%</source><translation>0%</translation></message><message><location filename="options.ui" line="181"/><source>Confidentialité</source><translation>Privacy</translation></message><message><location filename="options.ui" line="187"/><source>Censurer l'identifiant affiché</source><translation>Nascondi il nome utente visualizzato</translation></message><message><location filename="options.ui" line="197"/><source>Auto-refresh</source><translation>Aggiornamento automatico</translation></message><message><location filename="options.ui" line="203"/><source>Délai additionnel (min)</source><translation>Intervallo di tempo aggiuntivo (min)</translation></message><message><location filename="options.ui" line="213"/><source> min</source><translation>min</translation></message><message><location filename="options.ui" line="229"/><source>Menu Démarrer</source><translation>Menu Start</translation></message><message><location filename="options.ui" line="235"/><source>Ajouter au menu Démarrer</source><translation>Aggiungi al menu Start</translation></message><message><location filename="options.ui" line="242"/><source>Ajouter</source><translation>Aggiungi</translation></message><message><location filename="options.ui" line="262"/><source>Format de date</source><translation>Formato dei dati</translation></message><message><location filename="options.ui" line="269"/><source>Locale système</source><translation>Sistema locale</translation></message><message><location filename="options.ui" line="292"/><source>Aperçu : </source><translation>Anteprima:</translation></message><message><location filename="options.ui" line="210"/><source>Ajoute 0 à 15 minutes aux quarts d'heure (00, 15, 30, 45)</source><translation>Aggiungi da 0 a 15 minuti ai quarti d'ora (00, 15, 30, 45)</translation></message></context><context><name>QObject</name><message><location filename="mainwindow.cpp" line="277"/><source>Erreur lors de la conversion en JSON</source><translation>Errore durante la conversione in JSON</translation></message><message><location filename="mainwindow.cpp" line="282"/><source>Erreur réseau : </source><translation>Errore di rete:</translation></message><message><location filename="mainwindow.cpp" line="289"/><source>Code de statut HTTP: </source><translation>Codice di stato HTTP:</translation></message><message><location filename="mainwindow.cpp" line="292"/><source>Le serveur a répondu avec un code d'erreur HTTP.</source><translation>Il server ha risposto con un codice di errore HTTP.</translation></message><message><location filename="mainwindow.cpp" line="295"/><source>Impossible de récupérer le code de statut HTTP.</source><translation>Impossibile recuperare il codice di stato HTTP.</translation></message><message><location filename="mainwindow.cpp" line="1058"/><source>Impossible de charger la traduction pour</source><translation>Impossibile caricare la traduzione per</translation></message><message><location filename="mainwindow.cpp" line="1746"/><source>Aperçu : %1</source><translation>Anteprima: %1</translation></message><message><location filename="render.cpp" line="432"/><source>" en fonction des heures</source><translation>" a seconda delle ore</translation></message><message><location filename="render.cpp" line="434"/><source>Heures</source><translation>Ore</translation></message><message><location filename="render.cpp" line="435"/><source>Points</source><translation>Punti</translation></message><message><location filename="leaderboard.cpp" line="678"/><source>Nom</source><translation>Nome</translation></message><message><location filename="leaderboard.cpp" line="679"/><source>Rank</source><translation>Posizione</translation></message><message><location filename="leaderboard.cpp" line="680"/><source>Wins</source><translation>Vittorie</translation></message><message><location filename="leaderboard.cpp" line="681"/><source>Points totaux</source><translation>Punti totali</translation></message><message><location filename="leaderboard.cpp" line="682"/><source>Heures AFK</source><translation>Ore inattivo</translation></message><message><location filename="leaderboard.cpp" line="690"/><source>Non-AFK</source><translation>Attivo</translation></message><message><location filename="leaderboard.cpp" line="691"/><source>AFK</source><translation>Inattivo</translation></message><message><location filename="leaderboard.cpp" line="692"/><source>Wins/h (actif)</source><translation>Vittorie/ora (attivo)</translation></message></context><context><name>Updater</name><message><location filename="updater.cpp" line="181"/><source>Impossible d'écrire le fichier dans le dossier de l'application.</source><translation>Impossibile scrivere il file nella cartella dell'applicazione.</translation></message></context></TS>
+d&apos;abord !</source>
+        <translation type="vanished">Prima inserisci un nome utente e genera un grafico!</translation>
+    </message>
+    <message>
+        <source>Vous avez dépassé
+votre objectif !</source>
+        <translation type="vanished">Hai superato il tuo obiettivo!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1627"/>
+        <source>Le seed est nul !</source>
+        <translation>I tuoi punti per vittoria sono bassi!</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1641"/>
+        <location filename="mainwindow.cpp" line="2180"/>
+        <source>Impossible</source>
+        <translation>Impossibile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1668"/>
+        <source>Très Facile</source>
+        <translation>Molto facile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1671"/>
+        <source>Facile</source>
+        <translation>Facile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1674"/>
+        <source>Moyen</source>
+        <translation>Medio</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1677"/>
+        <source>Difficile</source>
+        <translation>Difficile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1680"/>
+        <source>Très difficile</source>
+        <translation>Molto difficile</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1683"/>
+        <source>bonne chance mdr</source>
+        <translation>buona fortuna lol</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1688"/>
+        <source>
+
+-- Mode Simulation --
+Durée théorique : %1h (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1689"/>
+        <location filename="mainwindow.cpp" line="2236"/>
+        <source>
+Victoires totales estimées : %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1806"/>
+        <source>Choisir une image</source>
+        <translation>Scegli un&apos;immagine</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1806"/>
+        <source>Images (*.png *.jpg *.jpeg *.bmp)</source>
+        <translation>Immagini (*.png *.jpg *.jpeg *.bmp)</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1837"/>
+        <source>Vous devez installer la dernière version pour ajouter Polar au menu Démarrer.</source>
+        <translation>Per aggiungere Polar al menu Start è necessario installare l&apos;ultima versione.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1852"/>
+        <source>Ajouté au menu Démarrer.</source>
+        <translation>Aggiunto al menu Start.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1855"/>
+        <source>Erreur lors de l&apos;ajout au menu Démarrer.</source>
+        <translation>Errore durante l&apos;aggiunta al menu Start.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1942"/>
+        <location filename="mainwindow.cpp" line="1950"/>
+        <source>minute</source>
+        <translation>minuto</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1948"/>
+        <source>jour</source>
+        <translation>giorno</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1948"/>
+        <source>jours</source>
+        <translation>giorni</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1949"/>
+        <source>heure</source>
+        <translation>ora</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1949"/>
+        <source>heures</source>
+        <translation>ore</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1950"/>
+        <source>minutes</source>
+        <translation>minuti</translation>
+    </message>
+    <message>
+        <source>Temps restant :
+%1</source>
+        <translation type="vanished">Tempo restante:
+%1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2378"/>
+        <source>Du %1 au %2</source>
+        <translation>Da %1 a %2</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2768"/>
+        <source>Préparation du téléchargement...</source>
+        <translation>Preparazione del download...</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2769"/>
+        <source>Téléchargement de la mise à jour</source>
+        <translation>Download dell&apos;aggiornamento</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2786"/>
+        <source>Téléchargement... 0 / %1</source>
+        <translation>Download... 0 / %1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2818"/>
+        <source>Téléchargement... %1 / %2 — %3 — ETA %4</source>
+        <translation>Download... %1 / %2 — %3 — ETA %4</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2830"/>
+        <source>Téléchargement terminé.</source>
+        <translation>Download terminato.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2832"/>
+        <source>Erreur de téléchargement: %1</source>
+        <translation>Errore nel download: %1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3043"/>
+        <source>Édition invalide.</source>
+        <translation>Edizione non valida.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3065"/>
+        <source>Erreur lors du chargement du classement.</source>
+        <translation>Errore durante il caricamento della classifica.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3073"/>
+        <source>Aucun joueur trouvé.</source>
+        <translation>Nessun giocatore trovato.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3126"/>
+        <source>%1 joueurs chargés.</source>
+        <translation>%1 giocatori caricati.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3154"/>
+        <source>Joueur invalide.</source>
+        <translation>Giocatore non valido.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3163"/>
+        <location filename="mainwindow.cpp" line="3238"/>
+        <source>Maximum 10 joueurs/séries.</source>
+        <translation>Massimo 10 giocatori/serie.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3181"/>
+        <location filename="mainwindow.cpp" line="3398"/>
+        <source>%1 ajouté.</source>
+        <translation>%1 aggiunto.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3222"/>
+        <source>Veuillez entrer un identifiant.</source>
+        <translation>Inserisci un nome utente.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3258"/>
+        <source>Identifiant introuvable.</source>
+        <translation>Nome utente non trovato.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3259"/>
+        <source>Erreur : %1</source>
+        <translation>Errore: %1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3272"/>
+        <source>Aucun joueur trouvé avec cet identifiant.</source>
+        <translation>Non è stato trovato nessun giocatore con questo nome utente.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3334"/>
+        <source>Choisir un joueur</source>
+        <translation>Scegli un giocatore</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3337"/>
+        <source>Plusieurs joueurs trouvés (triés par points). Sélectionnez-en un :</source>
+        <translation>Sono stati trovati diversi giocatori (in ordine di punti). Scegline uno:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3354"/>
+        <source>Rank #</source>
+        <translation>Posizione #</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3357"/>
+        <source>pts</source>
+        <translation>punti</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3412"/>
+        <source>Joueur supprimé.</source>
+        <translation>Giocatore rimosso.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3428"/>
+        <source>Liste effacée.</source>
+        <translation>Lista eliminata.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3446"/>
+        <source>Ajoutez au moins un joueur.</source>
+        <translation>Aggiungi almeno un giocatore.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3482"/>
+        <source>Comparaison de %1 joueur(s)</source>
+        <translation>Confronto di %1 giocatore/i</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3581"/>
+        <source>Aucune donnée trouvée.</source>
+        <translation>Nessun dato trovato.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3589"/>
+        <source>Heures</source>
+        <translation>Ore</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3687"/>
+        <source>Graphique généré avec %1 série(s).</source>
+        <translation>Grafico generato con %1 serie.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="3697"/>
+        <source>Aucun graphique à copier.</source>
+        <translation>Nessun grafico da copiare.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2070"/>
+        <location filename="mainwindow.cpp" line="2073"/>
+        <source>Score édition %1 : %2</source>
+        <translation>Punteggio edizione %1 : %2</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1190"/>
+        <location filename="mainwindow.cpp" line="1323"/>
+        <source>Tu peux générer les graphiques de plusieurs statistiques : 
+Rang, Points, Points/heure, ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1572"/>
+        <location filename="mainwindow.cpp" line="2122"/>
+        <source>On ne peut pas deviner
+vos points actuels !
+Générez un graphique
+ou activez la Simulation.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1616"/>
+        <source>Vous avez dépassé 
+votre objectif !</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1985"/>
+        <source>Temps restant : 
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2094"/>
+        <source>Estimation points : %1</source>
+        <translation>Punti stimati : %1</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2096"/>
+        <source>(Seed du joueur : %1 pts/win)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2234"/>
+        <source>
+
+-- Mode Simulation --
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2235"/>
+        <source>Durée théorique : %1h (%2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2281"/>
+        <source>Objectif (Rank)</source>
+        <translation>Obiettivo (Posizione)</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2334"/>
+        <location filename="mainwindow.cpp" line="2385"/>
+        <source>%1ème Tenkaichi Budokai</source>
+        <translation>%1esimo Torneo Mondiale</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2522"/>
+        <source>Une erreur est survenue lors de la copie du graphique.</source>
+        <translation>Si è verificato un errore durante la copia del grafico.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2538"/>
+        <source>Aucun graphique n&apos;a
+été affiché !</source>
+        <translation>Nessun grafico visualizzato !</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2557"/>
+        <location filename="mainwindow.cpp" line="3709"/>
+        <source>Erreur lors de la copie.</source>
+        <translation>Errore durante la copia.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2574"/>
+        <location filename="mainwindow.cpp" line="3719"/>
+        <source>Graphique copié !</source>
+        <translation>Grafico copiato !</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2605"/>
+        <source>Erreur : aucun graphique affiché.</source>
+        <translation>Errore : nessun grafico visualizzato.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="2620"/>
+        <source>Erreur : une erreur s&apos;est produite lors de la copie du graphique</source>
+        <translation>Errore : si è verificato un errore durante la copia del grafico.</translation>
+    </message>
+</context>
+<context>
+    <name>OptionsDialog</name>
+    <message>
+        <location filename="options.ui" line="14"/>
+        <source>Options</source>
+        <translation>Opzioni</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="20"/>
+        <source>Région</source>
+        <translation>Regione</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="29"/>
+        <source>Glo</source>
+        <translation>Global</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="39"/>
+        <source>Jap</source>
+        <translation>Jap</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="49"/>
+        <source>Graphique</source>
+        <oldsource>Thème des graphiques</oldsource>
+        <translation type="unfinished">Tema del grafico</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="55"/>
+        <source>Thème des graphiques :</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="63"/>
+        <source>Bleu Céruléen</source>
+        <translation>Blu Ceruleo</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="68"/>
+        <source>Clair - Bleu 1</source>
+        <translation>Chiaro - Blu 1</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="73"/>
+        <source>Clair - Bleu 2</source>
+        <translation>Chiaro - Blu 2</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="78"/>
+        <source>Clair - Bleu 3</source>
+        <translation>Chiaro - Blu 3</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="83"/>
+        <source>Clair - Noir</source>
+        <translation>Chiaro - Nero</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="88"/>
+        <source>Clair - Vert</source>
+        <translation>Chiaro - Verde</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="93"/>
+        <source>Sable</source>
+        <translation>Sabbia</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="98"/>
+        <source>Thème sombre</source>
+        <translation>Tema scuro</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="106"/>
+        <source>Masquer les horaires négatives</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="109"/>
+        <source>Certaines heures sont buggés, comme celle du TB 61. Cocher cette option les masquera.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="116"/>
+        <source>Forcer le graphique à l&apos;heure 0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="126"/>
+        <source>Fond d&apos;écran</source>
+        <translation>Sfondo</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="132"/>
+        <source>Utiliser un fond d&apos;écran personnalisé</source>
+        <translation>Utilizza uno sfondo personalizzato</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="144"/>
+        <source>Chemin de l&apos;image...</source>
+        <translation>Percorso dell&apos;immagine...</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="151"/>
+        <source>Parcourir...</source>
+        <translation>Sfoglia...</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="160"/>
+        <source>Rendre les éléments transparents (boutons, listes, ...)</source>
+        <translation>Rendi gli elementi trasparenti (pulsanti, liste, ...)</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="163"/>
+        <source>Quand coché: boutons/listes/etc. sont transparents. Sinon, ils sont opaques. La barre de menu et la barre d&apos;état restent transparentes.</source>
+        <translation>Se selezionato: pulsanti/liste/ecc. saranno trasparenti. Altrimenti saranno opachi. La barra dei menu e la barra di stato rimarranno trasparenti.</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="173"/>
+        <source>Opacité du fond</source>
+        <translation>Opacità dello sfondo</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="192"/>
+        <source>0%</source>
+        <translation>0%</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="205"/>
+        <source>Confidentialité</source>
+        <translation>Privacy</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="211"/>
+        <source>Censurer l&apos;identifiant affiché</source>
+        <translation>Nascondi il nome utente visualizzato</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="221"/>
+        <source>Auto-refresh</source>
+        <translation>Aggiornamento automatico</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="227"/>
+        <source>Délai additionnel (min)</source>
+        <translation>Intervallo di tempo aggiuntivo (min)</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="237"/>
+        <source> min</source>
+        <translation>min</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="253"/>
+        <source>Menu Démarrer</source>
+        <translation>Menu Start</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="259"/>
+        <source>Ajouter au menu Démarrer</source>
+        <translation>Aggiungi al menu Start</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="266"/>
+        <source>Ajouter</source>
+        <translation>Aggiungi</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="286"/>
+        <source>Format de date</source>
+        <translation>Formato dei dati</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="293"/>
+        <source>Locale système</source>
+        <translation>Sistema locale</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="316"/>
+        <source>Aperçu : </source>
+        <translation>Anteprima:</translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="329"/>
+        <source>Durées théoriques (heures)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="337"/>
+        <source>Durée GLO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="350"/>
+        <location filename="options.ui" line="370"/>
+        <source> h</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="357"/>
+        <source>Durée JP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="options.ui" line="234"/>
+        <source>Ajoute 0 à 15 minutes aux quarts d&apos;heure (00, 15, 30, 45)</source>
+        <translation>Aggiungi da 0 a 15 minuti ai quarti d&apos;ora (00, 15, 30, 45)</translation>
+    </message>
+</context>
+<context>
+    <name>QObject</name>
+    <message>
+        <location filename="mainwindow.cpp" line="277"/>
+        <source>Erreur lors de la conversion en JSON</source>
+        <translation>Errore durante la conversione in JSON</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="282"/>
+        <source>Erreur réseau : </source>
+        <translation>Errore di rete:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="289"/>
+        <source>Code de statut HTTP: </source>
+        <translation>Codice di stato HTTP:</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="292"/>
+        <source>Le serveur a répondu avec un code d&apos;erreur HTTP.</source>
+        <translation>Il server ha risposto con un codice di errore HTTP.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="295"/>
+        <source>Impossible de récupérer le code de statut HTTP.</source>
+        <translation>Impossibile recuperare il codice di stato HTTP.</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1083"/>
+        <source>Impossible de charger la traduction pour</source>
+        <translation>Impossibile caricare la traduzione per</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="1881"/>
+        <source>Aperçu : %1</source>
+        <translation>Anteprima: %1</translation>
+    </message>
+    <message>
+        <location filename="render.cpp" line="432"/>
+        <location filename="render.cpp" line="551"/>
+        <source>&quot; en fonction des heures</source>
+        <translation>&quot; a seconda delle ore</translation>
+    </message>
+    <message>
+        <location filename="render.cpp" line="434"/>
+        <location filename="render.cpp" line="553"/>
+        <source>Heures</source>
+        <translation>Ore</translation>
+    </message>
+    <message>
+        <location filename="render.cpp" line="435"/>
+        <location filename="render.cpp" line="554"/>
+        <source>Points</source>
+        <translation>Punti</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="678"/>
+        <source>Nom</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="679"/>
+        <source>Rank</source>
+        <translation>Posizione</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="680"/>
+        <source>Wins</source>
+        <translation>Vittorie</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="681"/>
+        <source>Points totaux</source>
+        <translation>Punti totali</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="682"/>
+        <source>Heures AFK</source>
+        <translation>Ore inattivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="690"/>
+        <source>Non-AFK</source>
+        <translation>Attivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="691"/>
+        <source>AFK</source>
+        <translation>Inattivo</translation>
+    </message>
+    <message>
+        <location filename="leaderboard.cpp" line="692"/>
+        <source>Wins/h (actif)</source>
+        <translation>Vittorie/ora (attivo)</translation>
+    </message>
+</context>
+<context>
+    <name>Updater</name>
+    <message>
+        <location filename="updater.cpp" line="181"/>
+        <source>Impossible d&apos;écrire le fichier dans le dossier de l&apos;application.</source>
+        <translation>Impossibile scrivere il file nella cartella dell&apos;applicazione.</translation>
+    </message>
+</context>
+</TS>

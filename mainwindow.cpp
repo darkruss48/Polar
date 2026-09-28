@@ -309,6 +309,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // Set up standard widgets to follow transparency settings. Done dynamically in updateBackgroundPalette() now.
+
     // rendre invisible combo_tb_edition et pushButton
     // if (ui->combo_tb_edition) {
     //     ui->combo_tb_edition->setVisible(false);
@@ -394,6 +396,12 @@ MainWindow::MainWindow(QWidget *parent)
     if (ui->lineEdit_goal_2) {
         ui->lineEdit_goal_2->setValidator(new QIntValidator(1, 10000, this));
         connect(ui->lineEdit_goal_2, &QLineEdit::textChanged, this, [this]() { m_debounceTimerRank->start(); });
+    }
+    
+    // Connect estimation label interaction
+    if (ui->label_estimation_rank) {
+        ui->label_estimation_rank->setContextMenuPolicy(Qt::NoContextMenu);
+        connect(ui->label_estimation_rank, &QLabel::linkActivated, this, &MainWindow::showRankAnalysisDialog);
     }
 
     // Connecter le signal pour formatter le nombre avec des virgules
@@ -983,19 +991,22 @@ void MainWindow::on_bouton_graphique_clicked()
 
 void MainWindow::on_idButton_clicked()
 {
-    // Pop up demandant un nouvel identifiant
-    bool ok;
-    QString text = QInputDialog::getText(this, tr("Nouvel identifiant"),
-                                         tr("Identifiant:"), QLineEdit::Normal,
-                                         "", &ok);
-    if (ok && !text.isEmpty()) {
-        // Persist identifier (real value)
-        AppSettings::savedIdentifier = text;
-        AppSettings::save();
-        // Update runtime value used by code
-        functb::identifier = text.toStdString();
-        // Update label display honoring censor setting
-        updateIdLabelDisplay();
+    if (ui->lineEdit_id) {
+        ui->lineEdit_id->setReadOnly(false);
+        // Style changes happen via stylesheet pseudo-state QLineEdit[readOnly="false"]
+        ui->lineEdit_id->style()->unpolish(ui->lineEdit_id);
+        ui->lineEdit_id->style()->polish(ui->lineEdit_id);
+        
+        // Force rendering clear of dots if we want to toggle visible
+        for(QAction* act : ui->lineEdit_id->actions()) {
+            if (act->property("isEyeIcon").toBool()) {
+                act->setVisible(true); // make icon visible while editing
+                break;
+            }
+        }
+        
+        ui->lineEdit_id->setFocus();
+        ui->lineEdit_id->selectAll();
     }
 }
 
@@ -1418,6 +1429,22 @@ void MainWindow::setupEasterEgg()
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 {
+    if (ui->lineEdit_id && watched == ui->lineEdit_id) {
+        if (!ui->lineEdit_id->isReadOnly()) {
+            if (event->type() == QEvent::KeyPress) {
+                QKeyEvent *ke = static_cast<QKeyEvent *>(event);
+                if (ke->key() == Qt::Key_Escape) {
+                    updateIdLabelDisplay(); // resets text and readonly
+                    return true;
+                }
+            } else if (event->type() == QEvent::FocusOut) {
+                // If it loses focus while editing but wasn't Enter/Escape
+                // We use single shot to avoid destroying focus during focus event
+                QTimer::singleShot(0, this, &MainWindow::updateIdLabelDisplay);
+            }
+        }
+    }
+
     if (ui->label_time_left && watched == ui->label_time_left) {
         switch (event->type()) {
         case QEvent::Enter:
@@ -1747,6 +1774,7 @@ void MainWindow::showOptionsDialog()
     auto spinExtraDelay = content->findChild<QSpinBox*>("spinExtraDelay"); // NEW
     // NEW: transparent controls
     auto checkTransparent = content->findChild<QCheckBox*>("checkTransparentControls"); // NEW
+    auto checkNewUI = content->findChild<QCheckBox*>("checkNewUI"); // NEW: new complete UI
     // NEW: Start Menu UI
     auto lblStartTitle = content->findChild<QLabel*>("labelAddStartMenuTitle");
     auto btnAddStart   = content->findChild<QPushButton*>("buttonAddStartMenu");
@@ -1826,6 +1854,9 @@ void MainWindow::showOptionsDialog()
     // NEW: transparent controls
     if (checkTransparent) {
         checkTransparent->setChecked(AppSettings::transparentControls);
+    }
+    if (checkNewUI) {
+        checkNewUI->setChecked(AppSettings::useNewUI);
     }
 
     // État: activer seulement si la version est à jour
@@ -1911,6 +1942,7 @@ void MainWindow::showOptionsDialog()
         if (spinExtraDelay) AppSettings::autoRefreshExtraDelayMinutes = qBound(0, spinExtraDelay->value(), 15);
         // NEW: save transparent controls setting
         if (checkTransparent) AppSettings::transparentControls = checkTransparent->isChecked();
+        if (checkNewUI) AppSettings::useNewUI = checkNewUI->isChecked();
         // NEW: save shortcut-update preference
         if (checkUpdateShortcut) AppSettings::updateStartShortcutOnUpgrade = checkUpdateShortcut->isChecked();
         // NEW: save date format
@@ -1984,6 +2016,9 @@ void MainWindow::updateTbUiFromTimes()
     if (ui && ui->label_time_left) {
         ui->label_time_left->setText(tr("Temps restant : \n%1").arg(formatDhMin(remain)));
     }
+
+    // Refresh dates display so relative times stay relevant
+    updateTbDatesDisplay();
 }
 
 // NEW: rank target (1..10000)
@@ -2031,15 +2066,16 @@ void MainWindow::updateRankEstimation()
     const bool isJP = (AppSettings::region == "Jap" || AppSettings::region == "JP");
     const int start = isJP ? 56 : 55;
 
-    // Build up to 3 editions: base, base-1, base-2 (bounded)
+    // Build up to 8 editions for a better trend projection
     QVector<int> eds;
-    eds.push_back(baseEd);
-    if (baseEd - 1 >= start) eds.push_back(baseEd - 1);
-    if (baseEd - 2 >= start) eds.push_back(baseEd - 2);
+    for (int i = 0; i < 8; ++i) {
+        if (baseEd - i >= start) eds.push_back(baseEd - i);
+    }
 
-    // Query each edition for the rank points and collect last values
-    QStringList lines;
-    QVector<qint64> lastValsNewestFirst; // newest -> older
+    m_rankTarget = rank;
+    m_rankHistoryEds.clear();
+    m_rankHistoryPts.clear();
+
     double rankAvgSeed = -1.0;
     
     for (int ed : eds) {
@@ -2067,37 +2103,52 @@ void MainWindow::updateRankEstimation()
         }
         
         if (lastPts >= 0) {
-            lines << tr("Score édition %1 : %2").arg(ed).arg(formatMillionsCompact(lastPts));
-            lastValsNewestFirst << lastPts;
-        } else {
-            lines << tr("Score édition %1 : %2").arg(ed).arg(QStringLiteral("—"));
+            // Append to our history lists backwards so it's oldest first eventually
+            m_rankHistoryEds.push_front(ed);
+            m_rankHistoryPts.push_front(lastPts);
         }
     }
 
-    // Compute points estimation using average delta on chronological order
+    // Mathematical Linear Regression
     qint64 estimatedPoints = -1;
-    if (!lastValsNewestFirst.isEmpty()) {
-        QVector<qint64> valsChrono = lastValsNewestFirst;
-        std::reverse(valsChrono.begin(), valsChrono.end()); // oldest -> newest
-        const int n = valsChrono.size();
+    if (!m_rankHistoryPts.isEmpty()) {
+        const int n = m_rankHistoryPts.size();
         if (n == 1) {
-            estimatedPoints = valsChrono.last();
+            estimatedPoints = m_rankHistoryPts.last();
         } else {
-            double sumDelta = 0.0;
-            for (int i = 1; i < n; ++i) sumDelta += static_cast<double>(valsChrono[i] - valsChrono[i-1]);
-            const double avgDelta = sumDelta / static_cast<double>(n - 1);
-            const double est = static_cast<double>(valsChrono.last()) + avgDelta;
+            double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for (int i = 0; i < n; ++i) {
+                double y = static_cast<double>(m_rankHistoryPts[i]);
+                sumX += i;
+                sumY += y;
+                sumXY += i * y;
+                sumX2 += i * i;
+            }
+            double m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            double b = (sumY - m * sumX) / n;
+            double est = m * n + b; // Target next edition at X = n
+            
             estimatedPoints = static_cast<qint64>(std::max(0.0, est));
         }
-        // Append estimation line
-        lines << QString();
-        lines << tr("Estimation points : %1").arg(formatMillionsCompact(estimatedPoints));
-        if (rankAvgSeed > 0.0) {
-            lines << tr("(Seed du joueur : %1 pts/win)").arg(static_cast<int>(rankAvgSeed));
-        }
-    }
+        
+        m_rankProjectedEd = baseEd;
+        m_rankProjectedPts = estimatedPoints;
 
-    lbl->setText(lines.join('\n'));
+        // Modern visual card (HTML/CSS)
+        QString html = QString(
+            "<div style='border:1px solid rgba(128, 128, 128, 80); border-radius:4px; padding:14px 6px 8px 6px; color:inherit; text-align:center;'>"
+            "  <div style='font-size:24px; font-weight:bold; color:#1a73e8; margin-bottom:2px;'>%1</div>"
+            "  <div style='margin-top:4px; font-size:11px;'>"
+            "    <a href=\"show_rank_analysis\" style='color:#1a73e8; text-decoration:underline;'>%2 ➔</a>"
+            "  </div>"
+            "</div>"
+        ).arg(formatMillionsCompact(estimatedPoints)).arg(tr("Statistiques détaillées"));
+        
+        lbl->setOpenExternalLinks(false);
+        lbl->setText(html);
+    } else {
+        lbl->setText(tr("Impossible d'obtenir\nles données"));
+    }
 
     // Compute wins/hour needed to reach estimated points (same as Points tab logic)
     if (ui->label_win_pace_rank) {
@@ -2224,16 +2275,16 @@ void MainWindow::updateRankEstimation()
 
         // Update info label for simulation mode
         if (ui->label_estimation_rank) {
-            // Retrieve previously set text (score editions + points estimation)
-            QString currentText = lines.join('\n');
+            // Retrieve previously set HTML text
+            QString currentText = ui->label_estimation_rank->text();
             
             if (ui->checkBox_estimation && ui->checkBox_estimation->isChecked()) {
                 double baseDur = (AppSettings::region == "Jap") ? AppSettings::durationJp : AppSettings::durationGlo;
                 double totalWins = (pointsPerStep > 0) ? (static_cast<double>(targetDelta) / pointsPerStep) : 0.0;
                 
-                currentText += tr("\n\n-- Mode Simulation --\n");
-                currentText += tr("Durée théorique : %1h (%2)").arg(baseDur).arg(AppSettings::region);
-                currentText += tr("\nVictoires totales estimées : %1").arg(static_cast<int>(totalWins));
+                currentText += QString("<div style='margin-top:6px; font-size:11px; opacity:0.8;'>");
+                currentText += tr("Simulation: %1").arg(static_cast<int>(totalWins)) + " victoires";
+                currentText += QString("</div>");
             }
             ui->label_estimation_rank->setText(currentText);
         }
@@ -2375,7 +2426,48 @@ void MainWindow::updateTbDatesDisplay()
         }
     }
 
-    ui->wt_date->setText(tr("Du %1 au %2").arg(startStr, endStr));
+    auto formatRelative = [](const QDateTime& dt) -> QString {
+        auto now = QDateTime::currentDateTime();
+        qint64 secs = now.secsTo(dt);
+        bool inPast = (secs < 0);
+        secs = qAbs(secs);
+        
+        int days = secs / 86400;
+        int hours = (secs % 86400) / 3600;
+        
+        if (days > 30) {
+            int months = days / 30;
+            int remDays = days % 30;
+            QString res = tr("%1 mois").arg(months);
+            if (remDays > 0) res += tr(", %1 jours").arg(remDays);
+            return inPast ? tr("Il y a %1").arg(res) : tr("Dans %1").arg(res);
+        } else if (days > 0) {
+            QString res = tr("%1 jours").arg(days);
+            if (hours > 0) res += tr(", %1 heures").arg(hours);
+            return inPast ? tr("Il y a %1").arg(res) : tr("Dans %1").arg(res);
+        } else if (hours > 0) {
+            int mins = (secs % 3600) / 60;
+            return inPast ? tr("Il y a %1 h %2 min").arg(hours).arg(mins) 
+                          : tr("Dans %1 h %2 min").arg(hours).arg(mins);
+        } else {
+            int mins = secs / 60;
+            return inPast ? tr("Il y a %1 min").arg(mins) : tr("Dans %1 min").arg(mins);
+        }
+    };
+
+    QString startRel = formatRelative(startDt);
+    QString endRel = formatRelative(endDt);
+
+    QString html = QString(
+        "<div style='text-align: center;'>"
+        "  <span style='font-size:12px;'>" + tr("Du <b>%1</b> au <b>%2</b>") + "</span><br/>"
+        "  <span style='font-size:10px; color:rgba(128, 128, 128, 200);'>"
+        "    <i>" + tr("Début : %3 &nbsp;&nbsp;|&nbsp;&nbsp; Fin : %4") + "</i>"
+        "  </span>"
+        "</div>"
+    ).arg(startStr).arg(endStr).arg(startRel).arg(endRel);
+
+    ui->wt_date->setText(html);
 }
 
 // NEW: rebuild localized title/time using cached metadata (no refetch)
@@ -2454,6 +2546,42 @@ void MainWindow::updateBackgroundPalette()
 
     if (mb) mb->update();
     if (statusBar()) statusBar()->update();
+    
+    // Apply UI DA dynamically to all specific group boxes
+    QString osThemeStyles = "";
+    if (AppSettings::useNewUI) {
+        QString bgStyle = transparentControls ? "rgba(128, 128, 128, 20)" : "palette(window)";
+        QString paneBg = transparentControls ? "transparent" : "palette(window)";
+        QString btnStyle = transparentControls ? "rgba(128, 128, 128, 30)" : "palette(button)";
+        QString hoverStyle = transparentControls ? "rgba(128, 128, 128, 50)" : "palette(light)";
+        QString pressedStyle = transparentControls ? "rgba(128, 128, 128, 70)" : "palette(mid)";
+
+        osThemeStyles = 
+            "QGroupBox { background: " + paneBg + "; border: 1px solid rgba(128, 128, 128, 60); border-radius: 4px; margin-top: 18px; font-weight: bold; } "
+            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 5px; } "
+            "QTabWidget::pane { background: " + paneBg + "; border: 1px solid rgba(128, 128, 128, 60); border-top-right-radius: 4px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; top: -1px; } "
+            "QTabWidget > QWidget { background: transparent; } "
+            "QTabBar::tab { background: " + bgStyle + "; padding: 5px 12px; border: 1px solid rgba(128, 128, 128, 60); border-bottom: none; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-right: 2px; } "
+            "QTabBar::tab:selected { background: " + (transparentControls ? "transparent" : "palette(window)") + "; border-top: 2px solid #1a73e8; border-bottom: 3px solid " + (transparentControls ? "rgba(128, 128, 128, 0)" : "palette(window)") + "; margin-bottom: -2px; } "
+            "QTabBar::tab:hover:!selected { background: " + hoverStyle + "; } "
+            "QLineEdit, QComboBox { background: " + (transparentControls ? bgStyle : "palette(base)") + "; border: 1px solid rgba(128, 128, 128, 60); border-radius: 2px; padding: 4px; } "
+            "QLineEdit[readOnly=\"false\"] { background: palette(base); border: 1px solid #1a73e8; } " // Better UX feedback for edit mode
+            "QLineEdit:focus:!readOnly, QComboBox:focus { border: 1px solid #1a73e8; } "
+            "QPushButton { background: " + btnStyle + "; border: 1px solid rgba(128, 128, 128, 60); border-radius: 2px; padding: 5px 12px; font-weight: bold; } "
+            "QPushButton:hover { background: " + hoverStyle + "; border: 1px solid #1a73e8; } "
+            "QPushButton:pressed { background: " + pressedStyle + "; } ";
+    }
+
+    if (ui->goal) ui->goal->setStyleSheet(osThemeStyles);
+    QGroupBox *idBox = findChild<QGroupBox*>("groupBox_2");
+    if (idBox) idBox->setStyleSheet(osThemeStyles);
+    QGroupBox *grBox = findChild<QGroupBox*>("groupBox");
+    if (grBox) grBox->setStyleSheet(osThemeStyles);
+    QGroupBox *coBox = findChild<QGroupBox*>("groupBox_3");
+    if (coBox) coBox->setStyleSheet(osThemeStyles);
+    QGroupBox *edBox = findChild<QGroupBox*>("groupBox_4");
+    if (edBox) edBox->setStyleSheet(osThemeStyles);
+    
     this->update();
 }
 
@@ -2469,10 +2597,89 @@ QString MainWindow::maskedIdentifier(const QString& id) const
 void MainWindow::updateIdLabelDisplay()
 {
     if (!ui || !ui->label) return;
-    const QString prefix = tr("Identifiant actuel : ");
     const QString realId = QString::fromStdString(functb::identifier).trimmed();
-    const QString shown = AppSettings::censorIdDisplay ? maskedIdentifier(realId) : realId;
-    ui->label->setText(prefix + shown);
+    
+    if (ui->lineEdit_id) {
+        ui->lineEdit_id->setReadOnly(true);
+        ui->lineEdit_id->clearFocus();
+        ui->lineEdit_id->style()->unpolish(ui->lineEdit_id);
+        ui->lineEdit_id->style()->polish(ui->lineEdit_id);
+        ui->lineEdit_id->setText(realId);
+        
+        // Mode censure = Password dots, sinon Normal
+        if (AppSettings::censorIdDisplay) {
+            ui->lineEdit_id->setEchoMode(QLineEdit::Password);
+            
+            // Eye icon for toggling visibility
+            bool hasEye = false;
+            for(QAction* act : ui->lineEdit_id->actions()) {
+                if (act->property("isEyeIcon").toBool()) {
+                    hasEye = true;
+                    act->setVisible(false); // only visible when editing
+                    
+                    QPixmap pix(20, 20); pix.fill(Qt::transparent);
+                    QPainter p(&pix); p.setRenderHint(QPainter::Antialiasing);
+                    p.setPen(QPen(Qt::darkGray, 1.5)); p.setBrush(Qt::NoBrush);
+                    p.drawEllipse(QRectF(2, 6, 16, 8)); p.drawEllipse(QRectF(7, 7, 6, 6));
+                    act->setIcon(QIcon(pix));
+                    break;
+                }
+            }
+            if(!hasEye) {
+                QAction *eyeAction = ui->lineEdit_id->addAction(QIcon(), QLineEdit::TrailingPosition);
+                eyeAction->setProperty("isEyeIcon", true);
+                eyeAction->setVisible(false); // only visible when editing
+                
+                QPixmap pix(20, 20); pix.fill(Qt::transparent);
+                QPainter p(&pix); p.setRenderHint(QPainter::Antialiasing);
+                p.setPen(QPen(Qt::darkGray, 1.5)); p.setBrush(Qt::NoBrush);
+                p.drawEllipse(QRectF(2, 6, 16, 8)); p.drawEllipse(QRectF(7, 7, 6, 6)); 
+                eyeAction->setIcon(QIcon(pix));
+                
+                connect(eyeAction, &QAction::triggered, this, [this, eyeAction]() {
+                    if (ui->lineEdit_id->echoMode() == QLineEdit::Password) {
+                        ui->lineEdit_id->setEchoMode(QLineEdit::Normal);
+                        QPixmap pix2(20, 20); pix2.fill(Qt::transparent); QPainter p2(&pix2);
+                        p2.setRenderHint(QPainter::Antialiasing); p2.setPen(QPen(Qt::darkGray, 1.5)); p2.setBrush(Qt::NoBrush);
+                        p2.drawEllipse(QRectF(2, 6, 16, 8)); p2.drawEllipse(QRectF(7, 7, 6, 6));
+                        p2.setPen(QPen(Qt::red, 1.5)); p2.drawLine(2, 18, 18, 2);
+                        eyeAction->setIcon(QIcon(pix2));
+                    } else {
+                        ui->lineEdit_id->setEchoMode(QLineEdit::Password);
+                        QPixmap pix2(20, 20); pix2.fill(Qt::transparent); QPainter p2(&pix2);
+                        p2.setRenderHint(QPainter::Antialiasing); p2.setPen(QPen(Qt::darkGray, 1.5)); p2.setBrush(Qt::NoBrush);
+                        p2.drawEllipse(QRectF(2, 6, 16, 8)); p2.drawEllipse(QRectF(7, 7, 6, 6));
+                        eyeAction->setIcon(QIcon(pix2));
+                    }
+                });
+            }
+        } else {
+            ui->lineEdit_id->setEchoMode(QLineEdit::Normal);
+            for(QAction* act : ui->lineEdit_id->actions()) {
+                if (act->property("isEyeIcon").toBool()) {
+                    ui->lineEdit_id->removeAction(act);
+                    act->deleteLater();
+                }
+            }
+        }
+        
+        // One-time connections
+        if(ui->lineEdit_id->property("connected").isNull()) {
+            connect(ui->lineEdit_id, &QLineEdit::returnPressed, this, [this]() {
+                QString text = ui->lineEdit_id->text().trimmed();
+                if(!text.isEmpty()) {
+                    AppSettings::savedIdentifier = text;
+                    AppSettings::save();
+                    functb::identifier = text.toStdString();
+                }
+                updateIdLabelDisplay();
+            });
+            
+            // To properly intercept Escape key and outside clicks natively without side effects
+            ui->lineEdit_id->installEventFilter(this);
+            ui->lineEdit_id->setProperty("connected", true);
+        }
+    }
 }
 
 // NEW: schedule next trigger at next quarter + offset (in minutes)
@@ -3099,8 +3306,8 @@ void MainWindow::onJoueurLoadTop100()
 
         QString name = player.value("name").toString();
         // FIX: essayer d'abord "id", sinon fallback sur "name"
-        QString id = player.value("id").toString();
-        if (id.isEmpty()) {
+        QString id = player.value("id").toVariant().toString();
+        if (id.isEmpty() || id == "0") {
             id = name; // fallback si pas d'ID dans le JSON
         }
 
@@ -3722,3 +3929,70 @@ void MainWindow::onJoueurCopyClicked()
         });
     }
 }
+
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTableWidget>
+#include <QHeaderView>
+
+void MainWindow::showRankAnalysisDialog(const QString &link) {
+    if (m_rankHistoryPts.isEmpty()) return;
+
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Analyse du rang %1").arg(m_rankTarget));
+    dlg.resize(420, 380);
+
+    dlg.setStyleSheet("QDialog { background-color: #252526; color: #cccccc; } "
+                      "QLabel { color: #cccccc; border: none; } "
+                      "QTableWidget { background-color: #1e1e1e; color: #cccccc; gridline-color: #3c3c3c; border: 1px solid #3c3c3c; border-radius: 4px; } "
+                      "QHeaderView::section { background-color: #2d2d2d; color: #9d9d9d; border: 1px solid #3c3c3c; border-top: none; border-left: none; font-weight: bold; padding: 4px; } "
+                      "QScrollBar:vertical { border: none; background: #252526; width: 10px; margin: 0px 0px 0px 0px; } "
+                      "QScrollBar::handle:vertical { background: #4a4a4a; min-height: 20px; border-radius: 5px; } "
+                      "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { border: none; background: none; height: 0px; } "
+                      "QPushButton { background-color: #0e639c; color: white; border-radius: 3px; padding: 6px 15px; font-weight: bold; } "
+                      "QPushButton:hover { background-color: #1177bb; } "
+                      "QPushButton:pressed { background-color: #094771; }");
+
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+
+    QLabel *info = new QLabel(tr("Cette estimation utilise une régression linéaire sur les %1 derniers tournois.").arg(m_rankHistoryPts.size()), &dlg);
+    info->setWordWrap(true);
+    layout->addWidget(info);
+
+    QTableWidget *table = new QTableWidget(m_rankHistoryPts.size() + 1, 2, &dlg);
+    table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    table->setHorizontalHeaderLabels({tr("Édition"), tr("Points Requis")});
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    
+    for (int i = 0; i < m_rankHistoryPts.size(); ++i) {
+        QTableWidgetItem *edItem = new QTableWidgetItem(QString::number(m_rankHistoryEds[i]));
+        QTableWidgetItem *ptItem = new QTableWidgetItem(formatMillionsCompact(m_rankHistoryPts[i]));
+        edItem->setTextAlignment(Qt::AlignCenter);
+        ptItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        table->setItem(i, 0, edItem);
+        table->setItem(i, 1, ptItem);
+    }
+    
+    QTableWidgetItem *edProjItem = new QTableWidgetItem(tr("%1").arg(m_rankProjectedEd));
+    QTableWidgetItem *ptProjItem = new QTableWidgetItem(formatMillionsCompact(m_rankProjectedPts));
+    edProjItem->setTextAlignment(Qt::AlignCenter);
+    edProjItem->setForeground(QBrush(QColor("#3794ff")));
+    ptProjItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    ptProjItem->setForeground(QBrush(QColor("#3794ff")));
+    QFont font = edProjItem->font(); font.setBold(true);
+    edProjItem->setFont(font); ptProjItem->setFont(font);
+
+    table->setItem(m_rankHistoryPts.size(), 0, edProjItem);
+    table->setItem(m_rankHistoryPts.size(), 1, ptProjItem);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    layout->addWidget(table);
+
+    QPushButton *btnClose = new QPushButton(tr("Fermer"), &dlg);
+    connect(btnClose, &QPushButton::clicked, &dlg, &QDialog::accept);
+    layout->addWidget(btnClose);
+
+    dlg.exec();
+}
+
